@@ -54,6 +54,8 @@
     left: calc(var(--panel-w, 380px) + 10px) !important;
   }
 
+  .maplibregl-ctrl-scale.floatable{ pointer-events:auto; }
+
   /* ---------------------------------------------------- réglage d'assiette (barre verticale discrète) */
   #pitch-control{
     position:absolute; z-index:2;
@@ -760,7 +762,7 @@
         <li>Clic droit + glisser (ou deux doigts) : pivoter / incliner la vue 3D</li>
         <li>Molette, pincement ou boutons + / − (en haut à droite) : zoomer / dézoomer</li>
         <li>Icône épingle (en bas, à côté de l'échelle) : coordonnées du curseur en WGS84, Lambert 72 ou Lambert 2008</li>
-        <li><b>Icônes flottantes</b> : glissez la barre météo, les boutons + / −, la boussole, la barre d'inclinaison (par sa poignée en pointillés) ou la boîte de coordonnées où vous voulez dans la carte ; les positions sont mémorisées</li>
+        <li><b>Icônes flottantes</b> : glissez la barre météo, les boutons + / −, la boussole, la barre d'inclinaison (par sa poignée en pointillés) la boîte de coordonnées ou l'échelle où vous voulez dans la carte ; les positions sont mémorisées</li>
         <li>Barre verticale en bas à droite : inclinaison de 0° à 70°</li>
         <li>Bouton Street View (sous la boussole) puis clic sur la carte : ouvre Google Street View à cet endroit dans un nouvel onglet</li>
       </ul>
@@ -846,7 +848,7 @@
           <li><b>Fond de carte randonnée/chemins</b> : remplace la photo aérienne Esri par OpenTopoMap (sentiers, courbes de niveau) ; la trace passe de l'orange au bleu pour rester lisible. Décoché par défaut.</li>
           <li><b>Relief</b> : exagéré ×1,6 avec ombrage. La barre verticale en bas à droite règle l'inclinaison (0° à 70°) ; le clic droit + glisser incline et pivote la vue.</li>
           <li><b>Zoom</b> : boutons <b>+</b> / <b>−</b> translucides en haut à droite (avec la boussole sous eux), ou molette / pincement.</li>
-          <li><b>Icônes flottantes</b> : la barre lieu + météo, les boutons + / −, la boussole, la barre d'inclinaison (glissez-la par sa poignée en pointillés, en haut) et la boîte de coordonnées se déplacent <b>librement</b> dans la zone de la carte : glissez-les à la souris ou au doigt. Elles ne sortent jamais de la carte ni ne passent sous le panneau ; leurs positions sont mémorisées. Le bouton « Remettre les icônes de la carte à leur place » de l'aide rapide (en tête de cette fenêtre) rétablit la disposition d'origine.</li>
+          <li><b>Icônes flottantes</b> : la barre lieu + météo, les boutons + / −, la boussole, la barre d'inclinaison (glissez-la par sa poignée en pointillés, en haut) la boîte de coordonnées et l'échelle se déplacent <b>librement</b> dans la zone de la carte : glissez-les à la souris ou au doigt. Elles ne sortent jamais de la carte ni ne passent sous le panneau ; leurs positions sont mémorisées. Le bouton « Remettre les icônes de la carte à leur place » de l'aide rapide (en tête de cette fenêtre) rétablit la disposition d'origine.</li>
           <li><b>Coordonnées du curseur</b> : cliquez sur l'icône épingle en bas de la carte, à côté de l'échelle ; elle se déplie et affiche la position sous le curseur (dernier appui sur écran tactile). La liste choisit le système : <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> ou <b>Lambert 2008</b> (X, Y en mètres). Le choix est mémorisé. Sans connexion, les conversions Lambert peuvent être indisponibles et seul le WGS84 s'affiche.</li>
           <li>La navigation est limitée à la vue générale de la trace agrandie ×4, pour éviter de charger des tuiles inutiles.</li>
           <li><b>Panneau</b> : la poignée verticale à son bord droit le redimensionne (largeur mémorisée). Sur écran étroit (760 px ou moins), il passe sous la carte.</li>
@@ -905,7 +907,7 @@
         <li>Right-click + drag (or two fingers): rotate / tilt the 3D view</li>
         <li>Wheel, pinch or the + / − buttons (top right): zoom in / out</li>
         <li>Pin icon (bottom, next to the scale): cursor coordinates in WGS84, Lambert 72 or Lambert 2008</li>
-        <li><b>Floating icons</b>: drag the weather bar, the + / − buttons, the compass, the tilt bar (by its dotted handle) or the coordinates box anywhere in the map; positions are remembered</li>
+        <li><b>Floating icons</b>: drag the weather bar, the + / − buttons, the compass, the tilt bar (by its dotted handle), the coordinates box or the scale anywhere in the map; positions are remembered</li>
         <li>Vertical bar at the bottom right: tilt from 0° to 70°</li>
         <li>Street View button (below the compass) then click on the map: opens Google Street View at that spot in a new tab</li>
       </ul>
@@ -991,7 +993,7 @@
           <li><b>Hiking/paths basemap</b>: replaces Esri aerial photo with OpenTopoMap (paths, contour lines); the track turns from orange to blue to stay readable. Unchecked by default.</li>
           <li><b>Terrain</b>: exaggerated ×1.6 with hillshade. The vertical bar at the bottom right sets the tilt (0° to 70°); right-click + drag tilts and rotates the view.</li>
           <li><b>Zoom</b>: translucent <b>+</b> / <b>−</b> buttons at the top right (with the compass below them), or wheel / pinch.</li>
-          <li><b>Floating icons</b>: the place + weather bar, the + / − buttons, the compass, the tilt bar (drag it by its dotted handle at the top) and the coordinates box can be moved <b>freely</b> within the map area: drag them with the mouse or a finger. They never leave the map or go under the panel; their positions are remembered. The “Put the map icons back in place” button of the quick help (at the top of this window) restores the original layout.</li>
+          <li><b>Floating icons</b>: the place + weather bar, the + / − buttons, the compass, the tilt bar (drag it by its dotted handle at the top), the coordinates box and the scale can be moved <b>freely</b> within the map area: drag them with the mouse or a finger. They never leave the map or go under the panel; their positions are remembered. The “Put the map icons back in place” button of the quick help (at the top of this window) restores the original layout.</li>
           <li><b>Cursor coordinates</b>: click the pin icon at the bottom of the map, next to the scale; it unfolds and shows the position under the cursor (last tap on touch screens). The list picks the system: <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> or <b>Lambert 2008</b> (X, Y in metres). The choice is remembered. Offline, the Lambert conversions may be unavailable and only WGS84 is shown.</li>
           <li>Navigation is limited to the track overview enlarged ×4, to avoid loading useless tiles.</li>
           <li><b>Panel</b>: the vertical handle on its right edge resizes it (width remembered). On narrow screens (760 px or less), it moves below the map.</li>
@@ -3351,8 +3353,8 @@ function refreshDynamicTexts(){
 })();
 
 /* ============================================================
-   Icônes flottantes de la fenêtre carte : barre lieu + météo, boutons + / −, boussole, barre d'assiette
-   et boîte de coordonnées se déplacent librement (glisser) dans la zone de la carte.
+   Icônes flottantes de la fenêtre carte : barre lieu + météo, boutons + / −, boussole, barre d'assiette,
+   boîte de coordonnées et échelle se déplacent librement (glisser) dans la zone de la carte.
    - déplacement par décalage CSS (--fdx / --fdy) : la position d'origine reste celle de la feuille de style
    - positions mémorisées (localStorage) ; bouton « Remettre les icônes… » dans l'aide rapide
    ============================================================ */
@@ -3372,6 +3374,8 @@ function refreshDynamicTexts(){
   if (zoomBar) zoomBar.classList.add('floatable');
   if (compass) compass.classList.add('floatable');
   if (svCtrlBox) svCtrlBox.classList.add('floatable');
+  const scaleBar = document.querySelector('.maplibregl-ctrl-scale');
+  if (scaleBar) scaleBar.classList.add('floatable');
 
   const defs = [
     ['weather', document.getElementById('weather-bar'), []],
@@ -3380,6 +3384,7 @@ function refreshDynamicTexts(){
     ['pitch',   document.getElementById('pitch-control'), [document.getElementById('pitch-tooltip')]],
     ['coord',   document.getElementById('coord-box'), []],
     ['sv',      svCtrlBox, []],
+    ['scale',   scaleBar, []],
   ];
   const widgets = defs.filter(d => d[1]).map(d => ({
     id: d[0], el: d[1], followers: d[2].filter(Boolean),
