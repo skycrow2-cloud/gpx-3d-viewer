@@ -331,6 +331,23 @@
   #coord-system:focus{ outline:none; }
   #coord-system option{ background:#1b222a; color:var(--text); }
 
+  /* bouton masquer / afficher le panneau gauche (carte seule) */
+  #panel-toggle{
+    position:absolute; z-index:6;
+    top:10px; left:calc(var(--panel-w, 380px) + 10px);
+    width:30px; height:30px; padding:0; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(30,37,48,.6);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid rgba(232,163,61,.35);
+    box-shadow:0 4px 14px rgba(0,0,0,.5);
+    color:var(--accent); cursor:pointer;
+  }
+  #panel-toggle:hover{ background:rgba(232,163,61,.18); }
+  #panel-toggle svg{ transition:transform .15s ease; }
+  body.panel-hidden #panel-toggle svg{ transform:rotate(180deg); }
+  body.panel-hidden #panel, body.panel-hidden #resize-handle{ display:none !important; }
+
   /* icônes flottantes : chaque commande de la carte se déplace en la glissant (décalage --fdx / --fdy) */
   .floatable{
     transform:translate(var(--fdx, 0px), var(--fdy, 0px));
@@ -525,6 +542,9 @@
     #track-title-badge{ top:52px; max-width:88vw; }
     #pitch-control{ bottom:10px; height:100px; }
     #coord-box{ left:10px; bottom:auto; top:94px; }
+    #panel-toggle{ left:10px; top:auto; bottom:10px; }
+    #panel-toggle svg{ transform:rotate(90deg); }
+    body.panel-hidden #panel-toggle svg{ transform:rotate(-90deg); }
   }
   /* bouton Google Street View (contrôle de carte) */
   .maplibregl-ctrl-group button.sv-map-btn{ display:flex; align-items:center; justify-content:center; color:var(--accent); }
@@ -678,6 +698,7 @@
       <p class="version-line">v1.2.2 · © A.Legat</p>
     </div>
   </aside>
+  <button id="panel-toggle" type="button" data-i18n-title="panelHide" title="Masquer le panneau" aria-label="Masquer le panneau"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div id="resize-handle" data-i18n-title="resize" title="Glisser pour redimensionner"></div>
 
   <div id="empty-hint" data-i18n="emptyHint">Chargez un fichier GPX pour commencer</div>
@@ -766,6 +787,7 @@
         <li>Clic droit + glisser (ou deux doigts) : pivoter / incliner la vue 3D</li>
         <li>Molette, pincement ou boutons + / − (en haut à droite) : zoomer / dézoomer</li>
         <li>Icône épingle (en bas, à côté de l'échelle) : coordonnées du curseur en WGS84, Lambert 72 ou Lambert 2008</li>
+        <li>Bouton <b>‹</b> en haut à gauche de la carte : masque le panneau pour ne voir que la carte (<b>›</b> le réaffiche)</li>
         <li><b>Icônes flottantes</b> : glissez la barre météo, les boutons + / −, la boussole, la barre d'inclinaison (par sa poignée en pointillés) la boîte de coordonnées ou l'échelle où vous voulez dans la carte ; les positions sont mémorisées</li>
         <li>Barre verticale en bas à droite : inclinaison de 0° à 70°</li>
         <li>Bouton Street View (sous la boussole) puis clic sur la carte : ouvre Google Street View à cet endroit dans un nouvel onglet</li>
@@ -911,6 +933,7 @@
         <li>Right-click + drag (or two fingers): rotate / tilt the 3D view</li>
         <li>Wheel, pinch or the + / − buttons (top right): zoom in / out</li>
         <li>Pin icon (bottom, next to the scale): cursor coordinates in WGS84, Lambert 72 or Lambert 2008</li>
+        <li><b>‹</b> button at the top left of the map: hides the panel to show the map only (<b>›</b> brings it back)</li>
         <li><b>Floating icons</b>: drag the weather bar, the + / − buttons, the compass, the tilt bar (by its dotted handle), the coordinates box or the scale anywhere in the map; positions are remembered</li>
         <li>Vertical bar at the bottom right: tilt from 0° to 70°</li>
         <li>Street View button (below the compass) then click on the map: opens Google Street View at that spot in a new tab</li>
@@ -1163,7 +1186,7 @@ const I18N = {
     attribution: "Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Annuler",
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
-    'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation",
+    'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
     'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto",
     'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
@@ -1220,7 +1243,7 @@ const I18N = {
     attribution: "Imagery © Esri, Maxar, Earthstar Geographics · Terrain © AWS Open Data Terrain Tiles / Mapzen · Basemap © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · Weather © Open-Meteo.com (CC-BY 4.0) · Place names © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Cancel",
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
-    'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation",
+    'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
     'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto",
     'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
@@ -3393,6 +3416,7 @@ function refreshDynamicTexts(){
 
   /* zone où une icône peut se trouver : la carte visible (à droite du panneau ; au-dessus de lui sur mobile) */
   function area(){
+    if (document.body.classList.contains('panel-hidden')) return { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
     const pr = panel ? panel.getBoundingClientRect() : { left: 0, top: window.innerHeight, right: 0 };
     if (window.innerWidth <= 760) return { left: 0, top: 0, right: window.innerWidth, bottom: pr.top };
     return { left: pr.right, top: 0, right: window.innerWidth, bottom: window.innerHeight };
@@ -3470,6 +3494,43 @@ function refreshDynamicTexts(){
     widgets.forEach(w => { w.dx = 0; w.dy = 0; setVars(w); });
     persist();
   }));
+})();
+
+/* ============================================================
+   Masquer / afficher le panneau gauche (carte seule)
+   ============================================================ */
+(function initPanelToggle(){
+  const btn = document.getElementById('panel-toggle');
+  if (!btn) return;
+  const KEY = 'gpx3d-panel-hidden';
+  function apply(hidden, recenter){
+    document.body.classList.toggle('panel-hidden', hidden);
+    btn.dataset.i18nTitle = hidden ? 'panelShow' : 'panelHide';
+    const t = tx('title.' + btn.dataset.i18nTitle);
+    btn.title = t; btn.setAttribute('aria-label', t);
+    const panel = document.getElementById('panel');
+    if (panel) document.documentElement.style.setProperty('--panel-w', (hidden ? 0 : panel.getBoundingClientRect().width) + 'px');
+    if (map && map.resize) map.resize();
+    if (!recenter || !state.track) return;
+    // recadrage sur la nouvelle zone visible : position courante en lecture suivie, trace entière sinon
+    const idx = Math.floor(state.position);
+    const p = state.track.points[idx];
+    if (state.playing && followActive() && p){
+      state.followZoomApplied = false;
+      followPosition(p, idx, state.track, true);
+    } else {
+      recenterOnPanel();
+    }
+  }
+  let hidden = false;
+  try { hidden = localStorage.getItem(KEY) === '1'; } catch(e){}
+  apply(hidden, false);
+  btn.addEventListener('click', () => {
+    hidden = !document.body.classList.contains('panel-hidden');
+    try { if (hidden) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch(e){}
+    apply(hidden, true);
+    window.dispatchEvent(new Event('resize')); // recale les icônes flottantes dans la nouvelle zone
+  });
 })();
 
 /* ============================================================
