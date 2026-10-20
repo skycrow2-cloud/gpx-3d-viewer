@@ -301,7 +301,8 @@
   /* coordonnées du curseur (WGS84 / Lambert 72 / Lambert 2008) */
   #coord-box{
     position:absolute; z-index:5;
-    left:calc(var(--panel-w, 380px) + 10px); bottom:44px;
+    /* par défaut à droite de l'échelle (échelle : panneau + 20 px, largeur maxi ≈ 216 px) */
+    left:calc(var(--panel-w, 380px) + 244px); bottom:3px;
     display:flex; align-items:center; gap:6px;
     padding:4px 9px 4px 4px; border-radius:999px;
     background:rgba(30,37,48,.6);
@@ -3363,11 +3364,6 @@ function refreshDynamicTexts(){
   const panel = document.getElementById('panel');
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch(e){ saved = {}; }
-  // reprise de l'ancien déplacement latéral de la boîte de coordonnées
-  try {
-    const old = parseInt(localStorage.getItem('gpx3d-coord-dx'), 10);
-    if (old && !saved.coord) saved.coord = { dx: old, dy: 0 };
-  } catch(e){}
 
   const zoomBar = document.querySelector('.zoom-bar');
   const compass = document.querySelector('.maplibregl-ctrl-top-right .maplibregl-ctrl-group');
@@ -3382,7 +3378,7 @@ function refreshDynamicTexts(){
     ['zoom',    zoomBar, []],
     ['compass', compass, []],
     ['pitch',   document.getElementById('pitch-control'), [document.getElementById('pitch-tooltip')]],
-    ['coord',   document.getElementById('coord-box'), []],
+    ['coordbox', document.getElementById('coord-box'), []], // (ex-'coord' : position d'origine changée)
     ['sv',      svCtrlBox, []],
     ['scale',   scaleBar, []],
   ];
