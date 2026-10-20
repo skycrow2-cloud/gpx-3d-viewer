@@ -563,7 +563,9 @@
   /* traces GPS OpenStreetMap */
   #osmPanel .osm-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
   #osmPanel .osm-head .help-title{ margin:0; }
-  #osmPanel .osm-close{ width:28px; height:28px; font-size:17px; flex:0 0 auto; padding:0; }
+  #osmPanel .osm-close{ width:28px; height:28px; font-size:18px; font-weight:700; flex:0 0 auto; padding:0; color:var(--accent);
+    display:flex; align-items:center; justify-content:center; transition:background .15s ease, box-shadow .15s ease; }
+  #osmPanel .osm-close:hover{ box-shadow:0 0 0 3px var(--accent-soft); }
   #osmPanel{
     display:none; position:fixed; z-index:2500;
     top:16px; left:calc(var(--panel-w, 380px) + 14px);
