@@ -561,6 +561,9 @@
   #sv-banner[hidden]{ display:none; }
 
   /* traces GPS OpenStreetMap */
+  #osmPanel .osm-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+  #osmPanel .osm-head .help-title{ margin:0; }
+  #osmPanel .osm-close{ width:28px; height:28px; font-size:17px; flex:0 0 auto; padding:0; }
   #osmPanel{
     display:none; position:fixed; z-index:2500;
     top:16px; left:calc(var(--panel-w, 380px) + 14px);
@@ -709,7 +712,10 @@
   <div id="sv-banner" hidden></div>
 
   <div id="osmPanel" role="dialog" aria-labelledby="osmTitle">
-    <div class="help-title" id="osmTitle" data-i18n="osm.title" style="margin-bottom:8px;">Traces GPS · OpenStreetMap</div>
+    <div class="osm-head">
+      <div class="help-title" id="osmTitle" data-i18n="osm.title">Traces GPS · OpenStreetMap</div>
+      <button class="doc-close osm-close" id="btnOsmClose" type="button" data-i18n-title="close" title="Fermer (Échap)" aria-label="Fermer (Échap)">×</button>
+    </div>
 
     <div id="osmSetup" style="display:none;">
       <div class="help-block" data-lang="fr" lang="fr">
@@ -3341,6 +3347,11 @@ function refreshDynamicTexts(){
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && isOpen()){ panel.style.display = 'none'; btnOsm.classList.remove('active'); }
+  });
+  document.getElementById('btnOsmClose').addEventListener('click', ev => {
+    ev.stopPropagation();
+    panel.style.display = 'none';
+    btnOsm.classList.remove('active');
   });
   document.getElementById('btnOsmSaveId').addEventListener('click', () => {
     const v = document.getElementById('osmClientId').value.trim();
