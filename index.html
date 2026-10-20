@@ -3421,6 +3421,10 @@ function refreshDynamicTexts(){
 
   widgets.forEach(w => {
     setVars(w);
+    // pas de glisser-déposer natif du navigateur (image du bouton coordonnées, texte de l'échelle) :
+    // il interrompait le déplacement et, lâché sur la carte, l'image était lue comme un « fichier GPX »
+    w.el.querySelectorAll('img').forEach(img => { img.draggable = false; });
+    w.el.addEventListener('dragstart', e => e.preventDefault());
     let drag = null;
     function onMove(e){
       if (!drag) return;
