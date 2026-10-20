@@ -531,6 +531,7 @@
     #app{ flex-direction:column; }
     #panel{
       order:2;
+      position:absolute; left:0; right:0; bottom:0;
       width:100%; min-width:0;
       max-height:46vh;
       border-right:none;
@@ -540,11 +541,12 @@
     #weather-bar{ top:10px; left:10px; right:56px; max-width:none; }
     #empty-hint{ top:52px; }
     #track-title-badge{ top:52px; max-width:88vw; }
-    #pitch-control{ bottom:10px; height:100px; }
+    #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); height:100px; }
+    .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
     #coord-box{ left:10px; bottom:auto; top:94px; }
-    #panel-toggle{ left:10px; top:auto; bottom:10px; }
-    #panel-toggle svg{ transform:rotate(90deg); }
-    body.panel-hidden #panel-toggle svg{ transform:rotate(-90deg); }
+    #panel-toggle{ left:10px; top:52px; }
+    #panel-toggle svg{ transform:rotate(-90deg); }
+    body.panel-hidden #panel-toggle svg{ transform:rotate(90deg); }
   }
   /* bouton Google Street View (contrôle de carte) */
   .maplibregl-ctrl-group button.sv-map-btn{ display:flex; align-items:center; justify-content:center; color:var(--accent); }
@@ -1575,17 +1577,33 @@ function parseGPX(xmlText){
   if (doc.getElementsByTagName('parsererror').length){
     throw new Error(tx('err.parse'));
   }
+  // texte d'un enfant DIRECT (évite de prendre le <name> d'un point ou d'un segment)
+  const childText = (node, tag) => {
+    if (!node) return '';
+    for (const c of Array.from(node.children)) if (c.localName === tag) return (c.textContent || '').trim();
+    return '';
+  };
+  // métadonnées du fichier (<metadata> en GPX 1.1, directement sous <gpx> en GPX 1.0)
+  const root = doc.documentElement;
+  const md = Array.from(root.children).find(c => c.localName === 'metadata') || root;
+  const fileMeta = { name: childText(md, 'name'), desc: childText(md, 'desc'), keywords: childText(md, 'keywords') };
+  // intitulé, description, commentaire, type de chaque trace / itinéraire, complétés par ceux du fichier
+  const metaOf = node => ({
+    name: childText(node, 'name') || fileMeta.name,
+    desc: childText(node, 'desc') || fileMeta.desc || childText(node, 'cmt'),
+    keywords: [fileMeta.keywords, childText(node, 'type')].filter(Boolean).join(', ')
+  });
   const tracks = [];
   for (const trk of Array.from(doc.getElementsByTagName('trk'))){
     const nameEl = trk.getElementsByTagName('name')[0];
     const points = readPoints(trk, 'trkpt');
-    if (points.length) tracks.push(buildTrack(nameEl ? nameEl.textContent : null, points));
+    if (points.length){ const t = buildTrack(nameEl ? nameEl.textContent : null, points); t.meta = metaOf(trk); tracks.push(t); }
   }
   if (!tracks.length){
     for (const rte of Array.from(doc.getElementsByTagName('rte'))){
       const nameEl = rte.getElementsByTagName('name')[0];
       const points = readPoints(rte, 'rtept');
-      if (points.length) tracks.push(buildTrack(nameEl ? nameEl.textContent : null, points, true));
+      if (points.length){ const t = buildTrack(nameEl ? nameEl.textContent : null, points, true); t.meta = metaOf(rte); tracks.push(t); }
     }
   }
   return tracks;
@@ -2282,6 +2300,8 @@ function loadFile(file){
     try { tracks = parseGPX(reader.result); }
     catch(err){ alert(tx('err.read') + "\n" + err.message); return; }
     if (!tracks.length){ alert(tx('err.empty')); return; }
+    const fileBase = (file.name || '').replace(/\.gpx$/i, '');
+    tracks.forEach(t => { t.fileName = fileBase; });
     state.tracks = tracks;
     el.trackSelect.innerHTML = '';
     tracks.forEach((t, i) => {
@@ -2777,11 +2797,12 @@ function followPosition(point, idx, track, instant){
   // mal avec le terrain 3D à fort zoom et envoyait la caméra à côté de la trace.
   // X : moitié de la largeur du panneau → le point tombe au centre de la zone visible.
   const panelEl = document.getElementById('panel');
-  const panelW = panelEl ? panelEl.getBoundingClientRect().width : 0;
+  const pRect = panelEl ? panelEl.getBoundingClientRect() : { width: 0, height: 0 };
+  const mobileLayout = window.innerWidth <= 760;
   const opts = {
     center: [point.lon, point.lat],
     padding: { top: 0, bottom: 0, left: 0, right: 0 },
-    offset: [panelW / 2, 0]
+    offset: mobileLayout ? [0, -pRect.height / 2] : [pRect.width / 2, 0]
   };
   // on fournit l'élévation nous-mêmes plutôt que de laisser MapLibre la déduire
   // automatiquement du DEM sur un jumpTo programmatique : ce calcul interne s'est
@@ -3118,7 +3139,28 @@ function refreshDynamicTexts(){
   const osmCanAuth = () => location.protocol !== 'file:' && window.isSecureContext && window.crypto && crypto.subtle;
   const isOpen = () => panel.style.display === 'block';
 
+  /* préremplit le formulaire d'envoi avec les infos du GPX (nom de fichier ou intitulé, description,
+     mots-clés / type) ; un champ modifié à la main n'est jamais écrasé */
+  const osmAuto = {};
+  function osmPrefill(){
+    const t = state.track;
+    if (!t) return;
+    const m = t.meta || {};
+    const base = (t.fileName || m.name || t.name || '').trim();
+    const vals = {
+      osmUpName: base,
+      osmUpDesc: (m.desc || m.name || '').replace(/\s+/g, ' ').trim().slice(0, 255),
+      osmUpTags: (m.keywords || '').split(/[,;]/).map(k => k.trim()).filter(Boolean).join(', ')
+    };
+    for (const id in vals){
+      const f = document.getElementById(id);
+      if (!f) continue;
+      if (f.value === '' || f.value === osmAuto[id]){ f.value = vals[id]; osmAuto[id] = vals[id]; }
+    }
+  }
+
   function osmRender(){
+    osmPrefill();
     const cid = osmClientId(), tok = osmToken();
     document.querySelectorAll('#osmPanel .osm-redirect').forEach(c => { c.textContent = osmRedirectUri(); });
     document.getElementById('osmSetup').style.display = cid ? 'none' : 'block';
@@ -3385,7 +3427,19 @@ function refreshDynamicTexts(){
    - déplacement par décalage CSS (--fdx / --fdy) : la position d'origine reste celle de la feuille de style
    - positions mémorisées (localStorage) ; bouton « Remettre les icônes… » dans l'aide rapide
    ============================================================ */
+/* place réservée au panneau sur la carte : --panel-w (bureau, panneau à gauche) ou --panel-h
+   (mobile, panneau en bas) ; 0 si le panneau est masqué. Appelée avant de placer les icônes. */
+function syncPanelVars(){
+  const panel = document.getElementById('panel');
+  if (!panel) return;
+  const hidden = document.body.classList.contains('panel-hidden');
+  const r = panel.getBoundingClientRect(), mobile = window.innerWidth <= 760;
+  document.documentElement.style.setProperty('--panel-w', (hidden || mobile ? 0 : r.width) + 'px');
+  document.documentElement.style.setProperty('--panel-h', (!hidden && mobile ? r.height : 0) + 'px');
+}
+
 (function initFloating(){
+  syncPanelVars();
   const KEY = 'gpx3d-float';
   const panel = document.getElementById('panel');
   let saved = {};
@@ -3444,7 +3498,7 @@ function refreshDynamicTexts(){
       localStorage.removeItem('gpx3d-coord-dx');
     } catch(e){}
   }
-  function reclampAll(){ widgets.forEach(w => place(w, w.dx, w.dy)); }
+  function reclampAll(){ syncPanelVars(); widgets.forEach(w => place(w, w.dx, w.dy)); } // variables d'abord : sinon le bornage se fait sur l'ancienne place du panneau
 
   widgets.forEach(w => {
     setVars(w);
@@ -3509,7 +3563,7 @@ function refreshDynamicTexts(){
     const t = tx('title.' + btn.dataset.i18nTitle);
     btn.title = t; btn.setAttribute('aria-label', t);
     const panel = document.getElementById('panel');
-    if (panel) document.documentElement.style.setProperty('--panel-w', (hidden ? 0 : panel.getBoundingClientRect().width) + 'px');
+    syncPanelVars();
     if (map && map.resize) map.resize();
     if (!recenter || !state.track) return;
     // recadrage sur la nouvelle zone visible : position courante en lecture suivie, trace entière sinon
@@ -3544,7 +3598,7 @@ function refreshDynamicTexts(){
   /* tient la variable CSS --panel-w à jour (position du badge d'échelle, etc.)
      y compris lors d'un redimensionnement manuel ou du passage en mise en page mobile */
   function syncPanelWidthVar(){
-    document.documentElement.style.setProperty('--panel-w', panel.getBoundingClientRect().width + 'px');
+    syncPanelVars(); // sur mobile le panneau est sous la carte : hauteur réservée en bas, pas de largeur
   }
   syncPanelWidthVar();
   /* la trace reste centrée dans la zone visible pendant que le panneau change de taille
@@ -3566,7 +3620,7 @@ function refreshDynamicTexts(){
     });
   }
   if (window.ResizeObserver) new ResizeObserver(() => { syncPanelWidthVar(); recenterOnLayout(); }).observe(panel);
-  else window.addEventListener('resize', syncPanelWidthVar);
+  window.addEventListener('resize', syncPanelWidthVar); // passage écran large ↔ mobile
 
   const MIN_W = 280;
   const STORAGE_KEY = 'gpx3d-panel-width';
