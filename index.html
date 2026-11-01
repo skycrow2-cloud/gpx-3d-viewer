@@ -2562,6 +2562,9 @@ function applyTrackWidth(){
   if (map.getLayer('track-line-glow')) map.setPaintProperty('track-line-glow', 'line-width', trackStyle.width * 2.5);
 }
 function setTrackProgress(progress){
+  // tant que les couches de la trace n'existent pas (carte pas encore prête), on ne mémorise rien :
+  // sinon l'appel suivant, avec la même valeur, serait ignoré et la trace resterait invisible
+  if (!map.getLayer('track-line')) return;
   if (progress === lastProgressApplied) return;
   lastProgressApplied = progress;
   const grad = trackGradient(currentTrackColor(), progress);
