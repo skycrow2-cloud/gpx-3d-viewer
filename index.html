@@ -106,8 +106,8 @@
     min-width:380px;
     max-height:100vh;
     overflow-y:auto;
-    background: var(--panel-bg);
-    backdrop-filter: blur(10px);
+    background: rgba(20,25,31,.8);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     border-right:1px solid var(--panel-border);
     padding:14px 16px 12px;
     display:flex;
@@ -629,6 +629,24 @@
   #osmPanel ol{ margin:4px 0 8px; padding-left:18px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
   #osmPanel a{ color:var(--accent); }
   #osmPanel .btn{ padding:5px 10px; font-size:12px; }
+  .gpx-tabs{ display:flex; gap:4px; padding:3px; margin-bottom:10px; background:var(--field-bg); border:1px solid var(--panel-border); border-radius:8px; }
+  .gpx-tab{ flex:1; padding:7px 8px; border:0; border-radius:6px; background:transparent; color:var(--text-muted); font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:background .15s ease, color .15s ease; }
+  .gpx-tab:hover{ color:var(--text); }
+  .gpx-tab[aria-selected="true"]{ background:var(--accent-soft); color:var(--accent); box-shadow:inset 0 0 0 1px rgba(232,163,61,.45); }
+  .gpx-tab:focus-visible, .gpx-src:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .gpx-srcs{ display:flex; gap:6px; margin-bottom:10px; }
+  .gpx-src{ flex:1; padding:7px 6px; border:1px solid var(--panel-border); border-radius:7px; background:var(--field-bg); color:var(--text-muted); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; text-align:center; line-height:1.25; }
+  .gpx-src small{ display:block; font-weight:400; font-size:10.5px; opacity:.85; }
+  .gpx-src[aria-checked="true"]{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+  .gpx-label{ display:block; font-size:11.5px; font-weight:600; color:var(--text-muted); margin:0 0 4px; }
+  .gpx-note{ font-size:11px; color:var(--text-muted); line-height:1.45; margin:5px 0 10px; }
+  .gpx-note a, .gpx-fallback a{ color:var(--accent-2) !important; }
+  .gpx-status{ font-size:11.5px; color:var(--text-muted); margin-top:8px; line-height:1.4; }
+  .gpx-status:empty{ display:none; }
+  .gpx-status.err{ color:var(--danger); }
+  .gpx-status.ok{ color:var(--accent); }
+  .gpx-fallback{ margin-top:8px; padding:8px 9px; border:1px dashed var(--accent); border-radius:7px; background:var(--accent-soft); font-size:11.5px; line-height:1.45; }
+  .gpx-fallback label.btn{ display:block; text-align:center; margin-top:7px; cursor:pointer; }
   #osmTraceList{ max-height:210px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:6px; background:var(--field-bg); }
   .osm-trace{ display:flex; align-items:center; gap:8px; padding:6px 8px; border-bottom:1px solid var(--panel-border); font-size:12px; }
   .osm-trace:last-child{ border-bottom:none; }
@@ -782,6 +800,12 @@
       <button class="doc-close osm-close" id="btnOsmClose" type="button" data-i18n-title="close" title="Fermer (Échap)" aria-label="Fermer (Échap)">×</button>
     </div>
 
+    <div class="gpx-tabs" role="tablist" id="osmTabs">
+      <button class="gpx-tab" type="button" role="tab" id="osmTabImport" aria-controls="osmPaneImport" aria-selected="true" data-i18n="osm.tabImport">Importer</button>
+      <button class="gpx-tab" type="button" role="tab" id="osmTabSend" aria-controls="osmPaneSend" aria-selected="false" tabindex="-1" data-i18n="osm.tabSend">Envoyer</button>
+    </div>
+
+    <div id="osmAccount">
     <div id="osmSetup" style="display:none;">
       <div class="help-block" data-lang="fr" lang="fr">
         <div style="margin-bottom:4px;">Première utilisation : déclarer l'application sur OpenStreetMap (gratuit, une seule fois).</div>
@@ -815,15 +839,43 @@
     </div>
 
     <div id="osmConnected" style="display:none;">
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="flex:1;"><span data-i18n="osm.connected">Connecté :</span> <b id="osmUserName">…</b></span>
         <button class="btn btn-secondary" id="btnOsmLogout" style="padding:3px 9px;font-size:11px;" data-i18n="osm.logout">Déconnecter</button>
       </div>
-      <div class="osm-sec">
-        <div class="osm-h"><span data-i18n="osm.mine">Mes traces</span><button class="btn btn-secondary" id="btnOsmRefresh" style="padding:3px 8px;font-size:11px;" data-i18n="osm.refresh">↻ Actualiser</button></div>
-        <div id="osmTraceList"><div class="osm-trace"><span class="d">–</span></div></div>
+    </div>
+    </div>
+
+    <div id="osmPaneImport" role="tabpanel" aria-labelledby="osmTabImport">
+      <div class="gpx-srcs" role="radiogroup">
+        <button class="gpx-src" type="button" role="radio" data-src="mine" aria-checked="true"><span data-i18n="osm.srcMine">Mes traces</span><small data-i18n="osm.srcMineSub">mon compte</small></button>
+        <button class="gpx-src" type="button" role="radio" data-src="trace" aria-checked="false" tabindex="-1"><span data-i18n="osm.srcTrace">Autre trace</span><small data-i18n="osm.srcTraceSub">lien ou numéro</small></button>
       </div>
-      <div class="osm-sec">
+      <div id="osmSrcMine">
+        <div class="osm-auth-only">
+          <div class="osm-h"><span data-i18n="osm.mine">Mes traces</span><button class="btn btn-secondary" id="btnOsmRefresh" style="padding:3px 8px;font-size:11px;" data-i18n="osm.refresh">↻ Actualiser</button></div>
+          <div id="osmTraceList"><div class="osm-trace"><span class="d">–</span></div></div>
+        </div>
+        <p class="gpx-note osm-noauth-only" data-i18n="osm.mineNoAuth">Connectez-vous ci-dessus pour lister vos traces. Pour la trace d'un autre utilisateur, choisissez « Autre trace ».</p>
+      </div>
+      <div id="osmSrcTrace" hidden>
+        <label class="gpx-label" for="gpxOsmInput" data-i18n="osm.traceLabel">Lien ou numéro de la trace</label>
+        <input type="text" id="gpxOsmInput" autocomplete="off" spellcheck="false" placeholder="https://www.openstreetmap.org/traces/123456">
+        <p class="gpx-note help-block" data-lang="fr" lang="fr">Traces « publiques » ou « identifiables » de n'importe quel utilisateur, ou vos traces privées si vous êtes connecté (« Mes traces »). Parcourir les <a href="https://www.openstreetmap.org/traces" target="_blank" rel="noopener">traces publiques</a>.</p>
+        <p class="gpx-note help-block" data-lang="en" lang="en" hidden>“Public” or “identifiable” traces of any user, or your private traces when logged in (“My traces”). Browse the <a href="https://www.openstreetmap.org/traces" target="_blank" rel="noopener">public traces</a>.</p>
+        <button class="btn btn-primary" id="btnGpxOsmGo" type="button" style="width:100%;" data-i18n="osm.traceGo">Importer la trace</button>
+        <div class="gpx-status" id="gpxImportStatus" aria-live="polite"></div>
+        <div class="gpx-fallback" id="gpxFallback" hidden>
+          <span id="gpxFallbackText"></span>
+          <a id="gpxFallbackLink" href="https://www.openstreetmap.org/traces" target="_blank" rel="noopener" data-i18n="osm.fbLink">Télécharger la trace</a><span data-i18n="osm.fbThen">, puis chargez le fichier obtenu :</span>
+          <label class="btn btn-secondary" for="gpxFallbackFile" data-i18n="osm.fbFile">📁 Choisir le fichier téléchargé</label>
+          <input type="file" id="gpxFallbackFile" accept=".gpx,.xml,.gz,.zip,.tar" hidden>
+        </div>
+      </div>
+    </div>
+
+    <div id="osmPaneSend" role="tabpanel" aria-labelledby="osmTabSend" hidden>
+      <div class="osm-auth-only">
         <div class="osm-h"><span data-i18n="osm.send">Envoyer la trace actuelle</span></div>
         <input type="text" id="osmUpName" data-i18n-ph="osm.phName" placeholder="Nom du fichier (ex. rando_ourthe)">
         <input type="text" id="osmUpDesc" maxlength="255" data-i18n-ph="osm.phDesc" placeholder="Description (obligatoire)">
@@ -835,6 +887,7 @@
         <button class="btn btn-primary" id="btnOsmUpload" style="width:100%;" data-i18n="osm.upload">Envoyer sur OpenStreetMap</button>
         <div style="font-size:10.5px;color:var(--text-muted);margin-top:4px;" data-i18n="osm.timeNote">OSM exige un horodatage par point : les heures du fichier sont conservées ; à défaut, des heures fictives (4 km/h) sont ajoutées.</div>
       </div>
+      <p class="gpx-note osm-noauth-only" data-i18n="osm.sendNoAuth">Connectez-vous ci-dessus pour envoyer la trace actuelle sur votre compte OpenStreetMap.</p>
     </div>
 
     <div id="osmStatus"></div>
@@ -1268,6 +1321,17 @@ const I18N = {
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
     'osm.phClientId': "ID client OSM", 'osm.saveId': "Enregistrer l'ID client", 'osm.connect': "Se connecter à OpenStreetMap",
     'osm.connectHint': "Une fenêtre OSM s'ouvre pour autoriser l'accès à vos traces.", 'osm.changeId': "Changer l'ID client",
+    'osm.tabImport': "Importer", 'osm.tabSend': "Envoyer", 'osm.srcMine': "Mes traces", 'osm.srcMineSub': "mon compte",
+    'osm.srcTrace': "Autre trace", 'osm.srcTraceSub': "lien ou numéro",
+    'osm.mineNoAuth': "Connectez-vous ci-dessus pour lister vos traces. Pour la trace d'un autre utilisateur, choisissez « Autre trace ».",
+    'osm.sendNoAuth': "Connectez-vous ci-dessus pour envoyer la trace actuelle sur votre compte OpenStreetMap.",
+    'osm.traceLabel': "Lien ou numéro de la trace", 'osm.traceGo': "Importer la trace",
+    'osm.trDl': "Téléchargement de la trace n° {id}…", 'osm.trOk': "✔ Trace n° {id} importée.", 'osm.trFail': "Échec : {e}.",
+    'osm.trNotPublic': "trace introuvable, ou non publique", 'osm.trServer': "serveur OpenStreetMap indisponible ({s})",
+    'osm.trBlocked': "le navigateur n'a pas pu lire la trace directement", 'osm.archive': "archive illisible ou non prise en charge",
+    'osm.fbPrivate': "S'il s'agit d'une de vos traces privées : connectez-vous dans « Mes traces », ou (connecté à openstreetmap.org dans ce navigateur)",
+    'osm.fbGeneric': "Solution de repli :", 'osm.fbLink': "Télécharger la trace", 'osm.fbThen': ", puis chargez le fichier obtenu :",
+    'osm.fbFile': "📁 Choisir le fichier téléchargé",
     'osm.connected': "Connecté :", 'osm.logout': "Déconnecter", 'osm.mine': "Mes traces", 'osm.refresh': "↻ Actualiser",
     'osm.send': "Envoyer la trace actuelle", 'osm.phName': "Nom du fichier (ex. rando_ourthe)", 'osm.phDesc': "Description (obligatoire)",
     'osm.phTags': "Étiquettes, séparées par des virgules (facultatif)", 'osm.visId': "Identifiable : visible par tous, avec votre nom",
@@ -1328,6 +1392,17 @@ const I18N = {
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
     'osm.phClientId': "OSM client ID", 'osm.saveId': "Save the client ID", 'osm.connect': "Log in to OpenStreetMap",
     'osm.connectHint': "An OSM window opens to authorise access to your traces.", 'osm.changeId': "Change the client ID",
+    'osm.tabImport': "Import", 'osm.tabSend': "Upload", 'osm.srcMine': "My traces", 'osm.srcMineSub': "my account",
+    'osm.srcTrace': "Other trace", 'osm.srcTraceSub': "link or number",
+    'osm.mineNoAuth': "Log in above to list your traces. For another user's trace, choose “Other trace”.",
+    'osm.sendNoAuth': "Log in above to upload the current track to your OpenStreetMap account.",
+    'osm.traceLabel': "Trace link or number", 'osm.traceGo': "Import the trace",
+    'osm.trDl': "Downloading trace no. {id}…", 'osm.trOk': "✔ Trace no. {id} imported.", 'osm.trFail': "Failed: {e}.",
+    'osm.trNotPublic': "trace not found, or not public", 'osm.trServer': "OpenStreetMap server unavailable ({s})",
+    'osm.trBlocked': "the browser could not read the trace directly", 'osm.archive': "unreadable or unsupported archive",
+    'osm.fbPrivate': "If it is one of your private traces: log in under “My traces”, or (logged in to openstreetmap.org in this browser)",
+    'osm.fbGeneric': "Fallback:", 'osm.fbLink': "Download the trace", 'osm.fbThen': ", then load the downloaded file:",
+    'osm.fbFile': "📁 Choose the downloaded file",
     'osm.connected': "Logged in:", 'osm.logout': "Log out", 'osm.mine': "My traces", 'osm.refresh': "↻ Refresh",
     'osm.send': "Upload the current track", 'osm.phName': "File name (e.g. hike_ourthe)", 'osm.phDesc': "Description (required)",
     'osm.phTags': "Tags, comma-separated (optional)", 'osm.visId': "Identifiable: public, with your name",
@@ -3336,6 +3411,166 @@ function refreshDynamicTexts(){
     }
   }
 
+  /* ---- onglets Importer / Envoyer ; import de « Mes traces » ou d'une autre trace (comme The-GPX-Box) ---- */
+  var osmTab = 'import', gpxSource = null, gpxBusy = false;
+  const gpxInput = document.getElementById('gpxOsmInput');
+  function setGpxStatus(text, kind){
+    const st = document.getElementById('gpxImportStatus');
+    st.className = 'gpx-status' + (kind ? ' ' + kind : '');
+    st.textContent = text || '';
+  }
+  function parseTraceId(s){
+    s = (s || '').trim();
+    const m = s.match(/traces?\/(\d+)/i) || s.match(/^#?(\d+)$/);
+    return m ? m[1] : null;
+  }
+  function selectOsmTab(tab, focus){
+    osmTab = tab;
+    const isImp = tab === 'import';
+    [['osmTabImport', 'osmPaneImport', isImp], ['osmTabSend', 'osmPaneSend', !isImp]].forEach(t => {
+      const b = document.getElementById(t[0]);
+      b.setAttribute('aria-selected', t[2] ? 'true' : 'false');
+      b.tabIndex = t[2] ? 0 : -1;
+      document.getElementById(t[1]).hidden = !t[2];
+    });
+    if (focus) document.getElementById(isImp ? 'osmTabImport' : 'osmTabSend').focus();
+    osmSyncAccount();
+  }
+  // bloc compte (déclaration / connexion / connecté) : utile pour « Mes traces » et l'envoi seulement
+  function osmSyncAccount(){
+    const authed = !!(osmClientId() && osmToken());
+    panel.querySelectorAll('.osm-auth-only').forEach(n => { n.style.display = authed ? '' : 'none'; });
+    panel.querySelectorAll('.osm-noauth-only').forEach(n => { n.style.display = authed ? 'none' : ''; });
+    document.getElementById('osmAccount').style.display = (osmTab === 'send' || gpxSource === 'mine') ? '' : 'none';
+  }
+  function updateGpxImportUI(){
+    if (!gpxSource) gpxSource = (osmClientId() && osmToken()) ? 'mine' : 'trace';
+    document.getElementById('osmSrcMine').hidden = gpxSource !== 'mine';
+    document.getElementById('osmSrcTrace').hidden = gpxSource !== 'trace';
+    panel.querySelectorAll('.gpx-src').forEach(b => {
+      const on = b.dataset.src === gpxSource;
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+    document.getElementById('btnGpxOsmGo').disabled = gpxBusy || !parseTraceId(gpxInput.value);
+    osmSyncAccount();
+  }
+  document.getElementById('osmTabImport').addEventListener('click', () => selectOsmTab('import'));
+  document.getElementById('osmTabSend').addEventListener('click', () => selectOsmTab('send'));
+  document.getElementById('osmTabs').addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    selectOsmTab(osmTab === 'import' ? 'send' : 'import', true);
+  });
+  panel.querySelectorAll('.gpx-src').forEach(b => b.addEventListener('click', () => {
+    if (gpxSource === b.dataset.src) return;
+    gpxSource = b.dataset.src;
+    gpxInput.value = '';
+    setGpxStatus('');
+    document.getElementById('gpxFallback').hidden = true;
+    updateGpxImportUI();
+  }));
+  panel.querySelector('.gpx-srcs').addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const next = gpxSource === 'mine' ? 'trace' : 'mine';
+    const b = panel.querySelector('.gpx-src[data-src="' + next + '"]');
+    b.click(); b.focus();
+  });
+  gpxInput.addEventListener('input', updateGpxImportUI);
+  gpxInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); if (!document.getElementById('btnGpxOsmGo').disabled) runGpxOsmImport(); }
+  });
+  document.getElementById('btnGpxOsmGo').addEventListener('click', runGpxOsmImport);
+
+  /* fichier d'OSM : GPX brut, ou archive .gz / .zip / .tar telle que déposée par son auteur */
+  function inflateBytes(bytes, format){
+    if (typeof DecompressionStream === 'undefined') return Promise.reject(new Error(tx('osm.archive')));
+    return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream(format))).arrayBuffer();
+  }
+  function unzipGpx(b){
+    const dv = new DataView(b.buffer, b.byteOffset, b.byteLength); let eocd = -1;
+    for (let i = b.length - 22; i >= Math.max(0, b.length - 65557); i--){ if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; } }
+    if (eocd < 0) return Promise.reject(new Error(tx('osm.archive')));
+    let count = dv.getUint16(eocd + 10, true), p = dv.getUint32(eocd + 16, true), pick = null;
+    for (let k = 0; k < count && p + 46 <= b.length && dv.getUint32(p, true) === 0x02014b50; k++){
+      const nlen = dv.getUint16(p + 28, true);
+      const e = { method: dv.getUint16(p + 10, true), csize: dv.getUint32(p + 20, true), local: dv.getUint32(p + 42, true),
+                  name: new TextDecoder().decode(b.subarray(p + 46, p + 46 + nlen)) };
+      if (/\.gpx$/i.test(e.name)){ pick = e; break; }
+      if (!pick && !/\/$/.test(e.name)) pick = e;
+      p += 46 + nlen + dv.getUint16(p + 30, true) + dv.getUint16(p + 32, true);
+    }
+    if (!pick) return Promise.reject(new Error(tx('osm.archive')));
+    const start = pick.local + 30 + dv.getUint16(pick.local + 26, true) + dv.getUint16(pick.local + 28, true);
+    const data = b.slice(start, start + pick.csize);
+    if (pick.method === 0) return Promise.resolve(data.buffer);
+    if (pick.method === 8) return inflateBytes(data, 'deflate-raw');
+    return Promise.reject(new Error(tx('osm.archive')));
+  }
+  function untarGpx(b){
+    const dec = new TextDecoder(); let off = 0, firstText = null;
+    while (off + 512 <= b.length){
+      const name = dec.decode(b.subarray(off, off + 100)).replace(/\0[\s\S]*$/, '');
+      if (!name) break;
+      const size = parseInt(dec.decode(b.subarray(off + 124, off + 136)).replace(/[^0-7]/g, ''), 8) || 0;
+      const type = b[off + 156];
+      if ((type === 48 || type === 0) && size){
+        const txt = dec.decode(b.subarray(off + 512, off + 512 + size));
+        if (/\.gpx$/i.test(name)) return txt;
+        if (firstText === null) firstText = txt;
+      }
+      off += 512 + Math.ceil(size / 512) * 512;
+    }
+    if (firstText === null) throw new Error(tx('osm.archive'));
+    return firstText;
+  }
+  function bytesToText(buf){
+    const b = new Uint8Array(buf);
+    if (b[0] === 0x1f && b[1] === 0x8b) return inflateBytes(b, 'gzip').then(bytesToText);
+    if (b[0] === 0x50 && b[1] === 0x4b && b[2] === 3 && b[3] === 4) return unzipGpx(b).then(bytesToText);
+    if (b.length > 262 && String.fromCharCode(b[257], b[258], b[259], b[260], b[261]) === 'ustar') return Promise.resolve().then(() => untarGpx(b));
+    return Promise.resolve(new TextDecoder('utf-8').decode(b));
+  }
+  function runGpxOsmImport(){
+    const id = parseTraceId(gpxInput.value);
+    if (gpxBusy || !id) return;
+    document.getElementById('gpxFallback').hidden = true;
+    gpxBusy = true; updateGpxImportUI();
+    setGpxStatus(tx('osm.trDl', { id }));
+    const authed = !!osmToken();
+    const req = authed
+      ? osmApi('/gpx/' + id + '/data.gpx').then(r => r.arrayBuffer())
+      : fetch(OSM_WEB + '/traces/' + id + '/data', { credentials: 'omit' }).then(r => {
+          if (r.status === 404 || r.status === 403 || r.status === 401){ const e = new Error(tx('osm.trNotPublic')); e.privateTrace = true; throw e; }
+          if (!r.ok) throw new Error(tx('osm.trServer', { s: r.status }));
+          return r.arrayBuffer();
+        });
+    req.then(bytesToText).then(text => {
+      setGpxStatus(tx('osm.trOk', { id }), 'ok');
+      gpxInput.value = '';
+      loadFile(new File([text], 'trace_osm_' + id + '.gpx', { type: 'application/gpx+xml' }));
+      setTimeout(() => { panel.style.display = 'none'; btnOsm.classList.remove('active'); }, 1200);
+    }).catch(err => {
+      const blocked = err instanceof TypeError;
+      setGpxStatus(tx('osm.trFail', { e: blocked ? tx('osm.trBlocked') : err.message }), 'err');
+      document.getElementById('gpxFallbackText').textContent = (err.privateTrace && !authed) ? tx('osm.fbPrivate') : tx('osm.fbGeneric');
+      document.getElementById('gpxFallbackLink').href = OSM_WEB + '/traces/' + id + '/data.gpx';
+      document.getElementById('gpxFallback').hidden = false;
+    }).then(() => { gpxBusy = false; updateGpxImportUI(); });
+  }
+  document.getElementById('gpxFallbackFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    file.arrayBuffer().then(bytesToText).then(text => {
+      document.getElementById('gpxFallback').hidden = true;
+      setGpxStatus('');
+      loadFile(new File([text], file.name.replace(/\.(gz|zip|tar)$/i, ''), { type: 'application/gpx+xml' }));
+      panel.style.display = 'none'; btnOsm.classList.remove('active');
+    }).catch(err => setGpxStatus(tx('osm.trFail', { e: err.message }), 'err'));
+  });
+
   function osmRender(){
     osmPrefill();
     const cid = osmClientId(), tok = osmToken();
@@ -3346,6 +3581,7 @@ function refreshDynamicTexts(){
     document.getElementById('osmUserName').textContent = osmUser || '…';
     document.getElementById('btnOsmUpload').disabled = !(state.track && state.track.points.length >= 2);
     if (!osmCanAuth()) osmStatus(tx('osm.needHttps'), true);
+    updateGpxImportUI();
   }
 
   function osmApi(path, opts){
@@ -3448,6 +3684,7 @@ function refreshDynamicTexts(){
       b.disabled = false;
       osmStatus('');
       panel.style.display = 'none';
+      btnOsm.classList.remove('active');
       loadFile(new File([txt], name.replace(/\.gpx$/i, '') + '.gpx', { type: 'application/gpx+xml' }));
     }).catch(err => {
       b.disabled = false;
@@ -3676,6 +3913,39 @@ function syncPanelVars(){
     w.dy = Math.round(Math.max(a.top + M - bt, Math.min(dy, a.bottom - M - r.height - bt)));
     setVars(w);
   }
+  /* aucune commande de carte ne doit en recouvrir une autre : si c'est le cas, on la décale du plus
+     court chemin (gauche / droite / haut / bas) vers une place libre, sans sortir de la carte */
+  const FIXED_OBSTACLES = ['#panel-toggle', '#track-title-badge', '.maplibregl-ctrl-attrib'];
+  const GAP = 6;
+  function obstacleRects(w){
+    const out = [];
+    widgets.forEach(o => { if (o !== w){ const r = o.el.getBoundingClientRect(); if (r.width && r.height) out.push(r); } });
+    FIXED_OBSTACLES.forEach(sel => document.querySelectorAll(sel).forEach(n => {
+      if (n.hidden || w.el.contains(n)) return;
+      const r = n.getBoundingClientRect(); if (r.width && r.height) out.push(r);
+    }));
+    return out;
+  }
+  const hits = (r, o) => r.left < o.right + GAP && r.right > o.left - GAP && r.top < o.bottom + GAP && r.bottom > o.top - GAP;
+  function resolveOverlap(w){
+    for (let it = 0; it < 12; it++){
+      const r = w.el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const obs = obstacleRects(w), hit = obs.find(o => hits(r, o));
+      if (!hit) return;
+      const a = area(), M = 4;
+      const cands = [[hit.left - GAP - r.right, 0], [hit.right + GAP - r.left, 0], [0, hit.top - GAP - r.bottom], [0, hit.bottom + GAP - r.top]]
+        .filter(([mx, my]) => r.left + mx >= a.left + M - 1 && r.right + mx <= a.right - M + 1 && r.top + my >= a.top + M - 1 && r.bottom + my <= a.bottom - M + 1)
+        .sort((u, v) => Math.hypot(u[0], u[1]) - Math.hypot(v[0], v[1]));
+      if (!cands.length) return;
+      const free = cands.find(([mx, my]) => {
+        const nr = { left: r.left + mx, right: r.right + mx, top: r.top + my, bottom: r.bottom + my };
+        return !obs.some(o => hits(nr, o));
+      }) || cands[0];
+      w.dx = Math.round(w.dx + free[0]); w.dy = Math.round(w.dy + free[1]);
+      setVars(w);
+    }
+  }
   function persist(){
     const out = {};
     widgets.forEach(w => { if (w.dx || w.dy) out[w.id] = { dx: w.dx, dy: w.dy }; });
@@ -3684,7 +3954,7 @@ function syncPanelVars(){
       localStorage.removeItem('gpx3d-coord-dx');
     } catch(e){}
   }
-  function reclampAll(){ syncPanelVars(); widgets.forEach(w => place(w, w.dx, w.dy)); } // variables d'abord : sinon le bornage se fait sur l'ancienne place du panneau
+  function reclampAll(){ syncPanelVars(); widgets.forEach(w => { place(w, w.dx, w.dy); resolveOverlap(w); }); } // variables d'abord : sinon le bornage se fait sur l'ancienne place du panneau
 
   widgets.forEach(w => {
     setVars(w);
@@ -3707,7 +3977,7 @@ function syncPanelVars(){
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
       w.el.classList.remove('dragging');
-      if (w.moved){ persist(); setTimeout(() => { w.moved = false; }, 60); } // le clic qui suit le relâchement est ignoré
+      if (w.moved){ resolveOverlap(w); persist(); setTimeout(() => { w.moved = false; }, 60); } // le clic qui suit le relâchement est ignoré
       drag = null;
     }
     w.el.addEventListener('pointerdown', e => {
@@ -3727,11 +3997,14 @@ function syncPanelVars(){
   window.addEventListener('resize', reclampAll);
   if (window.ResizeObserver && panel) new ResizeObserver(reclampAll).observe(panel);
   // la barre météo et la boîte de coordonnées changent de taille : on les recale
-  if (window.ResizeObserver) widgets.forEach(w => new ResizeObserver(() => place(w, w.dx, w.dy)).observe(w.el));
+  if (window.ResizeObserver) widgets.forEach(w => new ResizeObserver(() => { place(w, w.dx, w.dy); resolveOverlap(w); }).observe(w.el));
+  // les commandes de la carte (MapLibre) sont ajoutées après coup : vérification une fois la page posée
+  setTimeout(reclampAll, 300);
 
   document.querySelectorAll('[data-float-reset]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     widgets.forEach(w => { w.dx = 0; w.dy = 0; setVars(w); });
+    reclampAll();
     persist();
   }));
 })();
