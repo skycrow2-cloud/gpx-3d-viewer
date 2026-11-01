@@ -21,6 +21,12 @@
     --accent-2:#49b6c4;     /* eau / vitesse */
     --accent-2-soft: rgba(73,182,196,.16);
     --danger:#d9695f;
+    /* verre des commandes posées sur la carte (mêmes valeurs que The-GPX-Box) */
+    --glass: rgba(30,37,48,.48);
+    --glass-hover: rgba(30,37,48,.66);
+    --glass-strong: rgba(27,34,44,.8);
+    --glass-border: rgba(232,163,61,.35);
+    --glass-shadow: 0 4px 14px rgba(0,0,0,.45);
     --radius:8px;
     --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -39,16 +45,15 @@
   .maplibregl-ctrl-attrib-button{ background-color: transparent !important; }
   .maplibregl-ctrl-attrib a{ color: var(--text-muted); text-shadow: 0 1px 3px rgba(0,0,0,.65); }
   .maplibregl-ctrl-scale{
-    background:var(--panel-bg);
+    background:var(--glass);
     border-color:var(--accent);
     border-width:2px;
     color:var(--text);
-    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     font-size:13px;
     font-weight:600;
     padding:2px 6px;
-    box-shadow:0 2px 8px rgba(0,0,0,.35);
-    opacity:.75;
+    box-shadow:var(--glass-shadow);
   }
   .maplibregl-ctrl-bottom-left{
     left: calc(var(--panel-w, 380px) + 10px) !important;
@@ -62,9 +67,10 @@
     right:14px; bottom:40px;
     width:34px; height:130px;
     border-radius:999px;
-    border:1px solid var(--panel-border);
-    background:var(--panel-bg);
-    backdrop-filter: blur(6px);
+    border:1px solid var(--glass-border);
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    box-shadow:var(--glass-shadow);
     display:flex; align-items:center; justify-content:center;
   }
   #pitch-slider{
@@ -79,9 +85,9 @@
     transform: translate(var(--fdx, 0px), calc(var(--fdy, 0px) + 50%)); /* suit la barre d'assiette déplacée */
     padding:2px 7px;
     border-radius:6px;
-    border:1px solid var(--panel-border);
-    background:var(--panel-bg);
-    backdrop-filter: blur(6px);
+    border:1px solid var(--glass-border);
+    background:var(--glass-strong);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     font-size:12px; font-weight:600;
     font-variant-numeric: tabular-nums;
     color:var(--text);
@@ -273,13 +279,11 @@
   .zoom-bar{
     display:flex; flex-direction:column;
     width:34px; border-radius:17px; overflow:hidden;
-    background:rgba(30,37,48,.42);
+    background:var(--glass);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-    border:1px solid rgba(232,163,61,.35);
-    box-shadow:0 4px 14px rgba(0,0,0,.4);
-    opacity:.85; transition:opacity .15s ease;
+    border:1px solid var(--glass-border);
+    box-shadow:var(--glass-shadow);
   }
-  .zoom-bar:hover{ opacity:1; }
   .zoom-btn{
     width:34px; height:34px; padding:0; border:none; background:transparent;
     color:var(--accent); font-family:var(--font-ui); font-size:21px; font-weight:600; line-height:1;
@@ -289,14 +293,12 @@
   .zoom-btn:hover{ background:rgba(232,163,61,.18); }
   .zoom-btn:active{ background:rgba(232,163,61,.3); }
   .maplibregl-ctrl-group{
-    background:rgba(30,37,48,.42) !important;
+    background:var(--glass) !important;
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-    border:1px solid rgba(232,163,61,.35);
+    border:1px solid var(--glass-border);
     border-radius:17px !important;
-    box-shadow:0 4px 14px rgba(0,0,0,.4) !important;
-    opacity:.85; transition:opacity .15s ease;
+    box-shadow:var(--glass-shadow) !important;
   }
-  .maplibregl-ctrl-group:hover{ opacity:1; }
   .maplibregl-ctrl-group button{ width:34px; height:34px; }
   .maplibregl-ctrl-group button:not(:disabled):hover{ background-color:rgba(232,163,61,.18); }
   .maplibregl-ctrl-group .maplibregl-ctrl-icon{ filter:invert(1) hue-rotate(180deg); }
@@ -308,10 +310,10 @@
     left:calc(var(--panel-w, 380px) + 244px); bottom:3px;
     display:flex; align-items:center; gap:6px;
     padding:4px 9px 4px 4px; border-radius:999px;
-    background:rgba(30,37,48,.6);
+    background:var(--glass);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-    border:1px solid rgba(232,163,61,.35);
-    box-shadow:0 4px 14px rgba(0,0,0,.5);
+    border:1px solid var(--glass-border);
+    box-shadow:var(--glass-shadow);
     font-family:var(--font-mono); font-size:11.5px; color:var(--text);
   }
   #coord-box:not(.expanded){ padding-right:4px; }
@@ -337,16 +339,55 @@
     top:10px; left:calc(var(--panel-w, 380px) + 10px);
     width:30px; height:30px; padding:0; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    background:rgba(30,37,48,.6);
+    background:var(--glass);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-    border:1px solid rgba(232,163,61,.35);
-    box-shadow:0 4px 14px rgba(0,0,0,.5);
+    border:1px solid var(--glass-border);
+    box-shadow:var(--glass-shadow);
     color:var(--accent); cursor:pointer;
   }
-  #panel-toggle:hover{ background:rgba(232,163,61,.18); }
+  #panel-toggle:hover{ background:var(--glass-hover); }
   #panel-toggle svg{ transition:transform .15s ease; }
   body.panel-hidden #panel-toggle svg{ transform:rotate(180deg); }
   body.panel-hidden #panel, body.panel-hidden #resize-handle{ display:none !important; }
+
+  /* bouton « fond de carte et superpositions » (contrôle de carte, sous Street View) — comme The-GPX-Box */
+  .map-menu{ position:relative; }
+  .map-menu > .map-menu-btn{
+    width:34px; height:34px; padding:0; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--glass); color:var(--accent); cursor:pointer;
+    border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  }
+  .map-menu > .map-menu-btn:hover{ background:var(--glass-hover); }
+  .map-menu > .map-menu-btn svg{ display:block; }
+  .map-menu.open > .map-menu-btn, .map-menu.open > .map-menu-btn:hover{ background:var(--accent); color:#1b1206; }
+  .map-pop{
+    display:none; position:absolute; right:calc(100% + 8px); top:0; z-index:3000;
+    min-width:230px; flex-direction:column; gap:7px; padding:12px 14px;
+    background:var(--glass-strong); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid var(--panel-border); border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,.5);
+    font-size:12.5px; color:var(--text); cursor:default;
+  }
+  .map-menu.open > .map-pop{ display:flex; }
+  .map-pop-title{ font-weight:700; font-size:11.5px; color:var(--accent); text-transform:uppercase; letter-spacing:.04em; }
+  .map-pop-title:not(:first-child){ margin-top:4px; padding-top:9px; border-top:1px solid var(--panel-border); }
+  .map-pop label{ display:flex; align-items:center; gap:8px; white-space:nowrap; cursor:pointer; }
+  .map-pop input{ width:15px; height:15px; margin:0; accent-color:var(--accent); cursor:pointer; }
+  /* opacité du fond choisi au-dessus de la photo aérienne (visible seulement avec la photo) */
+  #topo-opacity{
+    position:absolute; z-index:5;
+    left:calc(var(--panel-w, 380px) + (100vw - var(--panel-w, 380px)) / 2); bottom:32px;
+    transform:translate(calc(-50% + var(--fdx, 0px)), var(--fdy, 0px));
+    display:none; align-items:center; gap:10px;
+    padding:7px 14px; border-radius:999px;
+    background:var(--glass); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+    font-size:12px; font-weight:600; color:var(--text); user-select:none;
+  }
+  #topo-opacity.on{ display:flex; }
+  #topo-opacity input[type=range]{ width:150px; accent-color:var(--accent); cursor:pointer; }
+  #topo-opacity-val{ min-width:38px; text-align:right; font-variant-numeric:tabular-nums; color:var(--accent); }
 
   /* icônes flottantes : chaque commande de la carte se déplace en la glissant (décalage --fdx / --fdy) */
   .floatable{
@@ -446,10 +487,10 @@
     display:flex; align-items:center; gap:0;
     max-width:calc(100vw - var(--panel-w, 380px) - 80px);
     padding:6px 14px; border-radius:999px;
-    background:rgba(30,37,48,.6);
+    background:var(--glass);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-    border:1px solid rgba(232,163,61,.35);
-    box-shadow:0 4px 14px rgba(0,0,0,.5);
+    border:1px solid var(--glass-border);
+    box-shadow:var(--glass-shadow);
     font-size:13px; white-space:nowrap; overflow:hidden;
   }
   #weather-bar[hidden], .wb-place[hidden], .wb-now[hidden]{ display:none; }
@@ -471,8 +512,8 @@
   #empty-hint{
     position:absolute; z-index:1;
     left:50%; top:24px; transform:translateX(-50%);
-    background:var(--panel-bg);
-    border:1px solid var(--panel-border);
+    background:var(--glass);
+    border:1px solid var(--glass-border);
     border-radius:999px;
     padding:9px 18px;
     font-size:12.5px;
@@ -484,8 +525,8 @@
   #track-title-badge{
     position:absolute; z-index:1;
     left:50%; top:24px; transform:translateX(-50%);
-    background:rgba(15,18,24,.5);
-    border:1px solid var(--panel-border);
+    background:var(--glass);
+    border:1px solid var(--glass-border);
     border-radius:999px;
     padding:5px 14px;
     font-size:12px;
@@ -545,6 +586,8 @@
     .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
     #coord-box{ left:10px; bottom:auto; top:94px; }
     #panel-toggle{ left:10px; top:52px; }
+    #topo-opacity{ bottom:calc(var(--panel-h, 0px) + 32px); }
+    #topo-opacity input[type=range]{ width:110px; }
     #panel-toggle svg{ transform:rotate(-90deg); }
     body.panel-hidden #panel-toggle svg{ transform:rotate(90deg); }
   }
@@ -654,10 +697,6 @@
         <p class="hint" data-i18n="drop">ou glissez-déposez un fichier .gpx ici</p>
       </div>
       <select class="select" id="track-select" hidden></select>
-      <label class="checkbox-row" style="margin-top:10px;">
-        <input type="checkbox" id="osm-check">
-        <span data-i18n="osm">Fond de carte randonnée/chemins</span>
-      </label>
     </div>
 
     <hr class="sep">
@@ -701,10 +740,30 @@
     </div>
 
     <div class="panel-footer">
-      <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
+      <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
       <p class="version-line">v1.2.2 · © A.Legat</p>
     </div>
   </aside>
+  <div class="map-menu maplibregl-ctrl" id="menu-map">
+    <button class="map-menu-btn" type="button" data-i18n-title="basemap" title="Fond de carte et superpositions" aria-label="Fond de carte et superpositions" aria-haspopup="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg></button>
+    <div class="map-pop">
+      <div class="map-pop-title" data-i18n="bm.title">Fond de carte</div>
+      <label><input type="radio" name="basemap" value="opentopo" checked> OpenTopoMap</label>
+      <label><input type="radio" name="basemap" value="cartoweb"> <span data-i18n="bm.be">CartoWeb.be (IGN Belgique)</span></label>
+      <label><input type="radio" name="basemap" value="ignfr"> <span data-i18n="bm.fr">Plan IGN (France)</span></label>
+      <label><input type="radio" name="basemap" value="lux"> Geoportail.lu (Luxembourg)</label>
+      <label><input type="radio" name="basemap" value="cyclosm"> <span data-i18n="bm.bike">CyclOSM (vélo / VTT)</span></label>
+      <div class="map-pop-title" data-i18n="bm.overlays">Superpositions</div>
+      <label><input type="checkbox" id="chk-aerial" checked autocomplete="off"> <span data-i18n="bm.aerial">Photo aérienne</span></label>
+      <label><input type="checkbox" id="chk-trails" autocomplete="off"> <span data-i18n="bm.trails">Sentiers balisés</span></label>
+      <label><input type="checkbox" id="chk-terrain" checked autocomplete="off"> <span data-i18n="bm.terrain">Relief 3D</span></label>
+    </div>
+  </div>
+  <div id="topo-opacity">
+    <span id="topo-opacity-name">OpenTopoMap</span>
+    <input type="range" id="topo-opacity-range" min="0" max="100" step="5" value="30" autocomplete="off">
+    <span id="topo-opacity-val">30&nbsp;%</span>
+  </div>
   <button id="panel-toggle" type="button" data-i18n-title="panelHide" title="Masquer le panneau" aria-label="Masquer le panneau"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div id="resize-handle" data-i18n-title="resize" title="Glisser pour redimensionner"></div>
 
@@ -819,7 +878,6 @@
       </ul>
       <div class="help-sub">Cases à cocher</div>
       <ul>
-        <li>Fond de carte randonnée/chemins : OpenTopoMap à la place de la photo aérienne</li>
         <li>Suivi : la caméra reste centrée sur le point</li>
         <li>Cap : la carte pivote selon la direction de marche</li>
         <li>Vue générale : la trace reste complète et la caméra garde la vue d'ensemble ; seul un point bleu avance (désactive suivi et cap)</li>
@@ -881,7 +939,7 @@
 
         <h3>Affichage de la carte</h3>
         <ul>
-          <li><b>Fond de carte randonnée/chemins</b> : remplace la photo aérienne Esri par OpenTopoMap (sentiers, courbes de niveau) ; la trace passe de l'orange au bleu pour rester lisible. Décoché par défaut.</li>
+          <li><b>Fond de carte</b> : bouton carte (dans la carte, sous Street View). Fond au choix : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM (vélo / VTT). Superpositions : <b>photo aérienne</b> (cochée par défaut ; un curseur en bas de la carte règle alors l'opacité du fond par-dessus, 30 % au départ, 0 % = photo seule), <b>sentiers balisés</b> (Waymarked Trails) et <b>relief 3D</b> (coché par défaut). La trace passe de l'orange au bleu quand le fond dessiné domine. Le fond et les sentiers choisis sont mémorisés.</li>
           <li><b>Relief</b> : exagéré ×1,6 avec ombrage. La barre verticale en bas à droite règle l'inclinaison (0° à 70°) ; le clic droit + glisser incline et pivote la vue.</li>
           <li><b>Zoom</b> : boutons <b>+</b> / <b>−</b> translucides en haut à droite (avec la boussole sous eux), ou molette / pincement.</li>
           <li><b>Icônes flottantes</b> : la barre lieu + météo, les boutons + / −, la boussole, la barre d'inclinaison (glissez-la par sa poignée en pointillés, en haut) la boîte de coordonnées et l'échelle se déplacent <b>librement</b> dans la zone de la carte : glissez-les à la souris ou au doigt. Elles ne sortent jamais de la carte ni ne passent sous le panneau ; leurs positions sont mémorisées. Le bouton « Remettre les icônes de la carte à leur place » de l'aide rapide (en tête de cette fenêtre) rétablit la disposition d'origine.</li>
@@ -965,7 +1023,6 @@
       </ul>
       <div class="help-sub">Checkboxes</div>
       <ul>
-        <li>Hiking/paths basemap: OpenTopoMap instead of aerial photo</li>
         <li>Follow: the camera stays centred on the point</li>
         <li>Heading: the map rotates along the direction of travel</li>
         <li>Overview: the track stays complete and the camera keeps the whole-track view; only a blue dot moves (disables follow and heading)</li>
@@ -1027,7 +1084,7 @@
 
         <h3>Map display</h3>
         <ul>
-          <li><b>Hiking/paths basemap</b>: replaces Esri aerial photo with OpenTopoMap (paths, contour lines); the track turns from orange to blue to stay readable. Unchecked by default.</li>
+          <li><b>Basemap</b>: map button (on the map, below Street View). Choose OpenTopoMap, CartoWeb.be (IGN Belgium), Plan IGN (France), Geoportail.lu (Luxembourg) or CyclOSM (bike / MTB). Overlays: <b>aerial photo</b> (checked by default; a slider at the bottom of the map then sets the basemap opacity on top, 30 % at start, 0 % = photo only), <b>waymarked trails</b> (Waymarked Trails) and <b>3D terrain</b> (checked by default). The track turns from orange to blue when the drawn basemap dominates. The chosen basemap and trails are remembered.</li>
           <li><b>Terrain</b>: exaggerated ×1.6 with hillshade. The vertical bar at the bottom right sets the tilt (0° to 70°); right-click + drag tilts and rotates the view.</li>
           <li><b>Zoom</b>: translucent <b>+</b> / <b>−</b> buttons at the top right (with the compass below them), or wheel / pinch.</li>
           <li><b>Floating icons</b>: the place + weather bar, the + / − buttons, the compass, the tilt bar (drag it by its dotted handle at the top), the coordinates box and the scale can be moved <b>freely</b> within the map area: drag them with the mouse or a finger. They never leave the map or go under the panel; their positions are remembered. The “Put the map icons back in place” button of the quick help (at the top of this window) restores the original layout.</li>
@@ -1188,12 +1245,16 @@ const I18N = {
     load: "Charger un GPX…",
     drop: "ou glissez-déposez un fichier .gpx ici",
     osm: "Fond de carte randonnée/chemins",
+    'title.basemap': "Fond de carte et superpositions", 'bm.title': "Fond de carte", 'bm.overlays': "Superpositions",
+    'bm.be': "CartoWeb.be (IGN Belgique)", 'bm.fr': "Plan IGN (France)", 'bm.bike': "CyclOSM (vélo / VTT)",
+    'bm.aerial': "Photo aérienne", 'bm.trails': "Sentiers balisés", 'bm.terrain': "Relief 3D",
+    'bm.opacity': "Opacité de {name} : {op} % (transparence : {tr} %)",
     profile: "Profil", duration: "Durée",
     follow: "Centrer et zoomer sur la position (suivi)",
     orient: "Orienter la carte selon le tracé (cap)",
     overview: "Rester en vue générale (sans suivi ni zoom)",
     emptyHint: "Chargez un fichier GPX pour commencer",
-    attribution: "Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)",
+    attribution: "Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Annuler",
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
     'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
@@ -1245,12 +1306,16 @@ const I18N = {
     load: "Load a GPX…",
     drop: "or drag and drop a .gpx file here",
     osm: "Hiking/paths basemap",
+    'title.basemap': "Basemap and overlays", 'bm.title': "Basemap", 'bm.overlays': "Overlays",
+    'bm.be': "CartoWeb.be (IGN Belgium)", 'bm.fr': "Plan IGN (France)", 'bm.bike': "CyclOSM (bike / MTB)",
+    'bm.aerial': "Aerial photo", 'bm.trails': "Waymarked trails", 'bm.terrain': "3D terrain",
+    'bm.opacity': "{name} opacity: {op} % (transparency: {tr} %)",
     profile: "Profile", duration: "Duration",
     follow: "Centre and zoom on the position (follow)",
     orient: "Orient the map along the track (heading)",
     overview: "Stay in overview (no follow or zoom)",
     emptyHint: "Load a GPX file to get started",
-    attribution: "Imagery © Esri, Maxar, Earthstar Geographics · Terrain © AWS Open Data Terrain Tiles / Mapzen · Basemap © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · Weather © Open-Meteo.com (CC-BY 4.0) · Place names © OpenStreetMap contributors (Nominatim)",
+    attribution: "Imagery © Esri, Maxar, Earthstar Geographics · Terrain © AWS Open Data Terrain Tiles / Mapzen · Basemap © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgium (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Trails © Waymarked Trails (CC-BY-SA) · Weather © Open-Meteo.com (CC-BY 4.0) · Place names © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Cancel",
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
     'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
@@ -1867,7 +1932,6 @@ const el = {
   followCheck: document.getElementById('follow-check'),
   orientCheck: document.getElementById('orient-check'),
   overviewCheck: document.getElementById('overview-check'),
-  osmCheck: document.getElementById('osm-check'),
   pitchSlider: document.getElementById('pitch-slider'),
   pitchTooltip: document.getElementById('pitch-tooltip'),
   positionLabel: document.getElementById('position-label'),
@@ -1910,12 +1974,42 @@ const map = new maplibregl.Map({
         maxzoom: 19,
         attribution: 'Imagery &copy; Esri'
       },
-      osm: {
+      opentopo: {
         type: 'raster',
         tiles: PLAN_TILE_URLS,
         tileSize: 256,
         maxzoom: 17,
         attribution: '&copy; OpenStreetMap contributors, SRTM | Style: &copy; OpenTopoMap (CC-BY-SA)'
+      },
+      cartoweb: {
+        type: 'raster',
+        tiles: ['https://cartoweb.wmts.ngi.be/1.0.0/topo/default/3857/{z}/{y}/{x}.png'],
+        tileSize: 256, maxzoom: 17,
+        attribution: '&copy; IGN Belgique – CartoWeb.be'
+      },
+      ignfr: {
+        type: 'raster',
+        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'],
+        tileSize: 256, maxzoom: 18,
+        attribution: '&copy; IGN France – Plan IGN'
+      },
+      lux: {
+        type: 'raster',
+        tiles: ['https://wmts3.geoportail.lu/opendata/wmts/topomap/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png','https://wmts4.geoportail.lu/opendata/wmts/topomap/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png'],
+        tileSize: 256, maxzoom: 19,
+        attribution: '&copy; ACT Luxembourg – geoportail.lu'
+      },
+      cyclosm: {
+        type: 'raster',
+        tiles: ['https://a.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png','https://b.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png','https://c.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png'],
+        tileSize: 256, maxzoom: 20,
+        attribution: '&copy; CyclOSM · &copy; OpenStreetMap contributors'
+      },
+      trails: {
+        type: 'raster',
+        tiles: ['https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png'],
+        tileSize: 256, maxzoom: 18,
+        attribution: '&copy; Waymarked Trails (CC-BY-SA)'
       },
       terrainSource: {
         type: 'raster-dem',
@@ -1928,7 +2022,11 @@ const map = new maplibregl.Map({
     },
     layers: [
       { id: 'aerial', type: 'raster', source: 'aerial' },
-      { id: 'osm', type: 'raster', source: 'osm', layout: { visibility: 'none' } },
+      { id: 'opentopo', type: 'raster', source: 'opentopo', layout: { visibility: 'none' } },
+      { id: 'cartoweb', type: 'raster', source: 'cartoweb', layout: { visibility: 'none' } },
+      { id: 'ignfr', type: 'raster', source: 'ignfr', layout: { visibility: 'none' } },
+      { id: 'lux', type: 'raster', source: 'lux', layout: { visibility: 'none' } },
+      { id: 'cyclosm', type: 'raster', source: 'cyclosm', layout: { visibility: 'none' } },
       {
         id: 'hillshade', type: 'hillshade', source: 'terrainSource',
         paint: {
@@ -1938,6 +2036,7 @@ const map = new maplibregl.Map({
           'hillshade-accent-color': '#2a1c10'
         }
       }
+      ,{ id: 'trails', type: 'raster', source: 'trails', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.9 } }
     ],
     terrain: { source: 'terrainSource', exaggeration: 1.6 },
     sky: {
@@ -2021,6 +2120,7 @@ map.on('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && svPickMode) setStreetViewMode(false); });
 onLanguageChange.push(() => { const b = document.getElementById('sv-banner'); if (b) b.textContent = tx('sv.banner'); });
+map.addControl({ onAdd(){ return document.getElementById('menu-map'); }, onRemove(){} }, 'top-right'); // fond de carte, sous Street View
 map.addControl(new maplibregl.ScaleControl({ maxWidth: 200, unit: 'metric' }), 'bottom-left');
 
 /* ============================================================
@@ -2080,16 +2180,83 @@ function updateTrackColorForBasemap(){
   lastProgressApplied = -1; // force la réécriture même si l'avancement n'a pas bougé
   setTrackProgress(progress);
 }
-el.osmCheck.addEventListener('change', () => {
-  const showOsm = el.osmCheck.checked;
-  const setVis = (id, visible) => {
-    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
-  };
-  setVis('osm', showOsm);
-  setVis('aerial', !showOsm);
+/* Gestion des fonds de carte, comme The-GPX-Box :
+   - un fond au choix (OpenTopoMap, CartoWeb.be, Plan IGN, Geoportail.lu, CyclOSM) ;
+   - superpositions : photo aérienne (dessous), sentiers balisés (Waymarked Trails), relief 3D ;
+   - avec la photo aérienne, un curseur règle l'opacité du fond par-dessus :
+     0 % = photo seule · 100 % = fond opaque ; décocher la photo remet le curseur à sa valeur de départ.
+   Le fond choisi et les sentiers sont mémorisés. */
+const TOPO_DEFAULT_OPACITY = 30;
+const BASEMAPS = {
+  opentopo: 'OpenTopoMap', cartoweb: 'CartoWeb.be', ignfr: 'Plan IGN', lux: 'Geoportail.lu', cyclosm: 'CyclOSM'
+};
+const bm = {
+  menu: document.getElementById('menu-map'),
+  aerial: document.getElementById('chk-aerial'),
+  trails: document.getElementById('chk-trails'),
+  terrain: document.getElementById('chk-terrain'),
+  box: document.getElementById('topo-opacity'),
+  range: document.getElementById('topo-opacity-range'),
+  val: document.getElementById('topo-opacity-val'),
+  name: document.getElementById('topo-opacity-name'),
+  base: 'opentopo'
+};
+try { const b = localStorage.getItem('gpx3d.basemap'); if (BASEMAPS[b]) bm.base = b; } catch(e){}
+try { bm.trails.checked = localStorage.getItem('gpx3d.trails') === '1'; } catch(e){}
+{ const r = document.querySelector('input[name="basemap"][value="' + bm.base + '"]'); if (r) r.checked = true; }
+function basemapOpacity(){ return bm.aerial.checked ? (parseInt(bm.range.value, 10) || 0) : 100; }
+/* fond dessiné (plan) dominant : la trace passe en bleu ; sur la photo aérienne elle reste orange */
+function basemapIsPlan(){ return basemapOpacity() >= 50; }
+function aerialOn(){ return bm.aerial.checked; }
+function updateTopoOpacityUI(){
+  const op = parseInt(bm.range.value, 10) || 0;
+  bm.box.classList.toggle('on', bm.aerial.checked);
+  bm.val.innerHTML = op + '&nbsp;%';
+  bm.name.textContent = BASEMAPS[bm.base];
+  bm.box.title = tx('bm.opacity', { name: BASEMAPS[bm.base], op, tr: 100 - op });
+}
+function applyBasemap(){
+  if (!map.getLayer('aerial')) return;
+  const v = basemapOpacity();
+  map.setLayoutProperty('aerial', 'visibility', bm.aerial.checked ? 'visible' : 'none');
+  Object.keys(BASEMAPS).forEach(k => {
+    if (!map.getLayer(k)) return;
+    const on = k === bm.base && v > 0;          // 0 % : plus aucune tuile chargée pour ce fond
+    map.setLayoutProperty(k, 'visibility', on ? 'visible' : 'none');
+    if (on) map.setPaintProperty(k, 'raster-opacity', v / 100);
+  });
+  if (map.getLayer('trails')) map.setLayoutProperty('trails', 'visibility', bm.trails.checked ? 'visible' : 'none');
   updateTrackColorForBasemap();
   syncTrackStyleUI();
+}
+document.querySelectorAll('input[name="basemap"]').forEach(r => r.addEventListener('change', () => {
+  if (!r.checked) return;
+  bm.base = r.value;
+  try { localStorage.setItem('gpx3d.basemap', bm.base); } catch(e){}
+  updateTopoOpacityUI(); applyBasemap();
+}));
+bm.trails.addEventListener('change', () => {
+  try { localStorage.setItem('gpx3d.trails', bm.trails.checked ? '1' : '0'); } catch(e){}
+  applyBasemap();
 });
+bm.aerial.addEventListener('change', () => {
+  if (!bm.aerial.checked) bm.range.value = TOPO_DEFAULT_OPACITY;
+  updateTopoOpacityUI(); applyBasemap();
+});
+bm.range.addEventListener('input', () => { updateTopoOpacityUI(); applyBasemap(); });
+bm.terrain.addEventListener('change', () => {
+  const on = bm.terrain.checked;
+  try { map.setTerrain(on ? { source: 'terrainSource', exaggeration: 1.6 } : null); } catch(e){}
+  if (!state.playing) map.easeTo({ pitch: on ? 60 : 0, duration: 600 });
+});
+// ouverture / fermeture du menu (clic à côté ou Échap ferme)
+bm.menu.querySelector('.map-menu-btn').addEventListener('click', e => { e.stopPropagation(); bm.menu.classList.toggle('open'); });
+bm.menu.querySelector('.map-pop').addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', () => bm.menu.classList.remove('open'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') bm.menu.classList.remove('open'); });
+updateTopoOpacityUI();
+map.on('load', () => { updateTopoOpacityUI(); applyBasemap(); });
+onLanguageChange.push(updateTopoOpacityUI);
 
 /* ---- options de style de la trace (couleur / épaisseur) ---- */
 const tsSection = document.getElementById('track-style-section');
@@ -2251,7 +2418,7 @@ function trackGradient(color, progress){
 /* Avance le dessin de la trace : une seule propriété de peinture à mettre à jour,
    quelle que soit la longueur de la trace. */
 let lastProgressApplied = -1;
-function autoTrackColor(){ return el.osmCheck.checked ? TRACK_COLOR_PLAN : TRACK_COLOR_AERIAL; }
+function autoTrackColor(){ return basemapIsPlan() ? TRACK_COLOR_PLAN : TRACK_COLOR_AERIAL; }
 function currentTrackColor(){ return trackStyle.color || autoTrackColor(); }
 function applyTrackWidth(){
   if (map.getLayer('track-line')) map.setPaintProperty('track-line', 'line-width', trackStyle.width);
@@ -2358,7 +2525,7 @@ async function selectTrack(index){
   const gx = (vb.getEast() - vb.getWest()) * 1.5, gy = (vb.getNorth() - vb.getSouth()) * 1.5;
   map.setMaxBounds([[vb.getWest() - gx, Math.max(-85, vb.getSouth() - gy)], [vb.getEast() + gx, Math.min(85, vb.getNorth() + gy)]]);
 
-  await preloadAerialTiles(track);
+  if (aerialOn()) await preloadAerialTiles(track); // tuiles de la photo aérienne, si elle est affichée
   showFullTrack(track);
   if (map && map.resize) map.resize(); // même recalage dès le chargement de la trace
 }
@@ -3465,6 +3632,8 @@ function syncPanelVars(){
   if (svCtrlBox) svCtrlBox.classList.add('floatable');
   const scaleBar = document.querySelector('.maplibregl-ctrl-scale');
   if (scaleBar) scaleBar.classList.add('floatable');
+  document.getElementById('menu-map').classList.add('floatable');
+  document.getElementById('topo-opacity').classList.add('floatable');
 
   const defs = [
     ['weather', document.getElementById('weather-bar'), []],
@@ -3474,6 +3643,8 @@ function syncPanelVars(){
     ['coordbox', document.getElementById('coord-box'), []], // (ex-'coord' : position d'origine changée)
     ['sv',      svCtrlBox, []],
     ['scale',   scaleBar, []],
+    ['basemap', document.getElementById('menu-map'), []],
+    ['opacity', document.getElementById('topo-opacity'), []],
   ];
   const widgets = defs.filter(d => d[1]).map(d => ({
     id: d[0], el: d[1], followers: d[2].filter(Boolean),
