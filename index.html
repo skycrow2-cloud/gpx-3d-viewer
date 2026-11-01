@@ -708,6 +708,7 @@
         <p class="tagline" data-i18n="tagline">Visualisez vos traces GPS</p>
       </div>
       <div class="hdr-actions">
+        <button class="hdr-btn" id="btnToMaker" type="button" data-i18n-title="toMaker" title="Ouvrir dans The-GPX-Box (créer / modifier un tracé)" aria-label="Ouvrir dans The-GPX-Box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.85.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.85z"/></svg></button>
         <button class="hdr-btn" id="btnTrackStyle" type="button" data-i18n-title="trackStyle" title="Style de la trace" aria-label="Style de la trace"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         <button class="hdr-btn" id="btnOsm" type="button" data-i18n-title="osm" title="Traces GPS OpenStreetMap" aria-label="Traces GPS OpenStreetMap"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18.5H6a4 4 0 0 1-.6-7.95A6 6 0 0 1 17 9.2a4.6 4.6 0 0 1 1 9.1"/><path d="M10 21v-6.5M7.8 16.6 10 14.4l2.2 2.2"/><path d="M14.5 13v6.6M12.3 17.4l2.2 2.2 2.2-2.2"/></svg></button>
         <button class="hdr-btn" id="btnLang" type="button" data-i18n-title="lang" title="Switch to English" aria-label="Switch to English">EN</button>
@@ -930,6 +931,7 @@
         <li>Clic droit + glisser (ou deux doigts) : pivoter / incliner la vue 3D</li>
         <li>Molette, pincement ou boutons + / − (en haut à droite) : zoomer / dézoomer</li>
         <li>Icône épingle (en bas, à côté de l'échelle) : coordonnées du curseur en WGS84, Lambert 72 ou Lambert 2008</li>
+        <li>Bouton <b>crayon</b> (en-tête) : ouvre The-GPX-Box pour créer ou modifier un tracé ; la trace chargée y est transmise. Le bouton <b>montagne</b> de The-GPX-Box fait le chemin inverse.</li>
         <li>Languette <b>‹</b> au bord du panneau, à mi-hauteur : masque le panneau pour ne voir que la carte (<b>›</b> le réaffiche)</li>
         <li><b>Icônes flottantes</b> : glissez la barre météo, les boutons + / −, la boussole, la barre d'inclinaison (par sa poignée en pointillés) la boîte de coordonnées ou l'échelle où vous voulez dans la carte ; les positions sont mémorisées</li>
         <li>Barre verticale en bas à droite : inclinaison de 0° à 70°</li>
@@ -1076,6 +1078,7 @@
         <li>Right-click + drag (or two fingers): rotate / tilt the 3D view</li>
         <li>Wheel, pinch or the + / − buttons (top right): zoom in / out</li>
         <li>Pin icon (bottom, next to the scale): cursor coordinates in WGS84, Lambert 72 or Lambert 2008</li>
+        <li><b>Pencil</b> button (header): opens The-GPX-Box to draw or edit a route; the loaded track is passed on. The <b>mountain</b> button in The-GPX-Box goes the other way.</li>
         <li><b>‹</b> tab on the panel edge, half-way down: hides the panel to show the map only (<b>›</b> brings it back)</li>
         <li><b>Floating icons</b>: drag the weather bar, the + / − buttons, the compass, the tilt bar (by its dotted handle), the coordinates box or the scale anywhere in the map; positions are remembered</li>
         <li>Vertical bar at the bottom right: tilt from 0° to 70°</li>
@@ -1333,7 +1336,7 @@ const I18N = {
     attribution: "Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Annuler",
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
-    'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
+    'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.toMaker': "Ouvrir dans The-GPX-Box (créer / modifier un tracé) — la trace chargée y est transmise", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
     'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto",
     'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
@@ -1405,7 +1408,7 @@ const I18N = {
     attribution: "Imagery © Esri, Maxar, Earthstar Geographics · Terrain © AWS Open Data Terrain Tiles / Mapzen · Basemap © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgium (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Trails © Waymarked Trails (CC-BY-SA) · Weather © Open-Meteo.com (CC-BY 4.0) · Place names © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Cancel",
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
-    'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
+    'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.toMaker': "Open in The-GPX-Box (draw / edit a route) — the loaded track is passed on", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
     'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto",
     'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
@@ -2604,7 +2607,7 @@ function loadFile(file){
   const reader = new FileReader();
   reader.onload = () => {
     let tracks;
-    try { tracks = parseGPX(reader.result); }
+    try { tracks = parseGPX(reader.result); tracks.forEach(t => { t.gpxText = reader.result; }); }
     catch(err){ alert(tx('err.read') + "\n" + err.message); return; }
     if (!tracks.length){ alert(tx('err.empty')); return; }
     const fileBase = (file.name || '').replace(/\.gpx$/i, '');
@@ -2623,6 +2626,10 @@ function loadFile(file){
   reader.readAsText(file);
 }
 el.trackSelect.addEventListener('change', () => selectTrack(parseInt(el.trackSelect.value, 10)));
+// accès pour le passage vers / depuis The-GPX-Box (script séparé, plus bas)
+window.__gpx3dLoadFile = loadFile;
+window.__gpx3dState = state;
+window.__gpx3dMap = map;
 
 async function selectTrack(index){
   stopPlayback();
@@ -4222,6 +4229,36 @@ function syncPanelVars(){
   handle.addEventListener('pointercancel', endDrag);
 })();
 
+})();
+</script>
+<script>
+/* Passage GPX 3D ⇄ The-GPX-Box : les deux pages sont sur le même site (skycrow2-cloud.github.io), elles se
+   transmettent la trace par le stockage local (clé 'gpxsuite.handoff') puis ouvrent l'autre page dans son
+   propre onglet, réutilisé d'une fois à l'autre ; l'adresse se termine par #handoff. */
+(function appSwitch(){
+  "use strict";
+  const KEY = 'gpxsuite.handoff', MAX_AGE_MS = 2 * 60 * 1000;
+  const MAKER_URL = 'https://skycrow2-cloud.github.io/the-gpx-box/';
+  document.getElementById('btnToMaker').addEventListener('click', e => {
+    e.stopPropagation();
+    const t = window.__gpx3dState && window.__gpx3dState.track;
+    try {
+      if (t && t.gpxText) localStorage.setItem(KEY, JSON.stringify({ gpx: t.gpxText, name: t.fileName || t.name || 'trace', from: 'gpx3d', t: Date.now() }));
+      else localStorage.removeItem(KEY);
+    } catch(err){}
+    window.open(MAKER_URL + (t ? '#handoff' : ''), 'the-gpx-box');
+  });
+  function receive(){
+    if (location.hash !== '#handoff') return;
+    history.replaceState(null, '', location.pathname + location.search);
+    let h = null;
+    try { h = JSON.parse(localStorage.getItem(KEY) || 'null'); localStorage.removeItem(KEY); } catch(err){}
+    if (!h || !h.gpx || h.from === 'gpx3d' || Date.now() - h.t > MAX_AGE_MS) return;
+    const name = String(h.name || 'trace').replace(/\.gpx$/i, '') + '.gpx';
+    window.__gpx3dLoadFile(new File([h.gpx], name, { type: 'application/gpx+xml' }));
+  }
+  window.addEventListener('hashchange', receive);
+  window.__gpx3dMap.once('load', receive); // au démarrage : une fois la carte prête (sources de la trace créées)
 })();
 </script>
 <script>
