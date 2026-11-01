@@ -315,6 +315,8 @@
   .maplibregl-ctrl-group button{ width:34px; height:34px; }
   .maplibregl-ctrl-group button:not(:disabled):hover{ background-color:rgba(232,163,61,.18); }
   .maplibregl-ctrl-group .maplibregl-ctrl-icon{ filter:invert(1) hue-rotate(180deg); }
+  /* boussole : nord en rouge, sud clair */
+  .maplibregl-ctrl-group .maplibregl-ctrl-compass .maplibregl-ctrl-icon{ filter:none !important; background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 29 29%27%3E%3Cpath fill=%27%23e5383b%27 d=%27m10.5 14 4-8 4 8h-8z%27/%3E%3Cpath fill=%27%23d9dde3%27 d=%27m10.5 16 4 8 4-8h-8z%27/%3E%3C/svg%3E") !important; }
 
   /* coordonnées du curseur (WGS84 / Lambert 72 / Lambert 2008) */
   #coord-box{
