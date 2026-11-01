@@ -334,19 +334,20 @@
   #coord-system option{ background:#1b222a; color:var(--text); }
 
   /* bouton masquer / afficher le panneau gauche (carte seule) */
+  /* languette collée au bord du panneau, à mi-hauteur (comme The-GPX-Box) */
   #panel-toggle{
     position:absolute; z-index:6;
-    top:10px; left:calc(var(--panel-w, 380px) + 10px);
-    width:30px; height:30px; padding:0; border-radius:50%;
+    top:50%; left:var(--panel-w, 380px); transform:translateY(-50%);
+    width:22px; height:56px; padding:0;
+    border:1px solid var(--panel-border); border-left:none; border-radius:0 8px 8px 0;
     display:flex; align-items:center; justify-content:center;
     background:var(--glass);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-    border:1px solid var(--glass-border);
-    box-shadow:var(--glass-shadow);
-    color:var(--accent); cursor:pointer;
+    box-shadow:2px 2px 8px rgba(0,0,0,.35);
+    color:var(--accent); cursor:pointer; transition:background .15s ease;
   }
   #panel-toggle:hover{ background:var(--glass-hover); }
-  #panel-toggle svg{ transition:transform .15s ease; }
+  #panel-toggle svg{ transition:transform .2s ease; }
   body.panel-hidden #panel-toggle svg{ transform:rotate(180deg); }
   body.panel-hidden #panel, body.panel-hidden #resize-handle{ display:none !important; }
 
@@ -585,7 +586,10 @@
     #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); height:100px; }
     .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
     #coord-box{ left:10px; bottom:auto; top:94px; }
-    #panel-toggle{ left:10px; top:52px; }
+    #panel-toggle{
+      top:auto; bottom:var(--panel-h, 0px); left:50%; transform:translateX(-50%);
+      width:56px; height:22px; border:1px solid var(--panel-border); border-bottom:none; border-radius:8px 8px 0 0;
+    }
     #topo-opacity{ bottom:calc(var(--panel-h, 0px) + 32px); }
     #topo-opacity input[type=range]{ width:110px; }
     #panel-toggle svg{ transform:rotate(-90deg); }
@@ -764,7 +768,7 @@
     <input type="range" id="topo-opacity-range" min="0" max="100" step="5" value="30" autocomplete="off">
     <span id="topo-opacity-val">30&nbsp;%</span>
   </div>
-  <button id="panel-toggle" type="button" data-i18n-title="panelHide" title="Masquer le panneau" aria-label="Masquer le panneau"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <button id="panel-toggle" type="button" data-i18n-title="panelHide" title="Masquer le panneau" aria-label="Masquer le panneau"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div id="resize-handle" data-i18n-title="resize" title="Glisser pour redimensionner"></div>
 
   <div id="empty-hint" data-i18n="emptyHint">Chargez un fichier GPX pour commencer</div>
@@ -856,7 +860,7 @@
         <li>Clic droit + glisser (ou deux doigts) : pivoter / incliner la vue 3D</li>
         <li>Molette, pincement ou boutons + / − (en haut à droite) : zoomer / dézoomer</li>
         <li>Icône épingle (en bas, à côté de l'échelle) : coordonnées du curseur en WGS84, Lambert 72 ou Lambert 2008</li>
-        <li>Bouton <b>‹</b> en haut à gauche de la carte : masque le panneau pour ne voir que la carte (<b>›</b> le réaffiche)</li>
+        <li>Languette <b>‹</b> au bord du panneau, à mi-hauteur : masque le panneau pour ne voir que la carte (<b>›</b> le réaffiche)</li>
         <li><b>Icônes flottantes</b> : glissez la barre météo, les boutons + / −, la boussole, la barre d'inclinaison (par sa poignée en pointillés) la boîte de coordonnées ou l'échelle où vous voulez dans la carte ; les positions sont mémorisées</li>
         <li>Barre verticale en bas à droite : inclinaison de 0° à 70°</li>
         <li>Bouton Street View (sous la boussole) puis clic sur la carte : ouvre Google Street View à cet endroit dans un nouvel onglet</li>
@@ -1001,7 +1005,7 @@
         <li>Right-click + drag (or two fingers): rotate / tilt the 3D view</li>
         <li>Wheel, pinch or the + / − buttons (top right): zoom in / out</li>
         <li>Pin icon (bottom, next to the scale): cursor coordinates in WGS84, Lambert 72 or Lambert 2008</li>
-        <li><b>‹</b> button at the top left of the map: hides the panel to show the map only (<b>›</b> brings it back)</li>
+        <li><b>‹</b> tab on the panel edge, half-way down: hides the panel to show the map only (<b>›</b> brings it back)</li>
         <li><b>Floating icons</b>: drag the weather bar, the + / − buttons, the compass, the tilt bar (by its dotted handle), the coordinates box or the scale anywhere in the map; positions are remembered</li>
         <li>Vertical bar at the bottom right: tilt from 0° to 70°</li>
         <li>Street View button (below the compass) then click on the map: opens Google Street View at that spot in a new tab</li>
