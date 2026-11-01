@@ -1008,6 +1008,7 @@
         <h3>Lieu et météo</h3>
         <ul>
           <li>Une barre translucide, en haut à droite de la carte, affiche le <b>nom du lieu</b> (commune) et la <b>météo actuelle</b> (« 16°C · Bruine légère · vent 17 km/h »). Le survol du lieu donne l'adresse complète ; le survol de la météo donne le détail (ressenti, humidité, vent et direction, rafales, nébulosité, précipitations sur 1 h, heure du relevé).</li>
+          <li><b>Au démarrage</b> : la carte se centre sur la zone où vous vous trouvez si vous autorisez la géolocalisation, sinon sur la Belgique.</li>
           <li><b>Sans trace</b> : c'est le lieu de votre position (si vous autorisez la géolocalisation du navigateur ; en cas de refus, la barre attend qu'une trace soit chargée).</li>
           <li><b>Avec une trace</b> : le point de départ quand la trace complète est affichée, puis le point courant pendant la lecture.</li>
           <li>Le nom du lieu (Nominatim) est actualisé après un déplacement d'au moins 400 m ; la météo (Open-Meteo) après 5 km ou si le relevé a plus de 10 min (contrôle toutes les 10 min sans trace). Les vérifications sont espacées d'au moins 3 s, même en lecture rapide.</li>
@@ -1153,6 +1154,7 @@
         <h3>Place and weather</h3>
         <ul>
           <li>A translucent bar at the top right of the map shows the <b>place name</b> (locality) and the <b>current weather</b> (“16°C · Light drizzle · wind 17 km/h”). Hovering the place gives the full address; hovering the weather gives the details (feels-like, humidity, wind and direction, gusts, cloud cover, precipitation over 1 h, reading time).</li>
+          <li><b>At start-up</b>: the map centres on the area where you are if you allow geolocation, otherwise on Belgium.</li>
           <li><b>No track</b>: it is the place of your position (if you allow the browser's geolocation; if refused, the bar waits until a track is loaded).</li>
           <li><b>With a track</b>: the start point while the full track is displayed, then the current point during playback.</li>
           <li>The place name (Nominatim) is refreshed after moving at least 400 m; the weather (Open-Meteo) after 5 km or when the reading is over 10 min old (checked every 10 min with no track). Checks are spaced at least 3 s apart, even during fast playback.</li>
@@ -2125,8 +2127,8 @@ const map = new maplibregl.Map({
       'horizon-fog-blend': 0.6
     }
   },
-  center: [10, 25],
-  zoom: 2.1,
+  center: [4.47, 50.5],   // Belgique en attendant la géolocalisation (cf. plus bas)
+  zoom: 7,
   pitch: 0,
   bearing: 0,
   maxPitch: 85,
@@ -2963,10 +2965,22 @@ function showWeather(c){
 
 /* sans trace chargée : lieu et météo de la position de l'appareil (si la géolocalisation est autorisée) ;
    un refus ou une indisponibilité est silencieux, la barre apparaîtra dès qu'une trace sera chargée */
+/* vue de départ : la Belgique entière, puis la zone où l'on se trouve dès que la géolocalisation répond
+   (sauf si une trace est déjà chargée ou si l'on a déjà déplacé la carte à la main) */
+const BELGIUM_BOUNDS = [[2.54, 49.50], [6.41, 51.51]];
+let startViewTouched = false;
+['dragstart', 'zoomstart', 'rotatestart'].forEach(ev => map.on(ev, e => { if (e.originalEvent) startViewTouched = true; }));
+function showStartArea(){
+  if (state.track || startViewTouched) return;
+  if (geo.userLoc) map.flyTo({ center: [geo.userLoc.lon, geo.userLoc.lat], zoom: 12, padding: mapPadding(), duration: 1500 });
+  else map.fitBounds(BELGIUM_BOUNDS, { padding: mapPadding(), duration: 0 });
+}
+showStartArea(); // la caméra se règle sans attendre le chargement des tuiles
 if (navigator.geolocation){
   navigator.geolocation.getCurrentPosition(pos => {
     geo.userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
     if (!state.track) requestPlaceWeather(geo.userLoc.lat, geo.userLoc.lon, true);
+    showStartArea();
   }, () => {}, { timeout: 8000 });
 }
 // actualisation périodique tant qu'aucune trace n'est chargée (la météo se rafraîchit si le relevé a plus de 10 min)
