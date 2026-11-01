@@ -97,6 +97,16 @@
     transition: opacity .15s ease;
   }
   #pitch-tooltip.visible{ opacity:1; }
+  #pitch-tooltip{ color:var(--accent); border-radius:10px; }
+
+  /* infobulles : arrondies, translucides, texte orange (remplacent les infobulles natives, opaques) */
+  #ui-tip{
+    position:fixed; z-index:6000; display:none; pointer-events:none;
+    max-width:280px; padding:5px 10px; border-radius:10px;
+    background:var(--glass-strong); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+    color:var(--accent); font:500 12px/1.4 var(--font-ui);
+  }
 
   /* ---------------------------------------------------------- panneau */
   #panel{
@@ -4207,6 +4217,61 @@ function syncPanelVars(){
   handle.addEventListener('pointercancel', endDrag);
 })();
 
+})();
+</script>
+<script>
+/* Infobulles translucides (comme The-GPX-Box) : chaque attribut title est déplacé vers data-tip, y compris
+   ceux ajoutés ou traduits plus tard ; l'infobulle du navigateur disparaît, une bulle arrondie la remplace. */
+(function translucentTitles(){
+  "use strict";
+  const tip = document.createElement('div');
+  tip.id = 'ui-tip'; tip.setAttribute('role', 'tooltip');
+  document.documentElement.appendChild(tip);   // hors de <body> : pas observé (pas de boucle avec l'observateur)
+  let cur = null, timer = null;
+  function adopt(el){
+    if (el.nodeType !== 1 || !el.hasAttribute('title') || el.closest('svg')) return;
+    const t = el.getAttribute('title');
+    el.removeAttribute('title');
+    if (t) el.setAttribute('data-tip', t); else el.removeAttribute('data-tip');
+    if (t && !el.hasAttribute('aria-label') && !el.textContent.trim()) el.setAttribute('aria-label', t);
+  }
+  function adoptAll(root){
+    if (root.nodeType !== 1) return;
+    adopt(root);
+    root.querySelectorAll('[title]').forEach(adopt);
+  }
+  function place(el){
+    const t = el.getAttribute('data-tip');
+    if (!t || !el.isConnected){ hide(); return; }
+    if (tip.textContent !== t) tip.textContent = t;
+    tip.style.display = 'block';
+    const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    const x = Math.max(6, Math.min(window.innerWidth - w - 6, r.left + r.width / 2 - w / 2));
+    let y = r.bottom + 8;
+    if (y + h > window.innerHeight - 6) y = Math.max(6, r.top - h - 8);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function hide(){ clearTimeout(timer); tip.style.display = 'none'; }
+  adoptAll(document.body);
+  new MutationObserver(muts => {
+    let changed = false;
+    muts.forEach(m => {
+      if (m.type === 'attributes'){ if (m.target.hasAttribute('title')){ adopt(m.target); changed = true; } }
+      else m.addedNodes.forEach(adoptAll);
+    });
+    if (changed && cur && tip.style.display === 'block') place(cur);   // texte changé pendant le survol (langue…)
+  }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['title'] });
+  document.addEventListener('mouseover', ev => {
+    const el = ev.target && ev.target.closest ? ev.target.closest('[data-tip]') : null;
+    if (el === cur) return;
+    cur = el; hide();
+    if (el) timer = setTimeout(() => { if (cur === el) place(el); }, 450);
+  }, true);
+  document.addEventListener('mouseout', ev => {
+    if (cur && (!ev.relatedTarget || !cur.contains(ev.relatedTarget))){ cur = null; hide(); }
+  }, true);
+  ['mousedown', 'wheel', 'keydown'].forEach(t => document.addEventListener(t, hide, true));
+  window.addEventListener('blur', hide);
 })();
 </script>
 </body>
