@@ -101,6 +101,14 @@
   }
   #pitch-tooltip.visible{ opacity:1; }
   #pitch-tooltip{ color:var(--accent); border-radius:10px; }
+  /* bulle de survol de la trace */
+  #track-tip{
+    position:fixed; z-index:6000; display:none; pointer-events:none; white-space:nowrap;
+    padding:5px 10px; border-radius:10px;
+    background:var(--glass-strong); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+    color:var(--accent); font:600 12px/1.4 var(--font-ui); font-variant-numeric:tabular-nums;
+  }
 
   /* infobulles : arrondies, translucides, texte orange (remplacent les infobulles natives, opaques) */
   #ui-tip{
@@ -422,13 +430,14 @@
   .hdr-btn{
     width:34px; height:34px; padding:0; flex:0 0 auto;
     border-radius:50%; border:1px solid var(--panel-border);
-    background:var(--field-bg); color:var(--accent);
+    background:var(--glass); color:var(--accent);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     font-family:var(--font-ui); font-weight:700; font-size:17px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     transition:background .15s ease, transform .1s ease, box-shadow .15s ease;
   }
   #btnLang{ font-size:12px; letter-spacing:.02em; }
-  .hdr-btn:hover{ background:var(--panel-border); box-shadow:0 0 0 3px var(--accent-soft); }
+  .hdr-btn:hover{ background:var(--glass-hover); box-shadow:0 0 0 3px var(--accent-soft); }
   .hdr-btn:active{ transform:scale(.93); }
   .hdr-btn.active{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
 
@@ -463,8 +472,7 @@
   /* aide rapide + documentation (bouton « i ») */
   #docOverlay{
     display:none; position:fixed; inset:0; z-index:5000;
-    background:rgba(8,11,15,.62);
-    -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+    background:rgba(8,11,15,.3);
     align-items:center; justify-content:center; padding:20px;
   }
   .doc-modal{
@@ -481,7 +489,7 @@
   .doc-head h2{ margin:0; font-size:18px; color:var(--accent); flex:1; }
   .doc-close{
     width:32px; height:32px; border-radius:50%;
-    border:1px solid var(--panel-border); background:var(--field-bg); color:var(--text);
+    border:1px solid var(--panel-border); background:var(--glass); color:var(--text);
     font-size:18px; line-height:1; cursor:pointer;
   }
   .doc-close:hover{ background:var(--panel-border); }
@@ -1835,6 +1843,8 @@ class ProfileChart{
     return grad;
   }
   setCursor(p){ this.cursor = Math.max(0, Math.min(1, p)); this.draw(); }
+  /* repère de survol (souris sur la trace dans la carte) : null = aucun */
+  setHover(p){ const v = p == null ? null : Math.max(0, Math.min(1, p)); if (v === this.hover) return; this.hover = v; this.draw(); }
   _resizeAndDraw(){
     const dpr = window.devicePixelRatio || 1;
     const rect = this.canvas.getBoundingClientRect();
@@ -1978,6 +1988,18 @@ class ProfileChart{
       ctx.strokeStyle = '#33404b';
       ctx.beginPath(); ctx.moveTo(gx, r.top + r.height); ctx.lineTo(gx, r.top + r.height + 4); ctx.stroke();
       ctx.fillText(val.toFixed(1) + ' km', gx, r.top + r.height + 6);
+    }
+
+    // survol de la trace sur la carte : trait pointillé bleu + point sur la courbe
+    if (this.hover != null){
+      const hx = r.left + this.hover * r.width;
+      ctx.save();
+      ctx.strokeStyle = '#49b6c4'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(hx, r.top); ctx.lineTo(hx, r.top + r.height); ctx.stroke();
+      ctx.setLineDash([]);
+      const hi = Math.round(this.hover * (this.x.length - 1)), hv = this.yPrimary[hi];
+      if (hv != null){ ctx.fillStyle = '#49b6c4'; ctx.beginPath(); ctx.arc(hx, py(hv), 3.5, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
     }
 
     // curseur
@@ -2527,7 +2549,71 @@ map.on('load', () => {
     }
   });
   applyMarkerStyle();
+
+  map.addSource('hover', { type: 'geojson', data: emptyPoint() });
+  map.addLayer({
+    id: 'hover-point', type: 'circle', source: 'hover',
+    paint: { 'circle-radius': 6, 'circle-color': '#ffffff', 'circle-stroke-width': 3, 'circle-stroke-color': '#49b6c4' }
+  });
 });
+
+/* ============================================================
+   Survol de la trace dans la carte : point repéré sur la trace, bulle (distance, altitude, vitesse, heure)
+   et repère sur le profil
+   ============================================================ */
+(function initTrackHover(){
+  const tip = document.createElement('div');
+  tip.id = 'track-tip';
+  document.getElementById('app').appendChild(tip);
+  const HIT_PX = 10;
+  let pending = null, shown = false;
+  function clear(){
+    if (!shown) return;
+    shown = false;
+    tip.style.display = 'none';
+    const src = map.getSource('hover'); if (src) src.setData(emptyPoint());
+    chart.setHover(null);
+    if (!svPickMode) map.getCanvas().style.cursor = '';
+  }
+  function nearestIndex(track, lng, lat){
+    const k = Math.cos(lat * Math.PI / 180), pts = track.points;
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < pts.length; i++){
+      const dx = (pts[i].lon - lng) * k, dy = pts[i].lat - lat, d = dx * dx + dy * dy;
+      if (d < bd){ bd = d; best = i; }
+    }
+    return best;
+  }
+  function update(e){
+    const track = state.track;
+    if (!track || !map.getLayer('track-line') || svPickMode){ clear(); return; }
+    const pt = e.point;
+    const hit = map.queryRenderedFeatures([[pt.x - HIT_PX, pt.y - HIT_PX], [pt.x + HIT_PX, pt.y + HIT_PX]], { layers: ['track-line'] });
+    if (!hit.length){ clear(); return; }
+    const i = nearestIndex(track, e.lngLat.lng, e.lngLat.lat), p = track.points[i];
+    const src = map.getSource('hover'); if (src) src.setData(pointFeature([p.lon, p.lat]));
+    const parts = [(track.distancesM[i] / 1000).toFixed(2) + ' km'];
+    if (p.ele != null) parts.push(Math.round(p.ele) + ' m');
+    const v = track.speedsKmh[i]; if (v != null) parts.push(v.toFixed(1) + ' km/h');
+    if (p.time != null) parts.push(new Date(p.time).toLocaleTimeString(LANG === 'fr' ? 'fr-BE' : 'en-GB', { hour: '2-digit', minute: '2-digit' }));
+    tip.textContent = parts.join(' · ');
+    tip.style.display = 'block';
+    const mr = map.getContainer().getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = mr.left + pt.x + 14, y = mr.top + pt.y - h - 12;
+    if (x + w > window.innerWidth - 6) x = mr.left + pt.x - w - 14;
+    if (y < 6) y = mr.top + pt.y + 16;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    chart.setHover(i / Math.max(1, track.points.length - 1));
+    map.getCanvas().style.cursor = 'crosshair';
+    shown = true;
+  }
+  map.on('mousemove', e => {          // une mise à jour par image au plus
+    pending = e;
+    requestAnimationFrame(() => { if (pending){ const ev = pending; pending = null; update(ev); } });
+  });
+  map.on('mouseout', clear);
+  map.on('movestart', () => { if (!pending) clear(); });
+})();
 
 function emptyLine(){ return { type: 'FeatureCollection', features: [{ type:'Feature', geometry:{ type:'LineString', coordinates: [] }, properties:{} }] }; }
 function emptyPoint(){ return { type: 'FeatureCollection', features: [] }; }
