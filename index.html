@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+<script>try{if(localStorage.getItem('gpx3d-theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
 <style>
   :root{
     --bg:#0e1217;
@@ -31,6 +32,10 @@
     --glass-border: rgba(232,163,61,.35);
     --glass-shadow: 0 4px 14px rgba(0,0,0,.45);
     --radius:8px;
+    --chart-bg:#1b222a; --chart-grid:#33404b; --chart-frame:#2a323c; --chart-text:#8b93a1;
+    --muted-2:#5d6672; --option-bg:#1b222a; --overlay-dim:rgba(8,11,15,.3); --overlay-preload:rgba(10,13,16,.55);
+    --panel-solid:rgba(20,25,31,.8); --btn-hover-border:#3a4450; --zoom-sep:rgba(255,255,255,.12);
+    --pop-field-bg:rgba(30,37,48,.5); --warn:#f2c94c; --attrib-shadow:0 1px 3px rgba(0,0,0,.65);
     /* curseurs de The-GPX-Box : pastille « déplacer » sur un élément mobile, main orange pendant un glissement */
     --cur-grab: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14.5' fill='rgba(20,25,34,.72)' stroke='%23e8a33d' stroke-width='1.6'/><g transform='translate(8.56 8.56) scale(0.62)' fill='none' stroke='%23e8a33d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v20'/><path d='m15 19-3 3-3-3'/><path d='m19 9 3 3-3 3'/><path d='M2 12h20'/><path d='m5 9-3 3 3 3'/><path d='m9 5 3-3 3 3'/></g></svg>") 16 16, move;
     --cur-grabbing: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='-2 -2 28 28'><g fill='none' stroke='%2314181f' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><path d='M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/><path d='M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/><path d='M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8'/><path d='M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/></g><g fill='none' stroke='%23e8a33d' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/><path d='M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/><path d='M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8'/><path d='M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/></g></svg>") 11 11, grabbing;
@@ -49,7 +54,7 @@
   #map{ position:absolute; inset:0; }
   .maplibregl-ctrl-attrib{ font-size:10px; background: transparent !important; }
   .maplibregl-ctrl-attrib-button{ background-color: transparent !important; }
-  .maplibregl-ctrl-attrib a{ color: var(--text-muted); text-shadow: 0 1px 3px rgba(0,0,0,.65); }
+  .maplibregl-ctrl-attrib a{ color: var(--text-muted); text-shadow: var(--attrib-shadow); }
   .maplibregl-ctrl-scale{
     background:var(--glass);
     border-color:var(--accent);
@@ -70,7 +75,7 @@
   /* ---------------------------------------------------- réglage d'assiette (barre verticale discrète) */
   #pitch-control{
     position:absolute; z-index:2;
-    right:14px; bottom:40px;
+    right:10px; bottom:40px;
     width:34px; height:130px;
     border-radius:999px;
     border:1px solid var(--glass-border);
@@ -87,7 +92,7 @@
   }
   #pitch-tooltip{
     position:absolute; z-index:3;
-    right:54px; bottom:40px;
+    right:50px; bottom:40px;
     transform: translate(var(--fdx, 0px), calc(var(--fdy, 0px) + 50%)); /* suit la barre d'assiette déplacée */
     padding:2px 7px;
     border-radius:6px;
@@ -130,7 +135,7 @@
     min-width:380px;
     max-height:100vh;
     overflow-y:auto;
-    background: rgba(20,25,31,.8);
+    background: var(--panel-solid);
     -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     border-right:1px solid var(--panel-border);
     padding:14px 16px 12px;
@@ -193,7 +198,7 @@
     cursor:pointer;
     transition: border-color .15s ease, background .15s ease;
   }
-  .btn:hover{ border-color:#3a4450; }
+  .btn:hover{ border-color:var(--btn-hover-border); }
   .btn:disabled{ opacity:.4; cursor:not-allowed; }
   .btn-primary{ background:var(--accent); color:#231705; border-color:var(--accent); }
   .btn-primary:hover{ background:#f0af52; }
@@ -313,7 +318,7 @@
     color:var(--accent); font-family:var(--font-ui); font-size:21px; font-weight:600; line-height:1;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
-  .zoom-btn + .zoom-btn{ border-top:1px solid rgba(255,255,255,.12); }
+  .zoom-btn + .zoom-btn{ border-top:1px solid var(--zoom-sep); }
   .zoom-btn:hover{ background:rgba(232,163,61,.18); }
   .zoom-btn:active{ background:rgba(232,163,61,.3); }
   .maplibregl-ctrl-group{
@@ -323,7 +328,7 @@
     border-radius:17px !important;
     box-shadow:var(--glass-shadow) !important;
   }
-  .maplibregl-ctrl-group button{ width:34px; height:34px; }
+  .maplibregl-ctrl-group button{ width:32px; height:32px; } /* + bordure 1 px = 34 px, aligné sur les autres pastilles */
   .maplibregl-ctrl-group button:not(:disabled):hover{ background-color:rgba(232,163,61,.18); }
   .maplibregl-ctrl-group .maplibregl-ctrl-icon{ filter:invert(1) hue-rotate(180deg); }
   /* boussole : nord en rouge, sud clair */
@@ -357,7 +362,7 @@
     font-family:var(--font-ui); font-size:11px; font-weight:600; cursor:pointer;
   }
   #coord-system:focus{ outline:none; }
-  #coord-system option{ background:#1b222a; color:var(--text); }
+  #coord-system option{ background:var(--option-bg); color:var(--text); }
 
   /* bouton masquer / afficher le panneau gauche (carte seule) */
   /* languette collée au bord du panneau, à mi-hauteur (comme The-GPX-Box) */
@@ -479,7 +484,7 @@
   /* aide rapide + documentation (bouton « i ») */
   #docOverlay{
     display:none; position:fixed; inset:0; z-index:5000;
-    background:rgba(8,11,15,.3);
+    background:var(--overlay-dim);
     align-items:center; justify-content:center; padding:20px;
   }
   .doc-modal{
@@ -538,8 +543,8 @@
   .wb-icon{ font-size:18px; line-height:1; }
 
   .panel-footer{ margin-top:auto; padding-top:6px; }
-  .attribution{ margin:0; font-size:10px; line-height:1.5; color:#5d6672; }
-  .version-line{ margin:4px 0 0; font-size:10px; color:#5d6672; }
+  .attribution{ margin:0; font-size:10px; line-height:1.5; color:var(--muted-2); }
+  .version-line{ margin:4px 0 0; font-size:10px; color:var(--muted-2); }
 
 
   #track-title-badge{
@@ -565,7 +570,7 @@
   /* --------------------------------------------------- préchargement */
   .overlay{
     position:absolute; inset:0; z-index:5;
-    background:rgba(10,13,16,.55);
+    background:var(--overlay-preload);
     display:flex; align-items:center; justify-content:center;
   }
   .overlay[hidden]{ display:none; }
@@ -626,8 +631,8 @@
   #sv-banner[hidden]{ display:none; }
 
   /* fenêtres translucides : champs et listes internes semi-transparents (comme The-GPX-Box) */
-  #osmPanel, .doc-modal, .overlay-box, .map-pop{ --field-bg: rgba(30,37,48,.5); }
-  #osmPanel option{ background:#1b222a; color:var(--text); }
+  #osmPanel, .doc-modal, .overlay-box, .map-pop{ --field-bg: var(--pop-field-bg); }
+  #osmPanel option{ background:var(--option-bg); color:var(--text); }
   /* traces GPS OpenStreetMap */
   #osmPanel .osm-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
   #osmPanel .osm-head .help-title{ margin:0; }
@@ -668,7 +673,7 @@
   .gpx-status:empty{ display:none; }
   .gpx-status.err{ color:var(--danger); }
   .gpx-status.ok{ color:var(--accent); }
-  .gpx-status.warn{ color:#f2c94c; }
+  .gpx-status.warn{ color:var(--warn); }
   @keyframes gpxSpin{ to{ transform:rotate(360deg); } }
   @keyframes gpxSlide{ 0%{ left:-35%; } 100%{ left:100%; } }
   .gpx-status.working::before, .gpx-results button.loading::before{
@@ -701,6 +706,35 @@
   #osmStatus{ font-size:11px; color:var(--text-muted); margin-top:8px; min-height:14px; }
   #osmStatus.err{ color:var(--danger); }
   @media (max-width:760px){ #osmPanel{ left:12px; right:12px; top:12px; width:auto; max-width:none; } }
+  /* ------------------------------------------------ thème clair (Options › Thème) */
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --bg:#eeebe4;
+    --panel-bg: rgba(250,249,246,.72);
+    --panel-border:rgba(120,110,95,.28);
+    --field-bg: rgba(255,255,255,.66);
+    --text:#1f2329;
+    --text-muted:#5b626d;
+    --accent:#c47f14;
+    --accent-soft: rgba(196,127,20,.15);
+    --accent-2:#1d8796;
+    --accent-2-soft: rgba(29,135,150,.14);
+    --danger:#c0463b;
+    --glass: rgba(255,255,255,.38);
+    --glass-hover: rgba(255,255,255,.58);
+    --glass-strong: rgba(255,255,255,.64);
+    --window-bg: rgba(250,249,246,.52);
+    --window-blur: blur(16px) saturate(1.3);
+    --glass-border: rgba(196,127,20,.42);
+    --glass-shadow: 0 4px 14px rgba(40,30,10,.16);
+    --chart-bg: rgba(255,255,255,.6); --chart-grid:#d6d0c4; --chart-frame:#cfc8bb; --chart-text:#5b626d;
+    --muted-2:#7a818b; --option-bg:#ffffff; --overlay-dim:rgba(60,55,45,.18); --overlay-preload:rgba(242,240,235,.42);
+    --panel-solid: rgba(250,249,246,.62); --btn-hover-border:#b9b2a3; --zoom-sep:rgba(0,0,0,.1);
+    --pop-field-bg: rgba(255,255,255,.55); --warn:#9a6f00; --attrib-shadow:0 1px 2px rgba(255,255,255,.85);
+    --cur-grab: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14.5' fill='rgba(255,255,255,.85)' stroke='%23c47f14' stroke-width='1.6'/><g transform='translate(8.56 8.56) scale(0.62)' fill='none' stroke='%23c47f14' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v20'/><path d='m15 19-3 3-3-3'/><path d='m19 9 3 3-3 3'/><path d='M2 12h20'/><path d='m5 9-3 3 3 3'/><path d='m9 5 3-3 3 3'/></g></svg>") 16 16, move;
+  }
+  .theme-switch .btn{ padding:3px 10px; font-size:11.5px; }
+  .theme-switch .btn.active{ border-color:var(--accent); color:var(--accent); }
 </style>
 </head>
 <body>
@@ -754,6 +788,11 @@
         <span data-i18n="ts.width">Épaisseur</span>
         <input type="range" id="ts-width" min="1" max="12" step="0.5">
         <span class="ts-val" id="ts-width-val"></span>
+      </div>
+      <div class="ts-row theme-switch">
+        <span data-i18n="ts.theme">Thème</span>
+        <button class="btn" id="theme-dark" type="button" data-i18n="ts.dark">Foncé</button>
+        <button class="btn" id="theme-light" type="button" data-i18n="ts.light">Clair</button>
       </div>
     </div>
 
@@ -1375,7 +1414,7 @@ const I18N = {
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
     'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.toMaker': "Ouvrir dans The-GPX-Box (créer / modifier un tracé) — la trace chargée y est transmise", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
-    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto",
+    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.light': "Clair",
     'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
@@ -1460,7 +1499,7 @@ const I18N = {
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
     'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.toMaker': "Open in The-GPX-Box (draw / edit a route) — the loaded track is passed on", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
-    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto",
+    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.light': "Light",
     'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
@@ -1935,11 +1974,11 @@ class ProfileChart{
     const ctx = this.ctx;
     const rect = this.canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = '#1b222a';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-bg').trim();
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     if (!this.x.length || this.x.length < 2 || !this.yPrimary.length){
-      ctx.fillStyle = '#8b93a1';
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim();
       ctx.font = '12px ' + getComputedStyle(document.body).fontFamily;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(tx('chart.empty'), rect.width/2, rect.height/2);
@@ -1958,7 +1997,7 @@ class ProfileChart{
     const py = v => r.top + r.height - (v - yMin) / (yMax - yMin) * r.height;
 
     // grille
-    ctx.strokeStyle = '#33404b'; ctx.setLineDash([2,3]); ctx.lineWidth = 1;
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim(); ctx.setLineDash([2,3]); ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++){
       const gy = r.top + i * r.height / 4;
       ctx.beginPath(); ctx.moveTo(r.left, gy); ctx.lineTo(r.left + r.width, gy); ctx.stroke();
@@ -2011,7 +2050,7 @@ class ProfileChart{
         ctx.strokeStyle = this._levelGradient(this.ySecondary, sMin + spad, sMax - spad, this.secondaryKind);
         ctx.lineWidth = 2; ctx.stroke();
 
-        ctx.fillStyle = '#8b93a1'; ctx.font = '10px ' + getComputedStyle(document.body).fontFamily;
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim(); ctx.font = '10px ' + getComputedStyle(document.body).fontFamily;
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         for (let i = 0; i <= 4; i++){
           const val = sMin + (4-i) * (sMax - sMin) / 4;
@@ -2024,7 +2063,7 @@ class ProfileChart{
     }
 
     // axe gauche
-    ctx.fillStyle = '#8b93a1'; ctx.font = '10px ' + getComputedStyle(document.body).fontFamily;
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim(); ctx.font = '10px ' + getComputedStyle(document.body).fontFamily;
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     for (let i = 0; i <= 4; i++){
       const val = yMin + (4-i) * (yMax - yMin) / 4;
@@ -2039,7 +2078,7 @@ class ProfileChart{
     for (let i = 0; i <= 5; i++){
       const val = xMin + i * (xMax - xMin) / 5;
       const gx = px(val);
-      ctx.strokeStyle = '#33404b';
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim();
       ctx.beginPath(); ctx.moveTo(gx, r.top + r.height); ctx.lineTo(gx, r.top + r.height + 4); ctx.stroke();
       ctx.fillText(val.toFixed(1) + ' km', gx, r.top + r.height + 6);
     }
@@ -2061,7 +2100,7 @@ class ProfileChart{
     ctx.strokeStyle = '#d9695f'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(cx, r.top); ctx.lineTo(cx, r.top + r.height); ctx.stroke();
 
-    ctx.strokeStyle = '#2a323c'; ctx.lineWidth = 1;
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-frame').trim(); ctx.lineWidth = 1;
     ctx.strokeRect(r.left, r.top, r.width, r.height);
   }
 }
@@ -2140,6 +2179,18 @@ chart.onSeek = (p) => {
 /* ============================================================
    Carte MapLibre
    ============================================================ */
+function isLightTheme(){ return document.documentElement.getAttribute('data-theme') === 'light'; }
+function skySpec(){
+  const light = isLightTheme();
+  return {
+    'sky-color': light ? '#a9cbe6' : '#0b1a2a',
+    'horizon-color': light ? '#e6edf2' : '#3a4a5a',
+    'fog-color': light ? '#eeebe4' : '#0e1217',
+    'fog-ground-blend': 0.5,
+    'sky-horizon-blend': 0.5,
+    'horizon-fog-blend': 0.6
+  };
+}
 const map = new maplibregl.Map({
   container: 'map',
   style: {
@@ -2217,14 +2268,7 @@ const map = new maplibregl.Map({
       ,{ id: 'trails', type: 'raster', source: 'trails', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.9 } }
     ],
     terrain: { source: 'terrainSource', exaggeration: 1.6 },
-    sky: {
-      'sky-color': '#0b1a2a',
-      'horizon-color': '#3a4a5a',
-      'fog-color': '#0e1217',
-      'fog-ground-blend': 0.5,
-      'sky-horizon-blend': 0.5,
-      'horizon-fog-blend': 0.6
-    }
+    sky: skySpec()
   },
   center: [4.47, 50.5],   // Belgique en attendant la géolocalisation (cf. plus bas)
   zoom: 7,
@@ -2505,6 +2549,23 @@ tsAuto.addEventListener('click', () => {
   trackStyle.color = null;
   saveTrackStyle(); updateTrackColorForBasemap(); syncTrackStyleUI();
 });
+const themeDarkBtn = document.getElementById('theme-dark');
+const themeLightBtn = document.getElementById('theme-light');
+function syncThemeUI(){
+  themeLightBtn.classList.toggle('active', isLightTheme());
+  themeDarkBtn.classList.toggle('active', !isLightTheme());
+}
+function setTheme(light){
+  if (light) document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('gpx3d-theme', light ? 'light' : 'dark'); } catch(e){}
+  syncThemeUI();
+  try { if (map.isStyleLoaded()) map.setSky(skySpec()); } catch(e){}
+  chart.draw();
+}
+syncThemeUI();
+themeDarkBtn.addEventListener('click', () => setTheme(false));
+themeLightBtn.addEventListener('click', () => setTheme(true));
 tsWidth.addEventListener('input', () => {
   trackStyle.width = parseFloat(tsWidth.value) || TRACK_WIDTH_DEFAULT;
   saveTrackStyle(); applyTrackWidth(); syncTrackStyleUI();
