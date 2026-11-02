@@ -218,6 +218,7 @@
     display:inline-flex; align-items:center; justify-content:center;
     font-size:12px; padding:0;
   }
+  #btn-play,#btn-pause,#btn-stop{ color:var(--accent); }
   .btn-icon.active{ border-color:var(--accent); color:var(--accent); }
 
   .dropzone{
@@ -840,9 +841,9 @@
     <div class="panel-section" id="playback-section" hidden>
       <input type="range" class="seek" id="seek" min="0" max="1000" value="0">
       <div class="controls-row">
-        <button class="btn btn-icon" id="btn-play" data-i18n-title="play" title="Lecture">▶</button>
-        <button class="btn btn-icon" id="btn-pause" data-i18n-title="pause" title="Pause">⏸</button>
-        <button class="btn btn-icon" id="btn-stop" data-i18n-title="stop" title="Réinitialiser">⏹</button>
+        <button class="btn btn-icon" id="btn-play" data-i18n-title="play" title="Lecture">▶︎</button>
+        <button class="btn btn-icon" id="btn-pause" data-i18n-title="pause" title="Pause">⏸︎</button>
+        <button class="btn btn-icon" id="btn-stop" data-i18n-title="stop" title="Réinitialiser">⏹︎</button>
         <div class="duration-field">
           <label for="duration" data-i18n="duration">Durée</label>
           <input type="number" id="duration" min="5" max="50000" value="1700" step="1"> s
