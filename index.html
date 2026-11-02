@@ -428,6 +428,9 @@
     cursor:var(--cur-grab); touch-action:none; user-select:none; -webkit-user-select:none;
   }
   .floatable.dragging{ cursor:var(--cur-grabbing); }
+  /* icônes flottantes désactivées (Options) : commandes fixes à leur place d'origine */
+  body.float-off .floatable{ cursor:auto; touch-action:auto; }
+  body.float-off #pitch-control .float-grip{ display:none; }
   .floatable.dragging, .floatable.dragging *{ cursor:var(--cur-grabbing) !important; }
   /* carte : flèche au repos, main orange dès l'appui pour la déplacer (comme The-GPX-Box) */
   #map .maplibregl-canvas-container.maplibregl-interactive,
@@ -459,7 +462,7 @@
     background:var(--field-bg); padding:8px 10px; gap:8px;
   }
   .ts-row{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); }
-  .ts-row > span:first-child{ width:62px; flex:0 0 auto; }
+  .ts-row > span:first-child{ width:102px; flex:0 0 auto; white-space:nowrap; }
   .ts-row input[type=color]{
     width:34px; height:24px; padding:0; border:1px solid var(--panel-border);
     border-radius:6px; background:none; cursor:pointer;
@@ -794,6 +797,11 @@
         <button class="btn" id="theme-dark" type="button" data-i18n="ts.dark">Foncé</button>
         <button class="btn" id="theme-light" type="button" data-i18n="ts.light">Clair</button>
       </div>
+      <div class="ts-row theme-switch">
+        <span data-i18n="ts.float">Icônes flottantes</span>
+        <button class="btn" id="float-on" type="button" data-i18n="ts.yes">Oui</button>
+        <button class="btn" id="float-off" type="button" data-i18n="ts.no">Non</button>
+      </div>
     </div>
 
     <div class="panel-section">
@@ -1094,11 +1102,11 @@
           <li><b>Fond de carte</b> : bouton carte (dans la carte, sous Street View). Fond au choix : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM (vélo / VTT). Superpositions : <b>photo aérienne</b> (cochée par défaut ; un curseur en bas de la carte règle alors l'opacité du fond par-dessus, 30 % au départ, 0 % = photo seule), <b>sentiers balisés</b> (Waymarked Trails) et <b>relief 3D</b> (coché par défaut). La trace passe de l'orange au bleu quand le fond dessiné domine. Le fond et les sentiers choisis sont mémorisés. Hors de la zone couverte par un fond régional (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap est affichée à sa place.</li>
           <li><b>Relief</b> : exagéré ×1,6 avec ombrage. La barre verticale en bas à droite règle l'inclinaison (0° à 70°) ; le clic droit + glisser incline et pivote la vue.</li>
           <li><b>Zoom</b> : boutons <b>+</b> / <b>−</b> translucides en haut à droite (avec la boussole sous eux), ou molette / pincement.</li>
-          <li><b>Icônes flottantes</b> : la barre lieu + météo, les boutons + / −, la boussole, la barre d'inclinaison (glissez-la par sa poignée en pointillés, en haut) la boîte de coordonnées et l'échelle se déplacent <b>librement</b> dans la zone de la carte : glissez-les à la souris ou au doigt. Elles ne sortent jamais de la carte ni ne passent sous le panneau ; leurs positions sont mémorisées. Le bouton « Remettre les icônes de la carte à leur place » de l'aide rapide (en tête de cette fenêtre) rétablit la disposition d'origine.</li>
+          <li><b>Icônes flottantes</b> : la barre lieu + météo, les boutons + / −, la boussole, la barre d'inclinaison (glissez-la par sa poignée en pointillés, en haut) la boîte de coordonnées et l'échelle se déplacent <b>librement</b> dans la zone de la carte : glissez-les à la souris ou au doigt. Elles ne sortent jamais de la carte ni ne passent sous le panneau ; leurs positions sont mémorisées. Le bouton « Remettre les icônes de la carte à leur place » de l'aide rapide (en tête de cette fenêtre) rétablit la disposition d'origine. Dans les <b>Options</b>, « Icônes flottantes : Non » les fixe à leur place d'origine (vos positions sont gardées pour quand vous repassez à « Oui »).</li>
           <li><b>Coordonnées du curseur</b> : cliquez sur l'icône épingle en bas de la carte, à côté de l'échelle ; elle se déplie et affiche la position sous le curseur (dernier appui sur écran tactile). La liste choisit le système : <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> ou <b>Lambert 2008</b> (X, Y en mètres). Le choix est mémorisé. Sans connexion, les conversions Lambert peuvent être indisponibles et seul le WGS84 s'affiche.</li>
           <li>La navigation est limitée à la vue générale de la trace agrandie ×4, pour éviter de charger des tuiles inutiles.</li>
           <li><b>Panneau</b> : la poignée verticale à son bord droit le redimensionne (largeur mémorisée). Sur écran étroit (760 px ou moins), il passe sous la carte.</li>
-          <li><b>Options</b> (bouton engrenage en haut du panneau) : <b>couleur</b> de la trace (<b>Auto</b> l'adapte au fond de carte), <b>épaisseur</b>, et <b>thème</b> <b>Foncé</b> ou <b>Clair</b> de l'interface. Ces choix sont mémorisés.</li>
+          <li><b>Options</b> (bouton engrenage en haut du panneau) : <b>couleur</b> de la trace (<b>Auto</b> l'adapte au fond de carte), <b>épaisseur</b>, <b>thème</b> <b>Foncé</b> ou <b>Clair</b> de l'interface, et <b>icônes flottantes</b> (déplaçables ou fixes). Ces choix sont mémorisés.</li>
         </ul>
 
         <h3>Lieu et météo</h3>
@@ -1244,11 +1252,11 @@
           <li><b>Basemap</b>: map button (on the map, below Street View). Choose OpenTopoMap, CartoWeb.be (IGN Belgium), Plan IGN (France), Geoportail.lu (Luxembourg) or CyclOSM (bike / MTB). Overlays: <b>aerial photo</b> (checked by default; a slider at the bottom of the map then sets the basemap opacity on top, 30 % at start, 0 % = photo only), <b>waymarked trails</b> (Waymarked Trails) and <b>3D terrain</b> (checked by default). The track turns from orange to blue when the drawn basemap dominates. The chosen basemap and trails are remembered. Outside the area covered by a regional basemap (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap is shown instead.</li>
           <li><b>Terrain</b>: exaggerated ×1.6 with hillshade. The vertical bar at the bottom right sets the tilt (0° to 70°); right-click + drag tilts and rotates the view.</li>
           <li><b>Zoom</b>: translucent <b>+</b> / <b>−</b> buttons at the top right (with the compass below them), or wheel / pinch.</li>
-          <li><b>Floating icons</b>: the place + weather bar, the + / − buttons, the compass, the tilt bar (drag it by its dotted handle at the top), the coordinates box and the scale can be moved <b>freely</b> within the map area: drag them with the mouse or a finger. They never leave the map or go under the panel; their positions are remembered. The “Put the map icons back in place” button of the quick help (at the top of this window) restores the original layout.</li>
+          <li><b>Floating icons</b>: the place + weather bar, the + / − buttons, the compass, the tilt bar (drag it by its dotted handle at the top), the coordinates box and the scale can be moved <b>freely</b> within the map area: drag them with the mouse or a finger. They never leave the map or go under the panel; their positions are remembered. The “Put the map icons back in place” button of the quick help (at the top of this window) restores the original layout. In <b>Options</b>, “Floating icons: No” fixes them in their original place (your positions are kept for when you switch back to “Yes”).</li>
           <li><b>Cursor coordinates</b>: click the pin icon at the bottom of the map, next to the scale; it unfolds and shows the position under the cursor (last tap on touch screens). The list picks the system: <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> or <b>Lambert 2008</b> (X, Y in metres). The choice is remembered. Offline, the Lambert conversions may be unavailable and only WGS84 is shown.</li>
           <li>Navigation is limited to the track overview enlarged ×4, to avoid loading useless tiles.</li>
           <li><b>Panel</b>: the vertical handle on its right edge resizes it (width remembered). On narrow screens (760 px or less), it moves below the map.</li>
-          <li><b>Options</b> (gear button at the top of the panel): track <b>colour</b> (<b>Auto</b> adapts it to the basemap), <b>width</b>, and <b>Dark</b> or <b>Light</b> interface <b>theme</b>. These choices are remembered.</li>
+          <li><b>Options</b> (gear button at the top of the panel): track <b>colour</b> (<b>Auto</b> adapts it to the basemap), <b>width</b>, <b>Dark</b> or <b>Light</b> interface <b>theme</b>, and <b>floating icons</b> (movable or fixed). These choices are remembered.</li>
         </ul>
 
         <h3>Place and weather</h3>
@@ -1418,7 +1426,7 @@ const I18N = {
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
     'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.toMaker': "Ouvrir dans The-GPX-Box (créer / modifier un tracé) — la trace chargée y est transmise", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
-    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.light': "Clair",
+    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.light': "Clair", 'ts.float': "Icônes flottantes", 'ts.yes': "Oui", 'ts.no': "Non",
     'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
@@ -1503,7 +1511,7 @@ const I18N = {
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
     'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.toMaker': "Open in The-GPX-Box (draw / edit a route) — the loaded track is passed on", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
-    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.light': "Light",
+    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.light': "Light", 'ts.float': "Floating icons", 'ts.yes': "Yes", 'ts.no': "No",
     'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
@@ -4501,7 +4509,12 @@ function syncPanelVars(){
       setVars(w);
     }
   }
+  /* Options › Icônes flottantes : Non = commandes fixes à leur place d'origine (positions mémorisées conservées) */
+  const ON_KEY = 'gpx3d-float-on';
+  let enabled = true;
+  try { enabled = localStorage.getItem(ON_KEY) !== '0'; } catch(e){}
   function persist(){
+    if (!enabled) return;
     const out = {};
     widgets.forEach(w => { if (w.dx || w.dy) out[w.id] = { dx: w.dx, dy: w.dy }; });
     try {
@@ -4536,6 +4549,7 @@ function syncPanelVars(){
       drag = null;
     }
     w.el.addEventListener('pointerdown', e => {
+      if (!enabled) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (e.target.closest('input, select, textarea')) return;   // curseur d'assiette, liste des systèmes : usage normal
       drag = { x: e.clientX, y: e.clientY, dx0: w.dx, dy0: w.dy };
@@ -4548,6 +4562,19 @@ function syncPanelVars(){
     w.el.addEventListener('click', e => { if (w.moved){ e.stopPropagation(); e.preventDefault(); } }, true);
   });
 
+  function applyEnabled(){
+    document.body.classList.toggle('float-off', !enabled);
+    let pos = {};
+    if (enabled){ try { pos = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch(e){ pos = {}; } }
+    widgets.forEach(w => { w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
+    const on = document.getElementById('float-on'), off = document.getElementById('float-off');
+    if (on) on.classList.toggle('active', enabled);
+    if (off) off.classList.toggle('active', !enabled);
+  }
+  applyEnabled();
+  document.getElementById('float-on')?.addEventListener('click', () => { enabled = true; try { localStorage.removeItem(ON_KEY); } catch(e){} applyEnabled(); reclampAll(); });
+  document.getElementById('float-off')?.addEventListener('click', () => { enabled = false; try { localStorage.setItem(ON_KEY, '0'); } catch(e){} applyEnabled(); reclampAll(); });
+
   reclampAll();
   window.addEventListener('resize', reclampAll);
   if (window.ResizeObserver && panel) new ResizeObserver(reclampAll).observe(panel);
@@ -4559,6 +4586,7 @@ function syncPanelVars(){
   document.querySelectorAll('[data-float-reset]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     widgets.forEach(w => { w.dx = 0; w.dy = 0; setVars(w); });
+    try { localStorage.removeItem(KEY); } catch(e){}
     reclampAll();
     persist();
   }));
