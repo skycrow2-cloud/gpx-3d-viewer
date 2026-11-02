@@ -549,7 +549,7 @@
 
   #track-title-badge{
     position:absolute; z-index:1;
-    left:50%; top:24px; transform:translateX(-50%);
+    left:calc(var(--panel-w, 380px) + (100vw - var(--panel-w, 380px)) / 2); top:24px; transform:translateX(-50%); /* centré sur la carte visible */
     background:var(--glass);
     border:1px solid var(--glass-border);
     border-radius:999px;
@@ -560,7 +560,7 @@
     letter-spacing:.01em;
     backdrop-filter: blur(6px);
     pointer-events:none;
-    max-width:70vw;
+    max-width:calc(100vw - var(--panel-w, 380px) - 140px);
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -1064,6 +1064,7 @@
           <li><b>Bouton « Charger un GPX… »</b> ou glisser-déposer d'un fichier <b>.gpx</b> n'importe où dans la fenêtre.</li>
           <li>Si le fichier contient plusieurs traces, une liste déroulante permet de choisir. Les <b>itinéraires</b> (<code>rte</code>) ne sont lus que s'il n'y a aucune trace ; les points de passage isolés (<code>wpt</code>) ne sont pas affichés.</li>
           <li>La carte se cadre sur la trace, puis les tuiles de photo aérienne sont préchargées (bouton « Annuler » disponible) avant l'affichage de la trace complète.</li>
+          <li>Le <b>nom de la trace</b> s'affiche dans une pastille centrée en haut de la carte.</li>
           <li>Les points espacés de plus de 8 m sont complétés par interpolation pour une trace et une caméra fluides.</li>
         </ul>
 
@@ -1097,6 +1098,7 @@
           <li><b>Coordonnées du curseur</b> : cliquez sur l'icône épingle en bas de la carte, à côté de l'échelle ; elle se déplie et affiche la position sous le curseur (dernier appui sur écran tactile). La liste choisit le système : <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> ou <b>Lambert 2008</b> (X, Y en mètres). Le choix est mémorisé. Sans connexion, les conversions Lambert peuvent être indisponibles et seul le WGS84 s'affiche.</li>
           <li>La navigation est limitée à la vue générale de la trace agrandie ×4, pour éviter de charger des tuiles inutiles.</li>
           <li><b>Panneau</b> : la poignée verticale à son bord droit le redimensionne (largeur mémorisée). Sur écran étroit (760 px ou moins), il passe sous la carte.</li>
+          <li><b>Options</b> (bouton engrenage en haut du panneau) : <b>couleur</b> de la trace (<b>Auto</b> l'adapte au fond de carte), <b>épaisseur</b>, et <b>thème</b> <b>Foncé</b> ou <b>Clair</b> de l'interface. Ces choix sont mémorisés.</li>
         </ul>
 
         <h3>Lieu et météo</h3>
@@ -1212,6 +1214,7 @@
           <li><b>“Charger un GPX…” button</b> or drag and drop a <b>.gpx</b> file anywhere in the window.</li>
           <li>If the file holds several tracks, a drop-down list lets you pick one. <b>Routes</b> (<code>rte</code>) are read only when there is no track; standalone waypoints (<code>wpt</code>) are not displayed.</li>
           <li>The map frames the track, then aerial photo tiles are preloaded (“Annuler” / Cancel available) before the full track is displayed.</li>
+          <li>The <b>track name</b> is shown in a badge centred at the top of the map.</li>
           <li>Points more than 8 m apart are completed by interpolation for a smooth track and camera.</li>
         </ul>
 
@@ -1245,6 +1248,7 @@
           <li><b>Cursor coordinates</b>: click the pin icon at the bottom of the map, next to the scale; it unfolds and shows the position under the cursor (last tap on touch screens). The list picks the system: <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> or <b>Lambert 2008</b> (X, Y in metres). The choice is remembered. Offline, the Lambert conversions may be unavailable and only WGS84 is shown.</li>
           <li>Navigation is limited to the track overview enlarged ×4, to avoid loading useless tiles.</li>
           <li><b>Panel</b>: the vertical handle on its right edge resizes it (width remembered). On narrow screens (760 px or less), it moves below the map.</li>
+          <li><b>Options</b> (gear button at the top of the panel): track <b>colour</b> (<b>Auto</b> adapts it to the basemap), <b>width</b>, and <b>Dark</b> or <b>Light</b> interface <b>theme</b>. These choices are remembered.</li>
         </ul>
 
         <h3>Place and weather</h3>
