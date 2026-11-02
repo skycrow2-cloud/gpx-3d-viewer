@@ -109,6 +109,15 @@
   }
   #pitch-tooltip.visible{ opacity:1; }
   #pitch-tooltip{ color:var(--accent); border-radius:10px; }
+  /* menu du clic droit sur la carte (comme The-GPX-Box) */
+  #map-ctx-menu{ display:none; position:absolute; z-index:20; min-width:200px; padding:6px; border-radius:8px;
+    background:var(--glass-strong); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid rgba(232,163,61,.35); box-shadow:0 6px 20px rgba(0,0,0,.5); }
+  #map-ctx-menu.open{ display:block; }
+  #map-ctx-menu .ctx-item{ display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:5px; font-size:12.5px; color:var(--text); cursor:pointer; user-select:none; }
+  #map-ctx-menu .ctx-item:hover{ background:rgba(232,163,61,.15); }
+  #map-ctx-menu .ctx-item.disabled{ opacity:.45; cursor:not-allowed; }
+  #map-ctx-menu input{ width:15px; height:15px; accent-color:var(--accent); margin:0; cursor:inherit; }
   /* bulle de survol de la trace */
   #track-tip{
     position:fixed; z-index:6000; display:none; pointer-events:none; white-space:nowrap;
@@ -1426,7 +1435,7 @@ const I18N = {
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
     'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.toMaker': "Ouvrir dans The-GPX-Box (créer / modifier un tracé) — la trace chargée y est transmise", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
-    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.light': "Clair", 'ts.float': "Icônes flottantes", 'ts.yes': "Oui", 'ts.no': "Non",
+    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.light': "Clair", 'ts.float': "Icônes flottantes", 'ts.yes': "Oui", 'ts.no': "Non", 'ctx.points': "Afficher les points", 'ctx.tips': "Infobulles sur les points", 'ctx.point': "Point",
     'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
@@ -1511,7 +1520,7 @@ const I18N = {
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
     'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.toMaker': "Open in The-GPX-Box (draw / edit a route) — the loaded track is passed on", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
-    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.light': "Light", 'ts.float': "Floating icons", 'ts.yes': "Yes", 'ts.no': "No",
+    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.light': "Light", 'ts.float': "Floating icons", 'ts.yes': "Yes", 'ts.no': "No", 'ctx.points': "Show points", 'ctx.tips': "Tooltips on points", 'ctx.point': "Point",
     'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
@@ -2685,6 +2694,13 @@ map.on('load', () => {
   });
   applyMarkerStyle();
 
+  map.addSource('track-pts', { type: 'geojson', data: emptyPoint() });
+  map.addLayer({
+    id: 'track-points', type: 'circle', source: 'track-pts', layout: { visibility: 'none' },
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2, 16, 4.5],
+             'circle-color': '#ffffff', 'circle-stroke-width': 1.5, 'circle-stroke-color': '#e8a33d' }
+  });
+  updateTrackPoints();
   map.addSource('hover', { type: 'geojson', data: emptyPoint() });
   map.addLayer({
     id: 'hover-point', type: 'circle', source: 'hover',
@@ -2722,12 +2738,21 @@ map.on('load', () => {
   function update(e){
     const track = state.track;
     if (!track || !map.getLayer('track-line') || svPickMode){ clear(); return; }
-    const pt = e.point;
-    const hit = map.queryRenderedFeatures([[pt.x - HIT_PX, pt.y - HIT_PX], [pt.x + HIT_PX, pt.y + HIT_PX]], { layers: ['track-line'] });
-    if (!hit.length){ clear(); return; }
-    const i = nearestIndex(track, e.lngLat.lng, e.lngLat.lat), p = track.points[i];
+    const pt = e.point, box = [[pt.x - HIT_PX, pt.y - HIT_PX], [pt.x + HIT_PX, pt.y + HIT_PX]];
+    // points affichés + infobulles : survol d'un point précis (numéro du point en tête)
+    let ptHit = null;
+    if (ptsCtx.show && ptsCtx.tips && map.getLayer('track-points')){
+      const hp = map.queryRenderedFeatures([[pt.x - 6, pt.y - 6], [pt.x + 6, pt.y + 6]], { layers: ['track-points'] });
+      if (hp.length) ptHit = hp.reduce((a, b) => {
+        const pa = map.project(a.geometry.coordinates), pb = map.project(b.geometry.coordinates);
+        return Math.hypot(pa.x - pt.x, pa.y - pt.y) <= Math.hypot(pb.x - pt.x, pb.y - pt.y) ? a : b;
+      });
+    }
+    if (!ptHit && !map.queryRenderedFeatures(box, { layers: ['track-line'] }).length){ clear(); return; }
+    const i = ptHit ? ptHit.properties.i : nearestIndex(track, e.lngLat.lng, e.lngLat.lat), p = track.points[i];
     const src = map.getSource('hover'); if (src) src.setData(pointFeature([p.lon, p.lat]));
     const parts = [(track.distancesM[i] / 1000).toFixed(2) + ' km'];
+    if (ptHit) parts.unshift(tx('ctx.point') + ' ' + (i + 1));
     if (p.ele != null) parts.push(Math.round(p.ele) + ' m');
     const v = track.speedsKmh[i]; if (v != null) parts.push(v.toFixed(1) + ' km/h');
     if (p.time != null) parts.push(new Date(p.time).toLocaleTimeString(LANG === 'fr' ? 'fr-BE' : 'en-GB', { hour: '2-digit', minute: '2-digit' }));
@@ -2748,6 +2773,56 @@ map.on('load', () => {
   });
   map.on('mouseout', clear);
   map.on('movestart', () => { if (!pending) clear(); });
+})();
+
+/* ============================================================
+   Points de la trace + clic droit sur la carte : « Afficher les points » / « Infobulles sur les points »
+   (clic droit sans glisser ; clic droit + glisser continue de pivoter la carte)
+   ============================================================ */
+const ptsCtx = { show: false, tips: true };
+function updateTrackPoints(){
+  const src = map.getSource('track-pts'); if (!src) return;
+  const t = state.track;
+  src.setData(t ? { type: 'FeatureCollection', features: t.points.map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { i } })) } : emptyPoint());
+  map.setLayoutProperty('track-points', 'visibility', ptsCtx.show && t ? 'visible' : 'none');
+}
+(function initMapContextMenu(){
+  const menu = document.createElement('div');
+  menu.id = 'map-ctx-menu'; menu.setAttribute('role', 'menu');
+  menu.innerHTML = '<label class="ctx-item"><input type="checkbox" id="ctx-show-points"> <span data-i18n="ctx.points"></span></label>' +
+                   '<label class="ctx-item"><input type="checkbox" id="ctx-tips"> <span data-i18n="ctx.tips"></span></label>';
+  map.getContainer().appendChild(menu);
+  const cShow = menu.querySelector('#ctx-show-points'), cTip = menu.querySelector('#ctx-tips');
+  function labels(){ menu.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = tx(n.dataset.i18n); }); }
+  labels(); onLanguageChange.push(labels);
+  function sync(){
+    const noTrack = !state.track;
+    cShow.checked = ptsCtx.show; cShow.disabled = noTrack;
+    cShow.closest('.ctx-item').classList.toggle('disabled', noTrack);
+    cTip.checked = ptsCtx.tips; cTip.disabled = noTrack || !ptsCtx.show;
+    cTip.closest('.ctx-item').classList.toggle('disabled', cTip.disabled);
+  }
+  function close(){ menu.classList.remove('open'); }
+  const canvas = map.getCanvas();
+  let down = null;
+  canvas.addEventListener('mousedown', e => { if (e.button === 2) down = { x: e.clientX, y: e.clientY }; });
+  canvas.addEventListener('contextmenu', e => {
+    if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4){ down = null; return; } // c'était une rotation
+    down = null;
+    sync();
+    const r = map.getContainer().getBoundingClientRect(), host = map.getContainer();
+    menu.classList.add('open');
+    const w = menu.offsetWidth, h = menu.offsetHeight;
+    menu.style.left = Math.max(6, Math.min(e.clientX - r.left, host.clientWidth - w - 6)) + 'px';
+    menu.style.top = Math.max(6, Math.min(e.clientY - r.top, host.clientHeight - h - 6)) + 'px';
+  });
+  ['click','mousedown','pointerdown','dblclick','contextmenu','wheel'].forEach(t =>
+    menu.addEventListener(t, ev => { ev.stopPropagation(); if (t === 'contextmenu') ev.preventDefault(); }));
+  cShow.addEventListener('change', () => { ptsCtx.show = cShow.checked; updateTrackPoints(); sync(); });
+  cTip.addEventListener('change', () => { ptsCtx.tips = cTip.checked; sync(); });
+  document.addEventListener('click', close);
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') close(); });
+  map.on('movestart', close);
 })();
 
 function emptyLine(){ return { type: 'FeatureCollection', features: [{ type:'Feature', geometry:{ type:'LineString', coordinates: [] }, properties:{} }] }; }
@@ -2861,6 +2936,7 @@ async function selectTrack(index){
   stopPlayback();
   const track = state.tracks[index];
   state.track = track;
+  updateTrackPoints();
   requestPlaceWeather(track.points[0].lat, track.points[0].lon, true); // lieu + météo du point de départ, sans attendre le préchargement
   state.followZoomApplied = false;
 
