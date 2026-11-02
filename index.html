@@ -31,6 +31,9 @@
     --glass-border: rgba(232,163,61,.35);
     --glass-shadow: 0 4px 14px rgba(0,0,0,.45);
     --radius:8px;
+    /* curseurs de The-GPX-Box : pastille « déplacer » sur un élément mobile, main orange pendant un glissement */
+    --cur-grab: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14.5' fill='rgba(20,25,34,.72)' stroke='%23e8a33d' stroke-width='1.6'/><g transform='translate(8.56 8.56) scale(0.62)' fill='none' stroke='%23e8a33d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v20'/><path d='m15 19-3 3-3-3'/><path d='m19 9 3 3-3 3'/><path d='M2 12h20'/><path d='m5 9-3 3 3 3'/><path d='m9 5 3-3 3 3'/></g></svg>") 16 16, move;
+    --cur-grabbing: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='-2 -2 28 28'><g fill='none' stroke='%2314181f' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><path d='M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/><path d='M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/><path d='M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8'/><path d='M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/></g><g fill='none' stroke='%23e8a33d' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/><path d='M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/><path d='M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8'/><path d='M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/></g></svg>") 11 11, grabbing;
     --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   }
@@ -417,10 +420,14 @@
   /* icônes flottantes : chaque commande de la carte se déplace en la glissant (décalage --fdx / --fdy) */
   .floatable{
     transform:translate(var(--fdx, 0px), var(--fdy, 0px));
-    cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none;
+    cursor:var(--cur-grab); touch-action:none; user-select:none; -webkit-user-select:none;
   }
-  .floatable.dragging{ cursor:grabbing; }
-  .floatable.dragging, .floatable.dragging *{ cursor:grabbing !important; }
+  .floatable.dragging{ cursor:var(--cur-grabbing); }
+  .floatable.dragging, .floatable.dragging *{ cursor:var(--cur-grabbing) !important; }
+  /* carte : flèche au repos, main orange dès l'appui pour la déplacer (comme The-GPX-Box) */
+  #map .maplibregl-canvas-container.maplibregl-interactive,
+  #map .maplibregl-canvas-container.maplibregl-interactive:active{ cursor:default; }
+  #map.panning .maplibregl-canvas-container canvas{ cursor:var(--cur-grabbing) !important; }
   #pitch-control .float-grip{ position:absolute; top:0; left:0; right:0; height:11px; display:flex; align-items:center; justify-content:center; gap:3px; }
   #pitch-control .float-grip i{ width:3px; height:3px; border-radius:50%; background:var(--text-muted); opacity:.7; }
   .help-reset{ margin-top:8px; padding:4px 10px; font-size:11.5px; }
@@ -2459,6 +2466,15 @@ document.addEventListener('click', () => bm.menu.classList.remove('open'));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') bm.menu.classList.remove('open'); });
 updateTopoOpacityUI();
 map.on('load', () => { updateTopoOpacityUI(); applyBasemap(); });
+// main orange (« grabbing ») dès l'appui pour déplacer la carte, retirée au relâchement
+(function panCursor(){
+  const box = document.getElementById('map');
+  const on = () => box.classList.add('panning'), off = () => box.classList.remove('panning');
+  map.getCanvas().addEventListener('mousedown', ev => { if (ev.button === 0) on(); });
+  window.addEventListener('mouseup', off);
+  map.on('dragstart', on);
+  map.on('dragend', off);
+})();
 // la carte entre ou sort de la zone d'un fond régional : on bascule sur / depuis OpenTopoMap
 map.on('moveend', () => { if (effectiveBase() !== lastEffectiveBase){ updateTopoOpacityUI(); applyBasemap(); } });
 onLanguageChange.push(updateTopoOpacityUI);
