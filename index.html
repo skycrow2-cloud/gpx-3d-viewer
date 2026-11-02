@@ -25,9 +25,9 @@
     --glass: rgba(30,37,48,.48);
     --glass-hover: rgba(30,37,48,.66);
     --glass-strong: rgba(27,34,44,.8);
-    /* fenêtres (aide, OSM, préchargement) : légèrement translucides */
-    --window-bg: rgba(14,18,23,.86);
-    --window-blur: blur(12px);
+    /* fenêtres (aide, OSM, fonds de carte, préchargement) : même translucidité que The-GPX-Box */
+    --window-bg: rgba(20,25,34,.6);
+    --window-blur: blur(14px) saturate(1.2);
     --glass-border: rgba(232,163,61,.35);
     --glass-shadow: 0 4px 14px rgba(0,0,0,.45);
     --radius:8px;
@@ -389,7 +389,7 @@
   .map-pop{
     display:none; position:absolute; right:calc(100% + 8px); top:0; z-index:3000;
     min-width:230px; flex-direction:column; gap:7px; padding:12px 14px;
-    background:var(--glass-strong); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    background:var(--window-bg); -webkit-backdrop-filter:var(--window-blur); backdrop-filter:var(--window-blur);
     border:1px solid var(--panel-border); border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,.5);
     font-size:12.5px; color:var(--text); cursor:default;
   }
@@ -632,6 +632,9 @@
   }
   #sv-banner[hidden]{ display:none; }
 
+  /* fenêtres translucides : champs et listes internes semi-transparents (comme The-GPX-Box) */
+  #osmPanel, .doc-modal, .overlay-box, .map-pop{ --field-bg: rgba(30,37,48,.5); }
+  #osmPanel option{ background:#1b222a; color:var(--text); }
   /* traces GPS OpenStreetMap */
   #osmPanel .osm-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
   #osmPanel .osm-head .help-title{ margin:0; }
@@ -671,6 +674,27 @@
   .gpx-status:empty{ display:none; }
   .gpx-status.err{ color:var(--danger); }
   .gpx-status.ok{ color:var(--accent); }
+  .gpx-status.warn{ color:#f2c94c; }
+  @keyframes gpxSpin{ to{ transform:rotate(360deg); } }
+  @keyframes gpxSlide{ 0%{ left:-35%; } 100%{ left:100%; } }
+  .gpx-status.working::before, .gpx-results button.loading::before{
+    content:''; display:inline-block; width:11px; height:11px; margin-right:7px; vertical-align:-1px; box-sizing:border-box;
+    border:2px solid rgba(232,163,61,.3); border-top-color:var(--accent); border-radius:50%; animation:gpxSpin .8s linear infinite; }
+  .gpx-busy{ margin-top:7px; }
+  .gpx-busy[hidden]{ display:none; }
+  .gpx-busy-track{ height:5px; border-radius:3px; background:var(--field-bg); border:1px solid var(--panel-border); overflow:hidden; position:relative; }
+  .gpx-busy-bar{ position:absolute; top:0; bottom:0; width:35%; background:var(--accent); animation:gpxSlide 1.1s ease-in-out infinite; }
+  .gpx-busy-time{ display:flex; justify-content:space-between; gap:8px; font-size:10.5px; color:var(--text-muted); margin-top:3px; font-variant-numeric:tabular-nums; }
+  #btnGpxOsmGo.busy{ cursor:wait; opacity:.75; }
+  .gpx-results{ list-style:none; margin:8px 0 0; padding:0; max-height:210px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:7px; }
+  .gpx-results:empty{ display:none; }
+  .gpx-results button{ display:block; width:100%; text-align:left; padding:7px 9px; border:0; border-bottom:1px solid var(--panel-border); background:transparent; color:var(--text); font-family:inherit; font-size:12.5px; cursor:pointer; }
+  .gpx-results li:last-child button{ border-bottom:0; }
+  .gpx-results button:hover, .gpx-results button:focus-visible{ background:var(--accent-soft); outline:none; }
+  .gpx-results small{ display:block; color:var(--text-muted); font-size:11px; margin-top:1px; }
+  .gpx-results.busy button{ opacity:.45; cursor:wait; }
+  .gpx-results.busy button.loading{ opacity:1; background:var(--accent-soft); }
+  @media (prefers-reduced-motion: reduce){ .gpx-busy-bar{ animation-duration:2.5s; } }
   .gpx-fallback{ margin-top:8px; padding:8px 9px; border:1px dashed var(--accent); border-radius:7px; background:var(--accent-soft); font-size:11.5px; line-height:1.45; }
   .gpx-fallback label.btn{ display:block; text-align:center; margin-top:7px; cursor:pointer; }
   #osmTraceList{ max-height:210px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:6px; background:var(--field-bg); }
@@ -878,6 +902,7 @@
       <div class="gpx-srcs" role="radiogroup">
         <button class="gpx-src" type="button" role="radio" data-src="mine" aria-checked="true"><span data-i18n="osm.srcMine">Mes traces</span><small data-i18n="osm.srcMineSub">mon compte</small></button>
         <button class="gpx-src" type="button" role="radio" data-src="trace" aria-checked="false" tabindex="-1"><span data-i18n="osm.srcTrace">Autre trace</span><small data-i18n="osm.srcTraceSub">lien ou numéro</small></button>
+        <button class="gpx-src" type="button" role="radio" data-src="route" aria-checked="false" tabindex="-1"><span data-i18n="osm.srcRoute">Itinéraire</span><small data-i18n="osm.srcRouteSub">balisé (GR…)</small></button>
       </div>
       <div id="osmSrcMine">
         <div class="osm-auth-only">
@@ -887,12 +912,20 @@
         <p class="gpx-note osm-noauth-only" data-i18n="osm.mineNoAuth">Connectez-vous ci-dessus pour lister vos traces. Pour la trace d'un autre utilisateur, choisissez « Autre trace ».</p>
       </div>
       <div id="osmSrcTrace" hidden>
-        <label class="gpx-label" for="gpxOsmInput" data-i18n="osm.traceLabel">Lien ou numéro de la trace</label>
+        <label class="gpx-label" for="gpxOsmInput" id="gpxOsmLabel">Lien ou numéro de la trace</label>
         <input type="text" id="gpxOsmInput" autocomplete="off" spellcheck="false" placeholder="https://www.openstreetmap.org/traces/123456">
+        <div id="gpxNoteRoute" hidden>
+          <p class="gpx-note help-block" data-lang="fr" lang="fr">Un nom ou un numéro de balisage (GR 5…) est cherché dans la zone visible de la carte. Un lien <a href="https://hiking.waymarkedtrails.org/" target="_blank" rel="noopener">Waymarked Trails</a> ou openstreetmap.org/relation/… est importé directement.</p>
+          <p class="gpx-note help-block" data-lang="en" lang="en" hidden>A name or waymark number (GR 5…) is searched in the visible map area. A <a href="https://hiking.waymarkedtrails.org/" target="_blank" rel="noopener">Waymarked Trails</a> or openstreetmap.org/relation/… link is imported directly.</p>
+        </div>
+        <div id="gpxNoteTrace">
         <p class="gpx-note help-block" data-lang="fr" lang="fr">Traces « publiques » ou « identifiables » de n'importe quel utilisateur, ou vos traces privées si vous êtes connecté (« Mes traces »). Parcourir les <a href="https://www.openstreetmap.org/traces" target="_blank" rel="noopener">traces publiques</a>.</p>
         <p class="gpx-note help-block" data-lang="en" lang="en" hidden>“Public” or “identifiable” traces of any user, or your private traces when logged in (“My traces”). Browse the <a href="https://www.openstreetmap.org/traces" target="_blank" rel="noopener">public traces</a>.</p>
-        <button class="btn btn-primary" id="btnGpxOsmGo" type="button" style="width:100%;" data-i18n="osm.traceGo">Importer la trace</button>
+        </div>
+        <button class="btn btn-primary" id="btnGpxOsmGo" type="button" style="width:100%;">Importer la trace</button>
         <div class="gpx-status" id="gpxImportStatus" aria-live="polite"></div>
+        <div class="gpx-busy" id="gpxBusy" hidden><div class="gpx-busy-track"><div class="gpx-busy-bar"></div></div><div class="gpx-busy-time"><span id="gpxBusyHint"></span><span id="gpxBusyTime">0 s</span></div></div>
+        <ul class="gpx-results" id="gpxResults"></ul>
         <div class="gpx-fallback" id="gpxFallback" hidden>
           <span id="gpxFallbackText"></span>
           <a id="gpxFallbackLink" href="https://www.openstreetmap.org/traces" target="_blank" rel="noopener" data-i18n="osm.fbLink">Télécharger la trace</a><span data-i18n="osm.fbThen">, puis chargez le fichier obtenu :</span>
@@ -1052,6 +1085,7 @@
         <h3>Traces GPS OpenStreetMap</h3>
         <ul>
           <li><b>Mes traces</b> : le bouton nuage, en haut du panneau, liste vos traces GPS OpenStreetMap ; « Importer » charge la trace choisie dans le visualiseur.</li>
+          <li><b>Itinéraire balisé</b> : onglet « Importer › Itinéraire » ; un nom ou un numéro de balisage (GR 5…) est cherché dans la zone visible (champ vide : tous les itinéraires de la zone), ou coller un numéro de relation, un lien openstreetmap.org/relation/… ou Waymarked Trails. Variantes et excursions écartées ; données OSM sans altitude.</li>
           <li><b>Envoyer</b> la trace chargée sur votre compte, avec une description (obligatoire), des étiquettes et la visibilité (identifiable ou traçable). Les points d'origine du fichier sont envoyés (sans la densification) ; OSM exigeant un horodatage, les heures du fichier sont conservées, sinon des heures fictives à 4 km/h sont ajoutées.</li>
           <li><b>Première utilisation</b> : déclarer l'application sur openstreetmap.org (Mes applications OAuth 2, application non confidentielle, droits « traces GPS ») avec l'URI de redirection affichée, puis coller l'ID client. Une application déjà déclarée pour The-GPX-Box peut être réutilisée en y ajoutant cette URI. La page doit être ouverte en https:// ou sur http://localhost.</li>
         </ul>
@@ -1199,6 +1233,7 @@
         <h3>OpenStreetMap GPS traces</h3>
         <ul>
           <li><b>My traces</b>: the cloud button at the top of the panel lists your OpenStreetMap GPS traces; “Import” loads the chosen trace into the viewer.</li>
+          <li><b>Waymarked route</b>: “Import › Route” tab; a name or waymark number (GR 5…) is searched in the visible area (empty field: all routes in the area), or paste a relation number, an openstreetmap.org/relation/… or Waymarked Trails link. Variants and excursions are skipped; OSM data has no elevation.</li>
           <li><b>Upload</b> the loaded track to your account, with a description (required), tags and visibility (identifiable or trackable). The file's original points are sent (without densification); since OSM requires timestamps, the file's times are kept, otherwise dummy times at 4 km/h are added.</li>
           <li><b>First use</b>: register the application on openstreetmap.org (My OAuth 2 applications, non-confidential application, “GPS traces” permissions) with the redirect URI shown, then paste the client ID. An application already registered for The-GPX-Box can be reused by adding this URI to it. The page must be opened over https:// or on http://localhost.</li>
         </ul>
@@ -1356,6 +1391,20 @@ const I18N = {
     'osm.connectHint': "Une fenêtre OSM s'ouvre pour autoriser l'accès à vos traces.", 'osm.changeId': "Changer l'ID client",
     'osm.tabImport': "Importer", 'osm.tabSend': "Envoyer", 'osm.srcMine': "Mes traces", 'osm.srcMineSub': "mon compte",
     'osm.srcTrace': "Autre trace", 'osm.srcTraceSub': "lien ou numéro",
+    'osm.srcRoute': "Itinéraire", 'osm.srcRouteSub': "balisé (GR…)",
+    'osm.routeLabel': "Nom, n° de balisage, n° ou lien de la relation", 'osm.routePh': "GR 5, Promenade du…, 1234567 ou lien",
+    'osm.routeImport': "Importer l'itinéraire", 'osm.routeSearch': "Rechercher dans la zone visible", 'osm.routeList': "Lister les itinéraires de la zone visible",
+    'osm.busyBtn': "Recherche en cours…", 'osm.busy': "En cours…", 'osm.busySlow': "Les serveurs OpenStreetMap peuvent être lents, patientez…",
+    'osm.rZoom': "Zoomez d'abord sur la région de l'itinéraire.", 'osm.rZoomName': "Zoomez d'abord sur la région de l'itinéraire (ou saisissez un nom).",
+    'osm.rSearchText': "Recherche de « {t} » dans la zone visible…", 'osm.rSearchAll': "Recherche des itinéraires de la zone visible…",
+    'osm.rNone': "Aucun itinéraire balisé trouvé ici. Déplacez ou dézoomez la carte, ou essayez un autre nom.",
+    'osm.rFound1': "1 itinéraire — cliquez pour l'importer :", 'osm.rFoundN': "{n} itinéraires{more} — cliquez pour l'importer :", 'osm.rMore': " (les 60 premiers)",
+    'osm.rSearchFail': "Échec de la recherche : {e}.", 'osm.rReading': "Lecture de l'itinéraire (relation {id})…",
+    'osm.rNotFound': "relation {id} introuvable", 'osm.rNoWay': "cette relation ne contient aucun chemin", 'osm.rFew': "pas assez de points exploitables",
+    'osm.rOk': "✔ « {n} » importé : {km} km, {p} points.", 'osm.rGaps': "⚠ La relation OSM présente {g} discontinuité(s), reliée(s) en ligne droite : vérifiez ces passages.",
+    'osm.rDefName': "Itinéraire {id}", 'osm.rSuper': "ensemble d'étapes", 'osm.rRel': "relation {id}",
+    'osm.netI': "réseau international", 'osm.netN': "réseau national", 'osm.netR': "réseau régional", 'osm.netL': "réseau local",
+    'osm.ovBusy': "serveur Overpass occupé ({s})", 'osm.ovDown': "serveur Overpass injoignable", 'osm.ovTimeout': "délai dépassé",
     'osm.mineNoAuth': "Connectez-vous ci-dessus pour lister vos traces. Pour la trace d'un autre utilisateur, choisissez « Autre trace ».",
     'osm.sendNoAuth': "Connectez-vous ci-dessus pour envoyer la trace actuelle sur votre compte OpenStreetMap.",
     'osm.traceLabel': "Lien ou numéro de la trace", 'osm.traceGo': "Importer la trace",
@@ -1428,6 +1477,20 @@ const I18N = {
     'osm.connectHint': "An OSM window opens to authorise access to your traces.", 'osm.changeId': "Change the client ID",
     'osm.tabImport': "Import", 'osm.tabSend': "Upload", 'osm.srcMine': "My traces", 'osm.srcMineSub': "my account",
     'osm.srcTrace': "Other trace", 'osm.srcTraceSub': "link or number",
+    'osm.srcRoute': "Route", 'osm.srcRouteSub': "waymarked (GR…)",
+    'osm.routeLabel': "Name, waymark number, relation number or link", 'osm.routePh': "GR 5, Promenade du…, 1234567 or link",
+    'osm.routeImport': "Import the route", 'osm.routeSearch': "Search the visible area", 'osm.routeList': "List routes in the visible area",
+    'osm.busyBtn': "Searching…", 'osm.busy': "Working…", 'osm.busySlow': "OpenStreetMap servers can be slow, please wait…",
+    'osm.rZoom': "Zoom in on the route's area first.", 'osm.rZoomName': "Zoom in on the route's area first (or type a name).",
+    'osm.rSearchText': "Searching for “{t}” in the visible area…", 'osm.rSearchAll': "Searching routes in the visible area…",
+    'osm.rNone': "No waymarked route found here. Move or zoom out the map, or try another name.",
+    'osm.rFound1': "1 route — click to import it:", 'osm.rFoundN': "{n} routes{more} — click one to import it:", 'osm.rMore': " (first 60)",
+    'osm.rSearchFail': "Search failed: {e}.", 'osm.rReading': "Reading the route (relation {id})…",
+    'osm.rNotFound': "relation {id} not found", 'osm.rNoWay': "this relation contains no way", 'osm.rFew': "not enough usable points",
+    'osm.rOk': "✔ “{n}” imported: {km} km, {p} points.", 'osm.rGaps': "⚠ The OSM relation has {g} gap(s), joined with straight lines: check those sections.",
+    'osm.rDefName': "Route {id}", 'osm.rSuper': "set of stages", 'osm.rRel': "relation {id}",
+    'osm.netI': "international network", 'osm.netN': "national network", 'osm.netR': "regional network", 'osm.netL': "local network",
+    'osm.ovBusy': "Overpass server busy ({s})", 'osm.ovDown': "Overpass server unreachable", 'osm.ovTimeout': "timed out",
     'osm.mineNoAuth': "Log in above to list your traces. For another user's trace, choose “Other trace”.",
     'osm.sendNoAuth': "Log in above to upload the current track to your OpenStreetMap account.",
     'osm.traceLabel': "Trace link or number", 'osm.traceGo': "Import the trace",
@@ -3581,8 +3644,13 @@ function refreshDynamicTexts(){
   const gpxInput = document.getElementById('gpxOsmInput');
   function setGpxStatus(text, kind){
     const st = document.getElementById('gpxImportStatus');
-    st.className = 'gpx-status' + (kind ? ' ' + kind : '');
+    st.className = 'gpx-status' + (kind ? ' ' + kind : '') + (!kind && /…$/.test(text || '') ? ' working' : '');
     st.textContent = text || '';
+  }
+  function parseRelationId(s){
+    s = (s || '').trim();
+    const m = s.match(/relation\/(\d+)/i) || s.match(/[?&#]id=(\d+)/i) || s.match(/\/route\/(\d+)/i) || s.match(/^r?(\d{4,})$/i);
+    return m ? m[1] : null;
   }
   function parseTraceId(s){
     s = (s || '').trim();
@@ -3611,15 +3679,30 @@ function refreshDynamicTexts(){
   function updateGpxImportUI(){
     if (!gpxSource) gpxSource = (osmClientId() && osmToken()) ? 'mine' : 'trace';
     document.getElementById('osmSrcMine').hidden = gpxSource !== 'mine';
-    document.getElementById('osmSrcTrace').hidden = gpxSource !== 'trace';
+    document.getElementById('osmSrcTrace').hidden = gpxSource === 'mine';
     panel.querySelectorAll('.gpx-src').forEach(b => {
       const on = b.dataset.src === gpxSource;
       b.setAttribute('aria-checked', on ? 'true' : 'false');
       b.tabIndex = on ? 0 : -1;
     });
-    document.getElementById('btnGpxOsmGo').disabled = gpxBusy || !parseTraceId(gpxInput.value);
     osmSyncAccount();
+    if (gpxSource === 'mine') return;
+    const isRoute = gpxSource === 'route';
+    document.getElementById('gpxOsmLabel').textContent = tx(isRoute ? 'osm.routeLabel' : 'osm.traceLabel');
+    gpxInput.placeholder = isRoute ? tx('osm.routePh') : 'https://www.openstreetmap.org/traces/123456';
+    document.getElementById('gpxNoteTrace').hidden = isRoute;
+    document.getElementById('gpxNoteRoute').hidden = !isRoute;
+    const v = gpxInput.value.trim(), btn = document.getElementById('btnGpxOsmGo');
+    if (gpxBusy){ btn.textContent = tx('osm.busyBtn'); btn.disabled = true; return; }
+    if (!isRoute){
+      btn.textContent = tx('osm.traceGo');
+      btn.disabled = !parseTraceId(v);
+    } else {
+      btn.textContent = tx(parseRelationId(v) ? 'osm.routeImport' : (v ? 'osm.routeSearch' : 'osm.routeList'));
+      btn.disabled = false;
+    }
   }
+  onLanguageChange.push(() => { if (gpxSource) updateGpxImportUI(); });
   document.getElementById('osmTabImport').addEventListener('click', () => selectOsmTab('import'));
   document.getElementById('osmTabSend').addEventListener('click', () => selectOsmTab('send'));
   document.getElementById('osmTabs').addEventListener('keydown', e => {
@@ -3632,13 +3715,15 @@ function refreshDynamicTexts(){
     gpxSource = b.dataset.src;
     gpxInput.value = '';
     setGpxStatus('');
+    document.getElementById('gpxResults').innerHTML = '';
     document.getElementById('gpxFallback').hidden = true;
     updateGpxImportUI();
   }));
   panel.querySelector('.gpx-srcs').addEventListener('keydown', e => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
-    const next = gpxSource === 'mine' ? 'trace' : 'mine';
+    const order = ['mine', 'trace', 'route'], i = order.indexOf(gpxSource);
+    const next = order[(i + (e.key === 'ArrowRight' ? 1 : order.length - 1)) % order.length];
     const b = panel.querySelector('.gpx-src[data-src="' + next + '"]');
     b.click(); b.focus();
   });
@@ -3697,11 +3782,51 @@ function refreshDynamicTexts(){
     if (b.length > 262 && String.fromCharCode(b[257], b[258], b[259], b[260], b[261]) === 'ustar') return Promise.resolve().then(() => untarGpx(b));
     return Promise.resolve(new TextDecoder('utf-8').decode(b));
   }
+  let gpxBusyTimer = null;
+  function setGpxBusy(b){
+    gpxBusy = b;
+    updateGpxImportUI();
+    const box = document.getElementById('gpxBusy'), btn = document.getElementById('btnGpxOsmGo');
+    clearInterval(gpxBusyTimer);
+    btn.classList.toggle('busy', b);
+    if (!b){
+      box.hidden = true;
+      const res = document.getElementById('gpxResults');
+      res.classList.remove('busy');
+      res.querySelectorAll('button.loading').forEach(x => x.classList.remove('loading'));
+      return;
+    }
+    const t0 = Date.now();
+    const tick = () => {
+      const sec = Math.floor((Date.now() - t0) / 1000);
+      document.getElementById('gpxBusyTime').textContent = sec + ' s';
+      document.getElementById('gpxBusyHint').textContent = tx(sec >= 8 ? 'osm.busySlow' : 'osm.busy');
+    };
+    tick();
+    box.hidden = false;
+    gpxBusyTimer = setInterval(tick, 500);
+  }
   function runGpxOsmImport(){
-    const id = parseTraceId(gpxInput.value);
-    if (gpxBusy || !id) return;
+    if (gpxBusy) return;
+    const v = gpxInput.value.trim();
     document.getElementById('gpxFallback').hidden = true;
-    gpxBusy = true; updateGpxImportUI();
+    let job;
+    if (gpxSource === 'trace'){
+      const id = parseTraceId(v);
+      if (!id) return;
+      document.getElementById('gpxResults').innerHTML = '';
+      job = importOsmTrace(id);
+    } else {
+      const rid = parseRelationId(v);
+      if (rid){ document.getElementById('gpxResults').innerHTML = ''; job = importOsmRelation(rid); }
+      else job = searchRoutesInView(v);
+    }
+    if (!job) return;
+    setGpxBusy(true);
+    job.then(() => setGpxBusy(false), () => setGpxBusy(false));
+  }
+  function closeOsmSoon(){ setTimeout(() => { panel.style.display = 'none'; btnOsm.classList.remove('active'); }, 1200); }
+  function importOsmTrace(id){
     setGpxStatus(tx('osm.trDl', { id }));
     const authed = !!osmToken();
     const req = authed
@@ -3711,18 +3836,220 @@ function refreshDynamicTexts(){
           if (!r.ok) throw new Error(tx('osm.trServer', { s: r.status }));
           return r.arrayBuffer();
         });
-    req.then(bytesToText).then(text => {
+    return req.then(bytesToText).then(text => {
       setGpxStatus(tx('osm.trOk', { id }), 'ok');
       gpxInput.value = '';
       loadFile(new File([text], 'trace_osm_' + id + '.gpx', { type: 'application/gpx+xml' }));
-      setTimeout(() => { panel.style.display = 'none'; btnOsm.classList.remove('active'); }, 1200);
+      closeOsmSoon();
     }).catch(err => {
       const blocked = err instanceof TypeError;
       setGpxStatus(tx('osm.trFail', { e: blocked ? tx('osm.trBlocked') : err.message }), 'err');
       document.getElementById('gpxFallbackText').textContent = (err.privateTrace && !authed) ? tx('osm.fbPrivate') : tx('osm.fbGeneric');
       document.getElementById('gpxFallbackLink').href = OSM_WEB + '/traces/' + id + '/data.gpx';
       document.getElementById('gpxFallback').hidden = false;
-    }).then(() => { gpxBusy = false; updateGpxImportUI(); });
+    });
+  }
+
+  /* ---- itinéraire balisé : relation OSM lue via l'API Overpass (comme The-GPX-Box) ---- */
+  const OVERPASS_URLS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter'
+  ];
+  function overpassQuery(q, timeoutMs){
+    let i = 0, lastErr = null;
+    function attempt(){
+      if (i >= OVERPASS_URLS.length) return Promise.reject(lastErr || new Error(tx('osm.ovDown')));
+      const url = OVERPASS_URLS[i++];
+      const ctrl = window.AbortController ? new AbortController() : null;
+      const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+        body: 'data=' + encodeURIComponent(q),
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(r => {
+        if (timer) clearTimeout(timer);
+        if (!r.ok) throw new Error(tx('osm.ovBusy', { s: r.status }));
+        return r.json();
+      }).then(data => {
+        if (data && data.remark && /error/i.test(data.remark)) throw new Error('Overpass : ' + data.remark.replace(/^runtime error:\s*/i, ''));
+        return data;
+      }).catch(err => {
+        if (timer) clearTimeout(timer);
+        lastErr = (err && err.name === 'AbortError') ? new Error(tx('osm.ovTimeout')) :
+                  (err instanceof TypeError ? new Error(tx('osm.ovDown')) : err);
+        return attempt();
+      });
+    }
+    return attempt();
+  }
+  const ROUTE_TYPES = 'hiking|foot|walking|bicycle|mtb|running|horse|nordic_walking|fitness_trail|inline_skates|ski|piste';
+  const ROUTE_ICONS = { hiking:'🥾', foot:'🥾', walking:'🥾', nordic_walking:'🥾', fitness_trail:'🥾', running:'🏃', bicycle:'🚲', mtb:'🚵', horse:'🐎', inline_skates:'🛼', ski:'⛷️', piste:'⛷️' };
+  function routeTitle(tags, id){
+    const name = tags.name || '', ref = tags.ref || '';
+    if (ref && name && name.toLowerCase().indexOf(ref.toLowerCase()) < 0) return ref + ' · ' + name;
+    return name || ref || tx('osm.rDefName', { id });
+  }
+  function routeNetworkLabel(tags){
+    const k = { i:'osm.netI', n:'osm.netN', r:'osm.netR', l:'osm.netL' }[(tags.network || '').charAt(0)];
+    return k ? tx(k) : '';
+  }
+  function searchRoutesInView(text){
+    const list = document.getElementById('gpxResults');
+    list.innerHTML = '';
+    if (map.getZoom() < (text ? 8 : 10)){ setGpxStatus(tx(text ? 'osm.rZoom' : 'osm.rZoomName'), 'err'); return null; }
+    const b = map.getBounds();
+    const bbox = [b.getSouth(), b.getWest(), b.getNorth(), b.getEast()].map(v => v.toFixed(5)).join(',');
+    const base = 'relation["type"~"^(route|superroute)$"]["route"~"^(' + ROUTE_TYPES + ')$"]';
+    let body;
+    if (text){
+      // « GR 5 » trouve aussi « GR5 » ou « GR-5 » ; nom ou numéro de balisage (ref)
+      let rx = text.split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[ -]?');
+      rx = rx.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      body = '(' + base + '["name"~"' + rx + '",i](' + bbox + ');' + base + '["ref"~"' + rx + '",i](' + bbox + '););';
+    } else {
+      body = base + '(' + bbox + ');';
+    }
+    setGpxStatus(text ? tx('osm.rSearchText', { t: text }) : tx('osm.rSearchAll'));
+    return overpassQuery('[out:json][timeout:25];' + body + 'out tags 60;', 35000).then(data => {
+      const rels = (data.elements || []).filter(e => e.type === 'relation');
+      if (!rels.length){ setGpxStatus(tx('osm.rNone'), 'err'); return; }
+      const norm = s => (s || '').toLowerCase().replace(/[\s-]+/g, ''), q = norm(text);
+      const rank = { i:0, n:1, r:2, l:3 };
+      rels.forEach(r => {
+        const t = r.tags || {};
+        r._score = !q ? 0 : (norm(t.ref) === q || norm(t.name) === q ? 0 : (norm(t.name).indexOf(q) === 0 || norm(t.ref).indexOf(q) === 0 ? 1 : 2));
+        r._net = rank[(t.network || '').charAt(0)]; if (r._net === undefined) r._net = 4;
+      });
+      rels.sort((a, c) => a._score - c._score || a._net - c._net ||
+        routeTitle(a.tags || {}, a.id).localeCompare(routeTitle(c.tags || {}, c.id), LANG === 'en' ? 'en' : 'fr'));
+      rels.forEach(r => {
+        const t = r.tags || {};
+        const li = document.createElement('li'), btn = document.createElement('button'), sm = document.createElement('small');
+        btn.type = 'button';
+        btn.textContent = (ROUTE_ICONS[t.route] || '📍') + ' ' + routeTitle(t, r.id);
+        sm.textContent = [t.type === 'superroute' ? tx('osm.rSuper') : '', routeNetworkLabel(t), t.operator || '', tx('osm.rRel', { id: r.id })]
+          .filter(Boolean).join(' · ');
+        btn.appendChild(sm);
+        btn.addEventListener('click', ev => {
+          ev.stopPropagation();
+          if (gpxBusy) return;
+          list.classList.add('busy');
+          btn.classList.add('loading');
+          setGpxBusy(true);
+          importOsmRelation(r.id).then(() => setGpxBusy(false), () => setGpxBusy(false));
+        });
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+      setGpxStatus(rels.length === 1 ? tx('osm.rFound1') : tx('osm.rFoundN', { n: rels.length, more: rels.length >= 60 ? tx('osm.rMore') : '' }));
+    }).catch(err => setGpxStatus(tx('osm.rSearchFail', { e: err.message }), 'err'));
+  }
+  function importOsmRelation(id){
+    setGpxStatus(tx('osm.rReading', { id }));
+    const q = '[out:json][timeout:90];relation(' + id + ')->.p;.p out geom;rel(r.p)->.c;.c out geom;';
+    return overpassQuery(q, 100000).then(data => {
+      const els = (data && data.elements) || [], byId = {};
+      els.forEach(e => { if (e.type === 'relation') byId[e.id] = e; });
+      const parent = byId[id];
+      if (!parent) throw new Error(tx('osm.rNotFound', { id }));
+      const segs = collectRelationSegments(parent, byId, 0);
+      if (!segs.length) throw new Error(tx('osm.rNoWay'));
+      const res = chainSegments(segs);
+      const coords = res.coords.filter((c, i, a) => !i || Math.abs(c[0] - a[i-1][0]) > 1e-7 || Math.abs(c[1] - a[i-1][1]) > 1e-7);
+      if (coords.length < 2) throw new Error(tx('osm.rFew'));
+      const name = routeTitle(parent.tags || {}, id);
+      const gpx = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="GPX 3D" xmlns="http://www.topografix.com/GPX/1/1">\n' +
+        '  <trk>\n    <name>' + escXml(name) + '</name>\n    <trkseg>\n' +
+        coords.map(c => '      <trkpt lat="' + c[1].toFixed(7) + '" lon="' + c[0].toFixed(7) + '"></trkpt>').join('\n') +
+        '\n    </trkseg>\n  </trk>\n</gpx>';
+      let km = 0;
+      for (let i = 1; i < coords.length; i++) km += haversineM(coords[i-1][1], coords[i-1][0], coords[i][1], coords[i][0]) / 1000;
+      const kmTxt = LANG === 'en' ? km.toFixed(1) : km.toFixed(1).replace('.', ',');
+      setGpxStatus(tx('osm.rOk', { n: name, km: kmTxt, p: coords.length }) + (res.gaps ? ' ' + tx('osm.rGaps', { g: res.gaps }) : ''), res.gaps ? 'warn' : 'ok');
+      gpxInput.value = '';
+      document.getElementById('gpxResults').innerHTML = '';
+      loadFile(new File([gpx], name.replace(/[\\/:*?"<>|]+/g, '_') + '.gpx', { type: 'application/gpx+xml' }));
+      // le panneau reste ouvert seulement s'il y a une remarque à lire
+      if (!res.gaps) closeOsmSoon();
+    }).catch(err => setGpxStatus(tx('osm.trFail', { e: err.message }), 'err'));
+  }
+  // chemins de la relation dans l'ordre des membres (un niveau de sous-relations pour les « superroutes ») ;
+  // variantes, excursions et accès écartés pour ne garder que le parcours principal
+  const SKIP_ROLES = /^(alternative|excursion|approach|connection|link)$/i;
+  function collectRelationSegments(rel, byId, depth){
+    let main = [], all = [];
+    (rel.members || []).forEach(m => {
+      if (m.type === 'way' && m.geometry){
+        const line = m.geometry.filter(Boolean).map(g => [g.lon, g.lat]);
+        if (line.length < 2) return;
+        all.push(line);
+        if (!SKIP_ROLES.test(m.role || '')) main.push(line);
+      } else if (m.type === 'relation' && depth < 1 && byId[m.ref] && !SKIP_ROLES.test(m.role || '')){
+        const sub = collectRelationSegments(byId[m.ref], byId, depth + 1);
+        main = main.concat(sub);
+        all = all.concat(sub);
+      }
+    });
+    return main.length ? main : all;
+  }
+  // met bout à bout les chemins : ordre des membres, puis « plus proche voisin » s'il reste des trous ;
+  // on garde le résultat qui laisse le moins de trous
+  function chainSegments(segs){
+    const kx = 111320 * Math.cos(segs[0][0][1] * Math.PI / 180), ky = 111320;
+    const fd = (a, b) => { const dx = (a[0]-b[0])*kx, dy = (a[1]-b[1])*ky; return Math.sqrt(dx*dx + dy*dy); };
+    const rev = s => s.slice().reverse();
+    function join(order){
+      const out = []; let gaps = 0, gapLen = 0;
+      order.forEach(s => {
+        let from = 0;
+        if (out.length){
+          const d = fd(out[out.length-1], s[0]);
+          if (d < 1) from = 1;
+          else { gapLen += d; if (d > 50) gaps++; }
+        }
+        for (let i = from; i < s.length; i++) out.push(s[i]);
+      });
+      return { coords: out, gaps, gapLen };
+    }
+    if (segs.length === 1) return join(segs);
+    const order = [], first = segs[0], nx = segs[1];
+    const dEnd = Math.min(fd(first[first.length-1], nx[0]), fd(first[first.length-1], nx[nx.length-1]));
+    const dStart = Math.min(fd(first[0], nx[0]), fd(first[0], nx[nx.length-1]));
+    order.push(dStart < dEnd ? rev(first) : first);
+    for (let i = 1; i < segs.length; i++){
+      const prev = order[order.length-1], end = prev[prev.length-1], s = segs[i];
+      order.push(fd(end, s[s.length-1]) < fd(end, s[0]) ? rev(s) : s);
+    }
+    const byMembers = join(order);
+    if (!byMembers.gaps) return byMembers;
+    const n = segs.length, ends = segs.map(s => [s[0], s[s.length-1]]);
+    let startSeg = 0, startEnd = 0, bestIso = 5;
+    if (n <= 3000){
+      for (let a = 0; a < n; a++) for (let e = 0; e < 2; e++){
+        const p = ends[a][e]; let near = Infinity;
+        for (let j = 0; j < n && near > bestIso; j++){ if (j !== a) near = Math.min(near, fd(p, ends[j][0]), fd(p, ends[j][1])); }
+        if (near > bestIso){ bestIso = near; startSeg = a; startEnd = e; }
+      }
+    }
+    const used = new Uint8Array(n), order2 = [];
+    let cur = startEnd === 0 ? segs[startSeg] : rev(segs[startSeg]);
+    used[startSeg] = 1; order2.push(cur);
+    for (let k = 1; k < n; k++){
+      const tail = cur[cur.length-1]; let best = -1, bestD = Infinity, flip = false;
+      for (let m = 0; m < n; m++){
+        if (used[m]) continue;
+        const d0 = fd(tail, ends[m][0]), d1 = fd(tail, ends[m][1]);
+        if (d0 < bestD){ bestD = d0; best = m; flip = false; }
+        if (d1 < bestD){ bestD = d1; best = m; flip = true; }
+      }
+      used[best] = 1;
+      cur = flip ? rev(segs[best]) : segs[best];
+      order2.push(cur);
+    }
+    const greedy = join(order2);
+    return greedy.gapLen < byMembers.gapLen ? greedy : byMembers;
   }
   document.getElementById('gpxFallbackFile').addEventListener('change', e => {
     const file = e.target.files && e.target.files[0];
