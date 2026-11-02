@@ -488,6 +488,7 @@
   .ts-row .btn.active{ border-color:var(--accent); color:var(--accent); }
 
   .help-block[hidden]{ display:none; }
+  .doc-online{ text-decoration:none; padding:3px 9px; font-size:11.5px; white-space:nowrap; }
   .help-lang{ display:flex; gap:4px; flex:0 0 auto; }
   .help-lang .btn{ padding:3px 9px; font-size:11.5px; }
   .help-lang .btn.active{ border-color:var(--accent); color:var(--accent); }
@@ -1013,6 +1014,7 @@
     <div class="doc-modal" role="dialog" aria-modal="true" aria-labelledby="docTitle">
       <div class="doc-head">
         <h2 id="docTitle" data-i18n="doc.title">Aide et documentation · GPX 3D</h2>
+        <a class="btn btn-secondary doc-online" href="help/index.html" target="_blank" rel="noopener" data-i18n="doc.online">Aide illustrée (captures et vidéos) ↗</a>
         <div class="help-lang">
           <button class="btn btn-secondary" type="button" data-help-lang="fr">FR</button>
           <button class="btn btn-secondary" type="button" data-help-lang="en">EN</button>
@@ -1489,7 +1491,7 @@ const I18N = {
     'osm.need2': "Chargez d'abord une trace.", 'osm.descReq': "La description est obligatoire sur OSM.",
     'osm.sending': "Envoi en cours…", 'osm.sent': "✔ Trace envoyée (n° {id}). OSM la traite en quelques minutes", 'osm.see': "voir sur OSM",
     'osm.sendFail': "Envoi impossible : {e}", 'osm.pasteId': "Collez l'ID client.", 'osm.loggedOut': "Déconnecté.",
-    'title.close': "Fermer (Échap)", 'doc.title': "Aide et documentation · GPX 3D",
+    'title.close': "Fermer (Échap)", 'doc.title': "Aide et documentation · GPX 3D", 'doc.online': "Aide illustrée (captures et vidéos) ↗",
     'page.title': "GPX 3D — visualiseur de trace",
     'stat.distance': "Distance", 'stat.points': "Points", 'stat.gain': "Dénivelé +", 'stat.loss': "Dénivelé −",
     'stat.avg': "Vitesse moy.", 'stat.max': "Vitesse max.",
@@ -1574,7 +1576,7 @@ const I18N = {
     'osm.need2': "Load a track first.", 'osm.descReq': "A description is required on OSM.",
     'osm.sending': "Uploading…", 'osm.sent': "✔ Trace uploaded (no. {id}). OSM processes it within a few minutes", 'osm.see': "view on OSM",
     'osm.sendFail': "Upload failed: {e}", 'osm.pasteId': "Paste the client ID.", 'osm.loggedOut': "Logged out.",
-    'title.close': "Close (Esc)", 'doc.title': "Help and documentation · GPX 3D",
+    'title.close': "Close (Esc)", 'doc.title': "Help and documentation · GPX 3D", 'doc.online': "Illustrated help (screenshots and videos) ↗",
     'page.title': "GPX 3D — track viewer",
     'stat.distance': "Distance", 'stat.points': "Points", 'stat.gain': "Elevation gain", 'stat.loss': "Elevation loss",
     'stat.avg': "Avg. speed", 'stat.max': "Max. speed",
