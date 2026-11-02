@@ -534,19 +534,6 @@
   .attribution{ margin:0; font-size:10px; line-height:1.5; color:#5d6672; }
   .version-line{ margin:4px 0 0; font-size:10px; color:#5d6672; }
 
-  /* ------------------------------------------------------ état vide */
-  #empty-hint{
-    position:absolute; z-index:1;
-    left:50%; top:24px; transform:translateX(-50%);
-    background:var(--glass);
-    border:1px solid var(--glass-border);
-    border-radius:999px;
-    padding:9px 18px;
-    font-size:12.5px;
-    color:var(--text-muted);
-    backdrop-filter: blur(6px);
-    pointer-events:none;
-  }
 
   #track-title-badge{
     position:absolute; z-index:1;
@@ -606,7 +593,6 @@
     }
     #resize-handle{ display:none; }
     #weather-bar{ top:10px; left:10px; right:56px; max-width:none; }
-    #empty-hint{ top:52px; }
     #track-title-badge{ top:52px; max-width:88vw; }
     #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); height:100px; }
     .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
@@ -841,7 +827,6 @@
   <button id="panel-toggle" type="button" data-i18n-title="panelHide" title="Masquer le panneau" aria-label="Masquer le panneau"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div id="resize-handle" data-i18n-title="resize" title="Glisser pour redimensionner"></div>
 
-  <div id="empty-hint" data-i18n="emptyHint">Chargez un fichier GPX pour commencer</div>
   <div id="track-title-badge" hidden></div>
 
   <div id="sv-banner" hidden></div>
@@ -1377,7 +1362,6 @@ const I18N = {
     follow: "Centrer et zoomer sur la position (suivi)",
     orient: "Orienter la carte selon le tracé (cap)",
     overview: "Rester en vue générale (sans suivi ni zoom)",
-    emptyHint: "Chargez un fichier GPX pour commencer",
     attribution: "Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Annuler",
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
@@ -1463,7 +1447,6 @@ const I18N = {
     follow: "Centre and zoom on the position (follow)",
     orient: "Orient the map along the track (heading)",
     overview: "Stay in overview (no follow or zoom)",
-    emptyHint: "Load a GPX file to get started",
     attribution: "Imagery © Esri, Maxar, Earthstar Geographics · Terrain © AWS Open Data Terrain Tiles / Mapzen · Basemap © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgium (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Trails © Waymarked Trails (CC-BY-SA) · Weather © Open-Meteo.com (CC-BY 4.0) · Place names © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Cancel",
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
@@ -2129,7 +2112,6 @@ const el = {
   weatherNow: document.getElementById('weather-now'),
   weatherIcon: document.getElementById('weather-icon'),
   weatherText: document.getElementById('weather-text'),
-  emptyHint: document.getElementById('empty-hint'),
   trackTitleBadge: document.getElementById('track-title-badge'),
   preloadOverlay: document.getElementById('preload-overlay'),
   preloadText: document.getElementById('preload-text'),
@@ -2792,7 +2774,6 @@ async function selectTrack(index){
   requestPlaceWeather(track.points[0].lat, track.points[0].lon, true); // lieu + météo du point de départ, sans attendre le préchargement
   state.followZoomApplied = false;
 
-  el.emptyHint.hidden = true;
   el.trackTitleBadge.textContent = trackName(track);
   el.trackTitleBadge.hidden = false;
   el.statsSection.hidden = false;
