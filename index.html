@@ -59,7 +59,7 @@
     background:var(--glass);
     border-color:var(--accent);
     border-width:2px;
-    color:var(--text);
+    color:var(--accent);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     font-size:13px;
     font-weight:600;
@@ -70,6 +70,10 @@
     left: calc(var(--panel-w, 380px) + 10px) !important;
   }
 
+  /* Pastille orange sur un menu / outil en cours d'utilisation (comme dans The-GPX-Box) */
+  .in-use-host{position:relative;}
+  .in-use-host.in-use::after{content:'';position:absolute;top:1px;right:1px;width:6px;height:6px;border-radius:50%;
+    background:var(--accent);opacity:.85;pointer-events:none;z-index:2;}
   .maplibregl-ctrl-scale.floatable{ pointer-events:auto; }
 
   /* ---------------------------------------------------- réglage d'assiette (barre verticale discrète) */
@@ -4901,6 +4905,32 @@ function syncPanelVars(){
   }, true);
   ['mousedown', 'wheel', 'keydown'].forEach(t => document.addEventListener(t, hide, true));
   window.addEventListener('blur', hide);
+})();
+
+/* Pastille « en cours d'utilisation » : une seule, sur l'outil ouvert le plus récemment */
+(function initInUseDots(){
+  const shown = (id, v) => { const e = document.getElementById(id); return !!e && e.style.display === v; };
+  const has = (id, c) => { const e = document.getElementById(id); return !!e && e.classList.contains(c); };
+  const rules = [
+    [() => document.getElementById('btnTrackStyle'), () => { const e = document.getElementById('track-style-section'); return !!e && !e.hidden; }],
+    [() => document.getElementById('btnOsm'), () => shown('osmPanel', 'block')],
+    [() => document.getElementById('btnInfo'), () => shown('docOverlay', 'flex')],
+    [() => document.querySelector('#menu-map > .map-menu-btn'), () => has('menu-map', 'open')],
+    [() => document.getElementById('coord-toggle'), () => has('coord-box', 'expanded')]
+  ];
+  const stamps = rules.map(() => 0); let clock = 0;
+  function sync(){
+    let w = -1;
+    rules.forEach((r, i) => { if (r[0]() && r[1]() && (w < 0 || stamps[i] > stamps[w])) w = i; });
+    rules.forEach((r, i) => { const e = r[0](); if (!e) return; e.classList.add('in-use-host'); e.classList.toggle('in-use', i === w); });
+  }
+  document.addEventListener('click', ev => {
+    rules.forEach((r, i) => { const e = r[0](); if (e && e.contains(ev.target)) stamps[i] = ++clock; });
+    setTimeout(sync, 0);
+  }, true);
+  document.addEventListener('keyup', () => setTimeout(sync, 0));
+  setInterval(sync, 500);
+  sync();
 })();
 </script>
 </body>
