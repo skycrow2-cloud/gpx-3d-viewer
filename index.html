@@ -3140,6 +3140,7 @@ el.trackSelect.addEventListener('change', () => selectTrack(parseInt(el.trackSel
 window.__gpx3dLoadFile = loadFile;
 window.__gpx3dState = state;
 window.__gpx3dMap = map;
+map.once('load', () => { window.__gpx3dMapReady = true; });   // le script de passage peut arriver après l'événement « load »
 
 async function selectTrack(index){
   stopPlayback();
@@ -5139,7 +5140,8 @@ function syncPanelVars(){
     window.__gpx3dLoadFile(new File([h.gpx], name, { type: 'application/gpx+xml' }));
   }
   window.addEventListener('hashchange', receive);
-  window.__gpx3dMap.once('load', receive); // au démarrage : une fois la carte prête (sources de la trace créées)
+  // au démarrage : une fois la carte prête (sources de la trace créées) ; « load » peut déjà avoir eu lieu
+  if (window.__gpx3dMapReady) receive(); else window.__gpx3dMap.once('load', receive);
 })();
 </script>
 <script>
