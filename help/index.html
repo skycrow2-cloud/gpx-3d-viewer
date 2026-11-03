@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aide en ligne · GPX 3D</title>
+<style>
+  :root{
+    --bg:#10151c; --panel:#171e28; --border:#2a3442; --text:#e6ebf2; --muted:#93a0b2;
+    --accent:#f0902a; --link:#7fb6ff; --code:#1f2937;
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f6f8; --panel:#fff; --border:#d9dde3; --text:#1c232d; --muted:#5b6675;
+    --accent:#d9730a; --link:#1a62c7; --code:#eef0f3;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; scroll-padding-top:70px; }
+  body{ margin:0; background:var(--bg); color:var(--text); font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  a{ color:var(--link); }
+  header.top{
+    position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:12px;
+    padding:10px 20px; background:var(--panel); border-bottom:1px solid var(--border);
+  }
+  header.top h1{ margin:0; font-size:18px; color:var(--accent); flex:1; }
+  .btn{
+    display:inline-block; padding:6px 14px; border-radius:6px; border:1px solid var(--accent);
+    background:var(--accent); color:#111; font-weight:600; text-decoration:none; font-size:14px; cursor:pointer;
+  }
+  .btn.ghost{ background:transparent; color:var(--accent); }
+  .layout{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:32px; max-width:1100px; margin:0 auto; padding:24px 20px 80px; }
+  nav.toc{ position:sticky; top:70px; align-self:start; font-size:14px; max-height:calc(100vh - 90px); overflow:auto; }
+  nav.toc ol{ list-style:none; margin:0; padding:0; }
+  nav.toc a{ display:block; padding:4px 10px; border-left:2px solid var(--border); color:var(--muted); text-decoration:none; }
+  nav.toc a:hover, nav.toc a.on{ color:var(--accent); border-left-color:var(--accent); }
+  main section{ margin-bottom:48px; }
+  h2{ font-size:22px; margin:0 0 6px; padding-top:8px; border-top:1px solid var(--border); }
+  h2 .num{ color:var(--accent); margin-right:6px; }
+  h3{ font-size:16px; margin:22px 0 4px; }
+  p{ margin:8px 0; }
+  ul,ol{ padding-left:22px; }
+  li{ margin:3px 0; }
+  kbd,code{ background:var(--code); border:1px solid var(--border); border-radius:4px; padding:0 5px; font-size:.9em; }
+  .lead{ color:var(--muted); font-size:16px; }
+  .ui{ color:var(--accent); font-weight:600; }  /* libellé tel qu'il apparaît dans l'outil */
+  .note{ border-left:3px solid var(--accent); background:var(--panel); padding:8px 14px; border-radius:0 6px 6px 0; color:var(--muted); }
+  figure{ margin:16px 0; background:var(--panel); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  figure img, figure video{ display:block; width:100%; height:auto; background:#000; }
+  figcaption{ padding:8px 14px; font-size:13.5px; color:var(--muted); }
+  figure.missing{ padding:28px 16px; text-align:center; color:var(--muted); border-style:dashed; }
+  figure.missing img, figure.missing video{ display:none; }
+  figure.missing figcaption::before{ content:"Média non encore généré — "; color:var(--accent); }
+  .shots{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .try{ display:inline-block; margin:4px 0 0; font-size:13.5px; }
+  table{ border-collapse:collapse; width:100%; font-size:14px; margin:10px 0; }
+  th,td{ border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
+  th{ background:var(--panel); }
+  details{ background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:8px 14px; margin:8px 0; }
+  summary{ cursor:pointer; font-weight:600; }
+  footer{ text-align:center; color:var(--muted); font-size:13px; padding:30px 20px; border-top:1px solid var(--border); }
+  @media (max-width:800px){
+    .layout{ grid-template-columns:1fr; }
+    nav.toc{ position:static; max-height:none; }
+  }
+</style>
+<script>try{if(localStorage.getItem('gpx3d-theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <h1>GPX 3D · Aide en ligne</h1>
+  <a class="btn ghost" href="demo.gpx" download>Trace d'exemple</a>
+  <a class="btn" href="../index.html">Ouvrir l'outil</a>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="Sommaire">
+  <ol>
+    <li><a href="#demarrer">1. Démarrer</a></li>
+    <li><a href="#interface">2. L'interface</a></li>
+    <li><a href="#charger">3. Charger une trace</a></li>
+    <li><a href="#profil">4. Statistiques et profil</a></li>
+    <li><a href="#lecture">5. Lecture animée</a></li>
+    <li><a href="#camera">6. Modes de caméra</a></li>
+    <li><a href="#fonds">7. Fonds de carte et relief</a></li>
+    <li><a href="#options">8. Options et thème</a></li>
+    <li><a href="#points">9. Points de la trace</a></li>
+    <li><a href="#osm">10. OpenStreetMap</a></li>
+    <li><a href="#gpxbox">11. The-GPX-Box</a></li>
+    <li><a href="#lieu">12. Lieu et météo</a></li>
+    <li><a href="#depannage">13. Dépannage</a></li>
+    <li><a href="#vie-privee">14. Confidentialité</a></li>
+  </ol>
+</nav>
+
+<main>
+<p class="lead">Visualisez un fichier GPX sur une carte 3D, consultez son profil et rejouez le parcours. Tout se passe dans votre navigateur, sans installation.</p>
+
+<section id="demarrer">
+  <h2><span class="num">1.</span>Démarrer</h2>
+  <ol>
+    <li>Ouvrez <a href="../index.html">l'outil</a> dans un navigateur récent.</li>
+    <li>Cliquez sur <span class="ui">Charger un GPX…</span> ou glissez un fichier <code>.gpx</code> n'importe où dans la fenêtre.</li>
+    <li>La carte se cadre sur la trace. Appuyez sur ▶ pour la rejouer.</li>
+  </ol>
+  <p>Pas de fichier sous la main ? Téléchargez la <a href="demo.gpx" download>trace d'exemple</a> (parcours fictif).</p>
+  <figure>
+    <video controls preload="metadata" poster="img/01-vue-generale.png" src="video/01-demarrer.mp4"></video>
+    <figcaption>Vidéo : charger une trace puis lancer la lecture.</figcaption>
+  </figure>
+</section>
+
+<section id="interface">
+  <h2><span class="num">2.</span>L'interface</h2>
+  <figure>
+    <img loading="lazy" src="img/02-interface.png" alt="Vue d'ensemble de l'interface">
+    <figcaption>Panneau à gauche, carte à droite, icônes flottantes sur la carte.</figcaption>
+  </figure>
+  <h3>En-tête du panneau</h3>
+  <table>
+    <tr><th>Bouton</th><th>Rôle</th></tr>
+    <tr><td>Crayon</td><td>Ouvre <a href="#gpxbox">The-GPX-Box</a> pour créer ou modifier un tracé (la trace chargée y est transmise).</td></tr>
+    <tr><td>Engrenage</td><td>Options : couleur et épaisseur de la trace, thème, icônes flottantes.</td></tr>
+    <tr><td>Nuage</td><td>Traces GPS <a href="#osm">OpenStreetMap</a> : importer ou envoyer.</td></tr>
+    <tr><td>EN / FR</td><td>Change la langue de toute l'interface (choix mémorisé).</td></tr>
+    <tr><td>i</td><td>Aide rapide et documentation, avec un lien vers cette page.</td></tr>
+  </table>
+  <h3>Sur la carte</h3>
+  <ul>
+    <li><b>Clic gauche + glisser</b> : déplacer la vue. <b>Clic droit + glisser</b> (ou deux doigts) : pivoter et incliner.</li>
+    <li><b>Molette, pincement ou boutons + / −</b> : zoomer.</li>
+    <li><b>Barre verticale en bas à droite</b> : inclinaison de 0° à 70°.</li>
+    <li><b>Icône épingle</b> (à côté de l'échelle) : coordonnées du curseur en WGS84, Lambert 72 ou Lambert 2008.</li>
+    <li><b>Bouton Street View</b> (sous la boussole) puis clic sur la carte : ouvre Google Street View à cet endroit dans un nouvel onglet.</li>
+    <li><b>Languette ‹ / ›</b> au bord du panneau : masque ou réaffiche le panneau.</li>
+    <li><b>Poignée au bord droit du panneau</b> : redimensionne (largeur mémorisée).</li>
+  </ul>
+  <p class="note"><b>Icônes flottantes</b> : la barre météo, les boutons +/−, la boussole, la barre d'inclinaison, la boîte de coordonnées et l'échelle se déplacent à la souris. Le bouton « Remettre les icônes de la carte à leur place » se trouve dans l'aide rapide (<span class="ui">i</span>).</p>
+</section>
+
+<section id="charger">
+  <h2><span class="num">3.</span>Charger une trace</h2>
+  <ul>
+    <li><span class="ui">Charger un GPX…</span> ou glisser-déposer un fichier <code>.gpx</code>.</li>
+    <li>Si le fichier contient plusieurs traces, une liste déroulante permet de choisir. Les itinéraires (<code>rte</code>) ne sont lus que s'il n'y a aucune trace.</li>
+    <li>Les photos aériennes sont préchargées avant l'affichage de la trace complète (bouton <span class="ui">Annuler</span> disponible).</li>
+    <li>Le nom de la trace s'affiche dans une pastille en haut de la carte.</li>
+    <li>Les points espacés de plus de 8 m sont complétés par interpolation, pour une trace et une caméra fluides.</li>
+  </ul>
+  <h3>Fichiers pris en charge</h3>
+  <p>Pour chaque point : position, altitude (<code>ele</code>), heure (<code>time</code>) et toutes les valeurs numériques des <code>extensions</code> (fréquence cardiaque, cadence, température…). Sans altitude, pas de dénivelé ni de profil d'altitude ; sans horodatage, pas de vitesse.</p>
+  <figure>
+    <img loading="lazy" src="img/03-charger.png" alt="Zone de chargement du GPX">
+    <figcaption>Zone de chargement en haut du panneau.</figcaption>
+  </figure>
+</section>
+
+<section id="profil">
+  <h2><span class="num">4.</span>Statistiques et profil</h2>
+  <p>Le panneau affiche la distance, le nombre de points, les dénivelés + et − et les vitesses moyenne et maximale.</p>
+  <p class="note">Les dénivelés sont cumulés point à point : ils sont sensibles au bruit de l'altitude GPS.</p>
+  <ul>
+    <li>La liste <span class="ui">Profil</span> propose Altitude, Vitesse, Altitude + Vitesse et chaque valeur de capteur trouvée dans le fichier.</li>
+    <li><b>Cliquer ou glisser sur le graphique</b> place la lecture à cet endroit du parcours.</li>
+  </ul>
+  <figure>
+    <img loading="lazy" src="img/04-profil.png" alt="Statistiques et profil altitude/vitesse">
+    <figcaption>Statistiques et profil altitude + vitesse.</figcaption>
+  </figure>
+</section>
+
+<section id="lecture">
+  <h2><span class="num">5.</span>Lecture animée</h2>
+  <ul>
+    <li><b>▶</b> lance (repart du début si le parcours est terminé), <b>⏸</b> met en pause, <b>⏹</b> revient à la trace complète. Le curseur permet d'aller à un point précis.</li>
+    <li><span class="ui">Durée</span> (5 à 50 000 s) : proposée automatiquement à chaque chargement, modifiable.</li>
+    <li>En mode suivi, la durée définit la vitesse à l'échelle 1:500 : la lecture ralentit quand la vue est serrée et accélère quand elle est large (de 3 % à 5× la vitesse réglée).</li>
+    <li>Un geste manuel pendant la lecture suspend le suivi 300 ms ; un <b>zoom manuel est conservé</b> jusqu'à l'arrêt.</li>
+  </ul>
+  <figure>
+    <img loading="lazy" src="img/05-lecture.png" alt="Commandes de lecture">
+    <figcaption>Curseur, boutons ▶ ⏸ ⏹ et champ Durée.</figcaption>
+  </figure>
+</section>
+
+<section id="camera">
+  <h2><span class="num">6.</span>Modes de caméra</h2>
+  <p>Trois cases à cocher sous les commandes de lecture :</p>
+  <table>
+    <tr><th>Case</th><th>Effet</th></tr>
+    <tr><td><span class="ui">Centrer et zoomer sur la position (suivi)</span></td><td>La caméra reste centrée sur le point à l'échelle 1:500, limitée à 1:1000 pendant les 10 premières secondes, le temps que les tuiles se chargent.</td></tr>
+    <tr><td><span class="ui">Orienter la carte selon le tracé (cap)</span></td><td>La carte pivote pour regarder le tracé de côté (+90° par rapport à la marche), avec anticipation de 25 m et lissage.</td></tr>
+    <tr><td><span class="ui">Rester en vue générale (sans suivi ni zoom)</span></td><td>La trace entière reste affichée ; seul un point bleu la parcourt et la caméra ne bouge pas. <b>Cochée au démarrage</b> ; elle désactive suivi et cap.</td></tr>
+  </table>
+  <p class="note">Pour suivre le point de près, décochez d'abord la vue générale : les cases Suivi et Cap deviennent alors disponibles. La durée saisie est mémorisée séparément pour chaque mode.</p>
+  <div class="shots">
+    <figure>
+      <video controls preload="metadata" poster="img/06-vue-generale.png" src="video/02-vue-generale.mp4"></video>
+      <figcaption>Vue générale : un point bleu parcourt la trace.</figcaption>
+    </figure>
+    <figure>
+      <video controls preload="metadata" poster="img/07-suivi.png" src="video/03-suivi-cap.mp4"></video>
+      <figcaption>Suivi à 1:500 avec orientation selon le cap.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="fonds">
+  <h2><span class="num">7.</span>Fonds de carte et relief</h2>
+  <p>Le bouton carte (dans la carte, sous Street View) ouvre le menu des fonds.</p>
+  <ul>
+    <li><b>Fond</b> : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM. Hors de sa zone de couverture, un fond régional est remplacé par OpenTopoMap sans changer votre choix.</li>
+    <li><b>Superpositions</b> : <span class="ui">Photo aérienne</span>, <span class="ui">Sentiers balisés</span> (Waymarked Trails) et <span class="ui">Relief 3D</span>.</li>
+    <li><b>Curseur d'opacité</b> : avec la photo aérienne, règle le fond par-dessus (0 % = photo seule, 100 % = fond opaque).</li>
+    <li><b>Relief</b> exagéré ×1,6 avec ombrage ; l'inclinaison se règle avec la barre verticale.</li>
+  </ul>
+  <p>Le fond choisi et les sentiers sont mémorisés. La couleur de trace « Auto » s'adapte au fond pour rester visible.</p>
+  <figure>
+    <video controls preload="metadata" poster="img/08-fonds.png" src="video/04-fonds.mp4"></video>
+    <figcaption>Changer de fond, régler l'opacité et activer le relief.</figcaption>
+  </figure>
+</section>
+
+<section id="options">
+  <h2><span class="num">8.</span>Options et thème</h2>
+  <p>Le bouton engrenage de l'en-tête déplie :</p>
+  <ul>
+    <li><span class="ui">Couleur</span> de la trace (bouton <span class="ui">Auto</span> pour l'adapter au fond) et <span class="ui">Épaisseur</span> (1 à 12).</li>
+    <li><span class="ui">Thème</span> : Foncé ou Clair.</li>
+    <li><span class="ui">Icônes flottantes</span> : Oui / Non.</li>
+  </ul>
+  <div class="shots">
+    <figure><img loading="lazy" src="img/09-options.png" alt="Options, thème foncé"><figcaption>Options, thème foncé.</figcaption></figure>
+    <figure><img loading="lazy" src="img/10-theme-clair.png" alt="Thème clair"><figcaption>Thème clair.</figcaption></figure>
+  </div>
+</section>
+
+<section id="points">
+  <h2><span class="num">9.</span>Points de la trace</h2>
+  <p>Un <b>clic droit sans glisser</b> sur la carte ouvre un petit menu :</p>
+  <ul>
+    <li><span class="ui">Afficher les points</span> : montre chaque point de la trace.</li>
+    <li><span class="ui">Infobulles sur les points</span> : détail d'un point au survol (disponible quand les points sont affichés).</li>
+  </ul>
+  <p class="note">Un clic droit avec glissement continue de pivoter la carte, il n'ouvre pas le menu.</p>
+  <figure>
+    <img loading="lazy" src="img/11-points.png" alt="Menu clic droit">
+    <figcaption>Menu du clic droit et points affichés.</figcaption>
+  </figure>
+</section>
+
+<section id="osm">
+  <h2><span class="num">10.</span>OpenStreetMap</h2>
+  <p>Le bouton nuage ouvre le panneau <span class="ui">Traces GPS · OpenStreetMap</span>.</p>
+  <h3>Première utilisation</h3>
+  <ol>
+    <li>Connecté à OSM, ouvrez <a href="https://www.openstreetmap.org/oauth2/applications/new" target="_blank" rel="noopener">Mes applications OAuth 2</a>.</li>
+    <li>Nom : <code>GPX 3D</code> · URI de redirection : l'adresse exacte de la page de l'outil (affichée dans le panneau).</li>
+    <li>Décochez « Application confidentielle ».</li>
+    <li>Cochez « Lire les traces GPS privées » et « Téléverser des traces GPS ».</li>
+    <li>Collez l'<b>ID client</b> obtenu dans le panneau, puis <span class="ui">Se connecter à OpenStreetMap</span>.</li>
+  </ol>
+  <p class="note">La connexion exige une page en <code>https://</code> ou sur <code>http://localhost</code> ; elle ne fonctionne pas en ouvrant le fichier en local (<code>file://</code>). Une application déjà déclarée pour The-GPX-Box convient : ajoutez simplement cette URI de redirection.</p>
+  <h3>Importer</h3>
+  <ul>
+    <li><b>Mes traces</b> : liste de vos traces, bouton Importer.</li>
+    <li><b>Autre trace</b> : lien ou numéro d'une trace publique ou identifiable.</li>
+    <li><b>Itinéraire</b> : un nom ou un numéro de balisage (GR 5…) est cherché dans la zone visible de la carte.</li>
+  </ul>
+  <h3>Envoyer</h3>
+  <p>Envoie la trace chargée sur votre compte, avec une description (obligatoire), des étiquettes et la visibilité (identifiable ou traçable). OSM exige un horodatage par point : les heures du fichier sont conservées, sinon elles sont synthétisées.</p>
+  <figure>
+    <img loading="lazy" src="img/12-osm.png" alt="Panneau OpenStreetMap">
+    <figcaption>Panneau OpenStreetMap, onglet Importer.</figcaption>
+  </figure>
+</section>
+
+<section id="gpxbox">
+  <h2><span class="num">11.</span>The-GPX-Box</h2>
+  <p>Le bouton crayon ouvre <a href="https://skycrow2-cloud.github.io/the-gpx-box/" target="_blank" rel="noopener">The-GPX-Box</a> dans son propre onglet, avec la trace chargée. Le bouton montagne de The-GPX-Box fait le chemin inverse. La trace transite par le stockage local du navigateur et n'est valable que 2 minutes.</p>
+</section>
+
+<section id="lieu">
+  <h2><span class="num">12.</span>Lieu et météo</h2>
+  <p>Une barre translucide, en haut à droite de la carte, affiche le nom du lieu et la météo actuelle ; survolez-la pour le détail.</p>
+  <ul>
+    <li><b>Au démarrage</b> : la carte se centre sur votre position si vous autorisez la géolocalisation, sinon sur la Belgique.</li>
+    <li><b>Avec une trace</b> : le point de départ, puis le point courant pendant la lecture.</li>
+    <li>Le lieu (Nominatim) est actualisé après 400 m de déplacement ; la météo (Open-Meteo) après 5 km ou si le relevé a plus de 10 min.</li>
+  </ul>
+  <p class="note">C'est la météo actuelle du lieu, pas celle du jour où la trace a été enregistrée.</p>
+</section>
+
+<section id="depannage">
+  <h2><span class="num">13.</span>Dépannage</h2>
+  <details><summary>Carte noire ou pas de fond</summary>Vérifiez la connexion Internet, ou une éventuelle protection qui bloque les tuiles (pare-feu, bloqueur de contenu).</details>
+  <details><summary>Barre lieu + météo absente</summary>Géolocalisation refusée (sans trace), ou service injoignable ou limité. Elle apparaît dès qu'une trace est chargée.</details>
+  <details><summary>Lieu ou météo figés</summary>Normal tant que le point n'a pas bougé de 400 m / 5 km et que le relevé a moins de 10 min.</details>
+  <details><summary>Aucune courbe de vitesse</summary>Le fichier GPX n'a pas d'horodatage.</details>
+  <details><summary>Fichier refusé</summary>XML invalide, ou ni trace ni itinéraire exploitable.</details>
+  <details><summary>Lecture trop rapide ou trop lente</summary>Ajustez le champ Durée ; en mode suivi, le zoom influe aussi sur la vitesse.</details>
+  <details><summary>Le suivi et le cap sont grisés</summary>La vue générale est cochée : décochez-la pour les activer.</details>
+  <details><summary>La connexion OpenStreetMap échoue</summary>Utilisez une page servie en https:// ou http://localhost, et vérifiez l'URI de redirection déclarée sur openstreetmap.org.</details>
+</section>
+
+<section id="vie-privee">
+  <h2><span class="num">14.</span>Confidentialité</h2>
+  <p>Le fichier GPX est lu localement dans le navigateur et n'est envoyé nulle part, sauf si vous l'envoyez vous-même sur OpenStreetMap. Sont transmis : les coordonnées des tuiles aux fournisseurs de fonds de carte, et la position courante à Nominatim (nom du lieu) et Open-Meteo (météo).</p>
+  <p class="note">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond topo © OpenStreetMap contributors, SRTM, style © OpenTopoMap (CC-BY-SA) · Géocodage Nominatim · Météo Open-Meteo.</p>
+</section>
+</main>
+</div>
+
+<footer>GPX 3D · © A.Legat · <a href="../index.html">Ouvrir l'outil</a></footer>
+
+<script>
+  /* média absent (pas encore généré) : on affiche un cadre pointillé au lieu d'une image cassée */
+  document.querySelectorAll('figure img, figure video').forEach(function(m){
+    m.addEventListener('error', function(){ m.closest('figure').classList.add('missing'); });
+  });
+  /* sommaire : section active */
+  (function(){
+    var links = [].slice.call(document.querySelectorAll('nav.toc a'));
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if (e.isIntersecting) links.forEach(function(a){ a.classList.toggle('on', a.hash === '#' + e.target.id); });
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    document.querySelectorAll('main section').forEach(function(s){ io.observe(s); });
+  })();
+</script>
+</body>
+</html>
