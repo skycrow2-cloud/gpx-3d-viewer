@@ -50,7 +50,7 @@
     background: var(--bg);
     overflow:hidden;
   }
-  #app{ position:relative; width:100vw; height:100vh; height:100dvh; display:flex; }
+  #app{ position:fixed; inset:0; display:flex; }   /* suit la fenêtre visible, même juste après une rotation (100vh/100dvh restent périmés sur tablette) */
   #map{ position:absolute; inset:0; }
   .maplibregl-ctrl-attrib{ font-size:10px; background: transparent !important; }
   .maplibregl-ctrl-attrib-button{ background-color: transparent !important; }
@@ -68,6 +68,7 @@
   }
   .maplibregl-ctrl-bottom-left{
     left: calc(var(--panel-w, 380px) + 10px) !important;
+    bottom: 28px !important;   /* au-dessus de la ligne d'attribution : l'échelle ne la recouvre pas et le pin reste au-dessus de l'échelle */
   }
 
   /* Pastille orange sur un menu / outil en cours d'utilisation (comme dans The-GPX-Box) */
@@ -146,7 +147,7 @@
     z-index:2;
     width:380px;
     min-width:380px;
-    max-height:100vh; max-height:100dvh;
+    max-height:100%;
     overflow-y:auto;
     background: var(--panel-solid);
     -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -352,8 +353,8 @@
   /* coordonnées du curseur (WGS84 / Lambert 72 / Lambert 2008) */
   #coord-box{
     position:absolute; z-index:5;
-    /* par défaut juste au-dessus de l'échelle (échelle : panneau + 20 px, bas à 10 px, hauteur ≈ 26 px) */
-    left:calc(var(--panel-w, 380px) + 20px); bottom:46px;
+    /* par défaut juste au-dessus de l'échelle (échelle : panneau + 20 px, bas à 38 px, hauteur ≈ 26 px) */
+    left:calc(var(--panel-w, 380px) + 20px); bottom:74px;
     display:flex; align-items:center; gap:6px;
     padding:4px 9px 4px 4px; border-radius:999px;
     background:var(--glass);
@@ -658,23 +659,25 @@
       order:2;
       position:absolute; left:0; right:0; bottom:0;
       width:100%; min-width:0;
-      max-height:46vh;
+      max-height:46%;
       border-right:none;
       border-top:1px solid var(--panel-border);
     }
     #resize-handle{ display:none; }
     #weather-bar{ top:10px; left:10px; right:auto; max-width:calc(100vw - 76px); }
     #track-title-badge{ top:52px; max-width:88vw; }
-    #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); }
+    #pitch-control{ bottom:calc(var(--panel-h, 0px) + 34px); }
     /* l'info-bulle suit la barre : centrée sur sa hauteur, au-dessus du panneau (elle restait à 40 px du bas de l'écran) */
-    #pitch-tooltip{ bottom:calc(var(--panel-h, 0px) + 10px + var(--pitch-h, 130px) / 2); }
-    .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
-    #coord-box{ left:20px; bottom:calc(var(--panel-h, 0px) + 46px); top:auto; }
+    #pitch-tooltip{ bottom:calc(var(--panel-h, 0px) + 34px + var(--pitch-h, 130px) / 2); }
+    .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
+    /* l'attribution (bas, toute la largeur) ne doit pas recouvrir l'échelle et les icônes du bas : 28 px de marge */
+    .maplibregl-ctrl-bottom-left{ bottom:calc(var(--panel-h, 0px) + 28px) !important; }
+    #coord-box{ left:20px; bottom:calc(var(--panel-h, 0px) + 74px); top:auto; }
     #panel-toggle{
       top:auto; bottom:var(--panel-h, 0px); left:50%; transform:translateX(-50%);
       width:56px; height:22px; border:1px solid var(--panel-border); border-bottom:none; border-radius:8px 8px 0 0;
     }
-    #topo-opacity{ bottom:calc(var(--panel-h, 0px) + 32px); }
+    #topo-opacity{ bottom:calc(var(--panel-h, 0px) + 34px); }
     #topo-opacity input[type=range]{ width:110px; }
     #panel-toggle svg{ transform:rotate(-90deg); }
     body.panel-hidden #panel-toggle svg{ transform:rotate(90deg); }
@@ -4628,16 +4631,19 @@ function syncPanelVars(){
   const widgets = defs.filter(d => d[1]).map(d => ({
     id: d[0], el: d[1], followers: d[2].filter(Boolean),
     dx: (saved[d[0]] && +saved[d[0]].dx) || 0, dy: (saved[d[0]] && +saved[d[0]].dy) || 0,
+    ux: (saved[d[0]] && +saved[d[0]].dx) || 0, uy: (saved[d[0]] && +saved[d[0]].dy) || 0,   // position VOULUE (mémorisée) : jamais écrasée par un bornage passager
     ax: 0, ay: 0,   // part du décalage due au seul anti-chevauchement (recalculée à chaque recalage, jamais mémorisée)
     moved: false
   }));
 
   /* zone où une icône peut se trouver : la carte visible (à droite du panneau ; au-dessus de lui sur mobile) */
   function area(){
-    if (document.body.classList.contains('panel-hidden')) return { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
-    const pr = panel ? panel.getBoundingClientRect() : { left: 0, top: window.innerHeight, right: 0 };
-    if (isStackedLayout()) return { left: 0, top: 0, right: window.innerWidth, bottom: pr.top };
-    return { left: pr.right, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+    // rectangle réel de la carte (et non window.innerWidth/innerHeight, périmés au moment d'une rotation)
+    const mr = document.getElementById('map').getBoundingClientRect();
+    if (document.body.classList.contains('panel-hidden')) return { left: mr.left, top: mr.top, right: mr.right, bottom: mr.bottom };
+    const pr = panel ? panel.getBoundingClientRect() : { left: mr.left, top: mr.bottom, right: mr.left };
+    if (isStackedLayout()) return { left: mr.left, top: mr.top, right: mr.right, bottom: Math.min(mr.bottom, pr.top) };
+    return { left: Math.max(mr.left, pr.right), top: mr.top, right: mr.right, bottom: mr.bottom };
   }
   function setVars(w){
     for (const t of [w.el, ...w.followers]){
@@ -4690,8 +4696,8 @@ function syncPanelVars(){
   }
   /* recalage complet d'une icône : on retire d'abord l'ancien décalage automatique, sinon il s'accumule
      (l'icône remontait à chaque changement de taille du panneau et ne redescendait jamais) */
-  function dropAuto(w){               // retire le décalage automatique ET le répercute sur l'élément (le bornage s'y mesure)
-    w.dx = Math.round(w.dx - w.ax); w.dy = Math.round(w.dy - w.ay); w.ax = 0; w.ay = 0; setVars(w);
+  function dropAuto(w){               // repart de la position VOULUE (ni bornage ni décalage automatique passagers) et la répercute sur l'élément
+    w.dx = w.ux; w.dy = w.uy; w.ax = 0; w.ay = 0; setVars(w);
   }
   function settle(w){ dropAuto(w); place(w, w.dx, w.dy); resolveOverlap(w); }
   /* Options › Icônes flottantes : Non = commandes fixes à leur place d'origine (positions mémorisées conservées) */
@@ -4701,7 +4707,7 @@ function syncPanelVars(){
   function persist(){
     if (!enabled) return;
     const out = {};
-    widgets.forEach(w => { const ux = w.dx - w.ax, uy = w.dy - w.ay; if (ux || uy) out[w.id] = { dx: ux, dy: uy }; });
+    widgets.forEach(w => { if (w.ux || w.uy) out[w.id] = { dx: w.ux, dy: w.uy }; });
     try {
       if (Object.keys(out).length) localStorage.setItem(storeKey(), JSON.stringify(out)); else localStorage.removeItem(storeKey());
       localStorage.removeItem('gpx3d-coord-dx');
@@ -4713,7 +4719,7 @@ function syncPanelVars(){
     if (lay !== curLayout){            // portrait ↔ paysage / bureau ↔ tablette : autres positions mémorisées
       curLayout = lay;
       const pos = enabled ? loadSaved() : {};
-      widgets.forEach(w => { w.ax = 0; w.ay = 0; w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
+      widgets.forEach(w => { w.ax = 0; w.ay = 0; w.ux = w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.uy = w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
     }
     widgets.forEach(dropAuto);        // d'abord tous les décalages automatiques à zéro, pour résoudre depuis un état neutre
     widgets.forEach(w => { place(w, w.dx, w.dy); resolveOverlap(w); });
@@ -4733,6 +4739,7 @@ function syncPanelVars(){
       w.moved = true;
       w.el.classList.add('dragging');
       place(w, drag.dx0 + mx, drag.dy0 + my);
+      w.ux = w.dx; w.uy = w.dy;              // la position choisie par l'utilisateur
       e.preventDefault();
     }
     function onUp(){
@@ -4762,7 +4769,7 @@ function syncPanelVars(){
     document.body.classList.toggle('float-off', !enabled);
     let pos = {};
     if (enabled) pos = loadSaved();
-    widgets.forEach(w => { w.ax = 0; w.ay = 0; w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
+    widgets.forEach(w => { w.ax = 0; w.ay = 0; w.ux = w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.uy = w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
     const on = document.getElementById('float-on'), off = document.getElementById('float-off');
     if (on) on.classList.toggle('active', enabled);
     if (off) off.classList.toggle('active', !enabled);
@@ -4775,7 +4782,13 @@ function syncPanelVars(){
   /* rotation d'une tablette : le navigateur annonce souvent la nouvelle taille avant que la mise en page ne soit
      finie ; on recale tout de suite, puis une seconde fois une fois la page posée */
   let lateReclamp = null;
-  const reclampSoon = () => { reclampAll(); clearTimeout(lateReclamp); lateReclamp = setTimeout(reclampAll, 300); };
+  let lateReclamp2 = null;
+  const reclampSoon = () => {
+    window.scrollTo(0, 0);              // une page décalée après la rotation laissait le panneau coupé en haut
+    reclampAll(); clearTimeout(lateReclamp); clearTimeout(lateReclamp2);
+    lateReclamp = setTimeout(reclampAll, 300);
+    lateReclamp2 = setTimeout(() => { window.scrollTo(0, 0); reclampAll(); }, 900);
+  };
   window.addEventListener('resize', reclampSoon);
   window.addEventListener('orientationchange', reclampSoon);
   if (window.visualViewport) window.visualViewport.addEventListener('resize', reclampSoon);
@@ -4787,7 +4800,7 @@ function syncPanelVars(){
 
   document.querySelectorAll('[data-float-reset]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
-    widgets.forEach(w => { w.dx = 0; w.dy = 0; w.ax = 0; w.ay = 0; setVars(w); });
+    widgets.forEach(w => { w.dx = w.dy = w.ux = w.uy = w.ax = w.ay = 0; setVars(w); });
     try { localStorage.removeItem(KEY_BASE); localStorage.removeItem(KEY_BASE + '-s'); localStorage.removeItem('gpx3d-float'); } catch(e){}
     reclampAll();
     persist();
