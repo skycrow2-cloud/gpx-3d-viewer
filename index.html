@@ -352,8 +352,8 @@
   /* coordonnées du curseur (WGS84 / Lambert 72 / Lambert 2008) */
   #coord-box{
     position:absolute; z-index:5;
-    /* par défaut à droite de l'échelle (échelle : panneau + 20 px, largeur maxi ≈ 216 px) */
-    left:calc(var(--panel-w, 380px) + 244px); bottom:3px;
+    /* par défaut juste au-dessus de l'échelle (échelle : panneau + 20 px, bas à 10 px, hauteur ≈ 26 px) */
+    left:calc(var(--panel-w, 380px) + 20px); bottom:46px;
     display:flex; align-items:center; gap:6px;
     padding:4px 9px 4px 4px; border-radius:999px;
     background:var(--glass);
@@ -665,7 +665,7 @@
     #track-title-badge{ top:52px; max-width:88vw; }
     #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); height:100px; }
     .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
-    #coord-box{ left:10px; bottom:auto; top:94px; }
+    #coord-box{ left:20px; bottom:calc(var(--panel-h, 0px) + 46px); top:auto; }
     #panel-toggle{
       top:auto; bottom:var(--panel-h, 0px); left:50%; transform:translateX(-50%);
       width:56px; height:22px; border:1px solid var(--panel-border); border-bottom:none; border-radius:8px 8px 0 0;
