@@ -436,6 +436,12 @@
   }
   #topo-opacity.on{ display:flex; }
   #topo-opacity input[type=range]{ width:150px; accent-color:var(--accent); cursor:pointer; }
+  #topo-opacity-toggle{
+    display:none; width:30px; height:30px; padding:0; flex:0 0 auto;
+    align-items:center; justify-content:center;
+    background:transparent; border:none; border-radius:50%; color:var(--accent); cursor:pointer;
+  }
+  #topo-opacity-toggle svg{ width:24px; height:24px; display:block; }
   #topo-opacity-val{ min-width:38px; text-align:right; font-variant-numeric:tabular-nums; color:var(--accent); }
 
   /* icônes flottantes : chaque commande de la carte se déplace en la glissant (décalage --fdx / --fdy) */
@@ -680,9 +686,6 @@
   @media (max-width: 560px){
     :root{ --pitch-h:120px; --pitch-len:96px; }
     html #panel{ max-height:42%; }
-    /* la barre d'opacité passe au-dessus de l'échelle et du pin (elle les recouvrait) et se raccourcit pour laisser la place à la barre d'assiette */
-    html #topo-opacity{ bottom:calc(var(--panel-h, 0px) + 122px); }
-    html #topo-opacity input[type=range]{ width:80px; }
   }
   /* téléphone en paysage : peu de hauteur, panneau latéral étroit et compact */
   @media (max-height: 500px) and (orientation: landscape){
@@ -691,15 +694,19 @@
     .panel-header .tagline, .panel-header h1{ display:none; }   /* 5 boutons + icône : pas de place pour le titre */
     .panel-header img.app-icon{ width:34px; height:34px; }
     #track-title-badge{ top:8px; max-width:40vw; }
-    /* barre d'opacité décalée à droite de l'échelle et raccourcie (centrée, elle recouvrait l'échelle) */
-    html #topo-opacity{ left:calc(var(--panel-w, 300px) + 350px); }
-    html #topo-opacity input[type=range]{ width:80px; }
   }
-  /* téléphone en paysage étroit (iPhone avec barre d'onglets Safari : ~730 × 280) : pas de place à droite de l'échelle,
-     la barre d'opacité passe en haut, centrée sur la carte, sous le titre de la trace */
-  @media (max-height: 500px) and (orientation: landscape) and (max-width: 820px){
-    html #topo-opacity{ left:calc(var(--panel-w, 300px) + (100% - var(--panel-w, 300px)) / 2); top:44px; bottom:auto; }
-    html #topo-opacity input[type=range]{ width:60px; }
+  /* téléphone (portrait ou paysage) : l'opacité se replie en icône, posée au-dessus de la boîte de coordonnées ;
+     toucher l'icône déplie le curseur vers la droite (comme les coordonnées) */
+  @media (max-width: 560px), (max-height: 500px) and (orientation: landscape){
+    html #topo-opacity{
+      left:calc(var(--panel-w, 0px) + 20px); top:auto; bottom:calc(var(--panel-h, 0px) + 122px);
+      transform:translate(var(--fdx, 0px), var(--fdy, 0px));
+      gap:8px; padding:4px 12px 4px 4px;
+    }
+    html #topo-opacity:not(.expanded){ padding:4px; }
+    html #topo-opacity:not(.expanded) .to-expand{ display:none; }
+    html #topo-opacity-toggle{ display:flex; }
+    html #topo-opacity input[type=range]{ width:80px; }
   }
   @media (pointer: coarse) and (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
     #panel-toggle{ width:72px; height:30px; }
@@ -1000,9 +1007,10 @@
     </div>
   </div>
   <div id="topo-opacity">
-    <span id="topo-opacity-name">OpenTopoMap</span>
-    <input type="range" id="topo-opacity-range" min="0" max="100" step="5" value="30" autocomplete="off">
-    <span id="topo-opacity-val">30&nbsp;%</span>
+    <button id="topo-opacity-toggle" type="button" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" opacity=".3"/></svg></button>
+    <span id="topo-opacity-name" class="to-expand">OpenTopoMap</span>
+    <input type="range" id="topo-opacity-range" class="to-expand" min="0" max="100" step="5" value="30" autocomplete="off">
+    <span id="topo-opacity-val" class="to-expand">30&nbsp;%</span>
   </div>
   <button id="panel-toggle" type="button" data-i18n-title="panelHide" title="Masquer le panneau" aria-label="Masquer le panneau"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div id="resize-handle" data-i18n-title="resize" title="Glisser pour redimensionner"></div>
@@ -2578,6 +2586,7 @@ const bm = {
   range: document.getElementById('topo-opacity-range'),
   val: document.getElementById('topo-opacity-val'),
   name: document.getElementById('topo-opacity-name'),
+  toggle: document.getElementById('topo-opacity-toggle'),
   base: 'opentopo'
 };
 try { const b = localStorage.getItem('gpx3d.basemap'); if (BASEMAPS[b]) bm.base = b; } catch(e){}
@@ -2622,6 +2631,7 @@ function updateTopoOpacityUI(){
   const eb = effectiveBase();
   bm.name.textContent = BASEMAPS[eb];
   bm.box.title = tx('bm.opacity', { name: BASEMAPS[eb], op, tr: 100 - op });
+  bm.toggle.setAttribute('aria-label', bm.box.title);
   const fb = document.getElementById('bm-fallback');
   if (fb){ fb.hidden = eb === bm.base; fb.textContent = tx('bm.fallback', { name: BASEMAPS[bm.base] }); }
 }
@@ -2655,6 +2665,18 @@ bm.aerial.addEventListener('change', () => {
   updateTopoOpacityUI(); applyBasemap();
 });
 bm.range.addEventListener('input', () => { updateTopoOpacityUI(); applyBasemap(); });
+/* téléphone : icône d'opacité ; toucher l'icône déplie / replie le curseur, toucher ailleurs le replie */
+bm.toggle.addEventListener('click', e => {
+  e.stopPropagation();
+  const open = !bm.box.classList.contains('expanded');
+  bm.box.classList.toggle('expanded', open);
+  bm.toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+document.addEventListener('click', e => {
+  if (bm.box.classList.contains('expanded') && !e.target.closest('#topo-opacity')){
+    bm.box.classList.remove('expanded'); bm.toggle.setAttribute('aria-expanded', 'false');
+  }
+});
 bm.terrain.addEventListener('change', () => {
   const on = bm.terrain.checked;
   try { map.setTerrain(on ? { source: 'terrainSource', exaggeration: 1.6 } : null); } catch(e){}
@@ -5210,7 +5232,8 @@ function syncPanelVars(){
     [() => document.getElementById('btnOsm'), () => shown('osmPanel', 'block')],
     [() => document.getElementById('btnInfo'), () => shown('docOverlay', 'flex')],
     [() => document.querySelector('#menu-map > .map-menu-btn'), () => has('menu-map', 'open')],
-    [() => document.getElementById('coord-toggle'), () => has('coord-box', 'expanded')]
+    [() => document.getElementById('coord-toggle'), () => has('coord-box', 'expanded')],
+    [() => document.getElementById('topo-opacity-toggle'), () => has('topo-opacity', 'expanded')]
   ];
   const stamps = rules.map(() => 0); let clock = 0;
   function sync(){
