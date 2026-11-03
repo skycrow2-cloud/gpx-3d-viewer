@@ -4557,10 +4557,17 @@ function syncPanelVars(){
 
 (function initFloating(){
   syncPanelVars();
-  const KEY = 'gpx3d-float';
+  const KEY_BASE = 'gpx3d-float';
+  /* un décalage en pixels dépend de la place d'origine de l'icône, différente selon la mise en page
+     (panneau à gauche / panneau sous la carte) : une clé de stockage par mise en page */
+  const layoutId = () => isStackedLayout() ? 's' : 'd';
+  const storeKey = () => layoutId() === 's' ? KEY_BASE + '-s' : KEY_BASE;
+  let curLayout = layoutId();
+  function loadSaved(){
+    try { return JSON.parse(localStorage.getItem(storeKey()) || '{}') || {}; } catch(e){ return {}; }
+  }
   const panel = document.getElementById('panel');
-  let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch(e){ saved = {}; }
+  const saved = loadSaved();
 
   const zoomBar = document.querySelector('.zoom-bar');
   const compass = document.querySelector('.maplibregl-ctrl-top-right .maplibregl-ctrl-group');
@@ -4586,6 +4593,7 @@ function syncPanelVars(){
   const widgets = defs.filter(d => d[1]).map(d => ({
     id: d[0], el: d[1], followers: d[2].filter(Boolean),
     dx: (saved[d[0]] && +saved[d[0]].dx) || 0, dy: (saved[d[0]] && +saved[d[0]].dy) || 0,
+    ax: 0, ay: 0,   // part du décalage due au seul anti-chevauchement (recalculée à chaque recalage, jamais mémorisée)
     moved: false
   }));
 
@@ -4640,10 +4648,17 @@ function syncPanelVars(){
         const nr = { left: r.left + mx, right: r.right + mx, top: r.top + my, bottom: r.bottom + my };
         return !obs.some(o => hits(nr, o));
       }) || cands[0];
-      w.dx = Math.round(w.dx + free[0]); w.dy = Math.round(w.dy + free[1]);
+      const mx = Math.round(free[0]), my = Math.round(free[1]);
+      w.dx += mx; w.dy += my; w.ax += mx; w.ay += my;
       setVars(w);
     }
   }
+  /* recalage complet d'une icône : on retire d'abord l'ancien décalage automatique, sinon il s'accumule
+     (l'icône remontait à chaque changement de taille du panneau et ne redescendait jamais) */
+  function dropAuto(w){               // retire le décalage automatique ET le répercute sur l'élément (le bornage s'y mesure)
+    w.dx = Math.round(w.dx - w.ax); w.dy = Math.round(w.dy - w.ay); w.ax = 0; w.ay = 0; setVars(w);
+  }
+  function settle(w){ dropAuto(w); place(w, w.dx, w.dy); resolveOverlap(w); }
   /* Options › Icônes flottantes : Non = commandes fixes à leur place d'origine (positions mémorisées conservées) */
   const ON_KEY = 'gpx3d-float-on';
   let enabled = true;
@@ -4651,13 +4666,23 @@ function syncPanelVars(){
   function persist(){
     if (!enabled) return;
     const out = {};
-    widgets.forEach(w => { if (w.dx || w.dy) out[w.id] = { dx: w.dx, dy: w.dy }; });
+    widgets.forEach(w => { const ux = w.dx - w.ax, uy = w.dy - w.ay; if (ux || uy) out[w.id] = { dx: ux, dy: uy }; });
     try {
-      if (Object.keys(out).length) localStorage.setItem(KEY, JSON.stringify(out)); else localStorage.removeItem(KEY);
+      if (Object.keys(out).length) localStorage.setItem(storeKey(), JSON.stringify(out)); else localStorage.removeItem(storeKey());
       localStorage.removeItem('gpx3d-coord-dx');
     } catch(e){}
   }
-  function reclampAll(){ syncPanelVars(); widgets.forEach(w => { place(w, w.dx, w.dy); resolveOverlap(w); }); } // variables d'abord : sinon le bornage se fait sur l'ancienne place du panneau
+  function reclampAll(){
+    syncPanelVars();
+    const lay = layoutId();
+    if (lay !== curLayout){            // portrait ↔ paysage / bureau ↔ tablette : autres positions mémorisées
+      curLayout = lay;
+      const pos = enabled ? loadSaved() : {};
+      widgets.forEach(w => { w.ax = 0; w.ay = 0; w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
+    }
+    widgets.forEach(dropAuto);        // d'abord tous les décalages automatiques à zéro, pour résoudre depuis un état neutre
+    widgets.forEach(w => { place(w, w.dx, w.dy); resolveOverlap(w); });
+  } // variables d'abord : sinon le bornage se fait sur l'ancienne place du panneau
 
   widgets.forEach(w => {
     setVars(w);
@@ -4687,6 +4712,7 @@ function syncPanelVars(){
       if (!enabled) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (e.target.closest('input, select, textarea')) return;   // curseur d'assiette, liste des systèmes : usage normal
+      w.ax = 0; w.ay = 0;                 // la position affichée devient la position choisie
       drag = { x: e.clientX, y: e.clientY, dx0: w.dx, dy0: w.dy };
       w.moved = false;
       window.addEventListener('pointermove', onMove);
@@ -4700,8 +4726,8 @@ function syncPanelVars(){
   function applyEnabled(){
     document.body.classList.toggle('float-off', !enabled);
     let pos = {};
-    if (enabled){ try { pos = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch(e){ pos = {}; } }
-    widgets.forEach(w => { w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
+    if (enabled) pos = loadSaved();
+    widgets.forEach(w => { w.ax = 0; w.ay = 0; w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
     const on = document.getElementById('float-on'), off = document.getElementById('float-off');
     if (on) on.classList.toggle('active', enabled);
     if (off) off.classList.toggle('active', !enabled);
@@ -4711,17 +4737,23 @@ function syncPanelVars(){
   document.getElementById('float-off')?.addEventListener('click', () => { enabled = false; try { localStorage.setItem(ON_KEY, '0'); } catch(e){} applyEnabled(); reclampAll(); });
 
   reclampAll();
-  window.addEventListener('resize', reclampAll);
+  /* rotation d'une tablette : le navigateur annonce souvent la nouvelle taille avant que la mise en page ne soit
+     finie ; on recale tout de suite, puis une seconde fois une fois la page posée */
+  let lateReclamp = null;
+  const reclampSoon = () => { reclampAll(); clearTimeout(lateReclamp); lateReclamp = setTimeout(reclampAll, 300); };
+  window.addEventListener('resize', reclampSoon);
+  window.addEventListener('orientationchange', reclampSoon);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', reclampSoon);
   if (window.ResizeObserver && panel) new ResizeObserver(reclampAll).observe(panel);
   // la barre météo et la boîte de coordonnées changent de taille : on les recale
-  if (window.ResizeObserver) widgets.forEach(w => new ResizeObserver(() => { place(w, w.dx, w.dy); resolveOverlap(w); }).observe(w.el));
+  if (window.ResizeObserver) widgets.forEach(w => new ResizeObserver(() => settle(w)).observe(w.el));
   // les commandes de la carte (MapLibre) sont ajoutées après coup : vérification une fois la page posée
   setTimeout(reclampAll, 300);
 
   document.querySelectorAll('[data-float-reset]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
-    widgets.forEach(w => { w.dx = 0; w.dy = 0; setVars(w); });
-    try { localStorage.removeItem(KEY); } catch(e){}
+    widgets.forEach(w => { w.dx = 0; w.dy = 0; w.ax = 0; w.ay = 0; setVars(w); });
+    try { localStorage.removeItem(KEY_BASE); localStorage.removeItem(KEY_BASE + '-s'); } catch(e){}
     reclampAll();
     persist();
   }));
