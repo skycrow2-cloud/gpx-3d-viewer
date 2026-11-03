@@ -80,7 +80,7 @@
   #pitch-control{
     position:absolute; z-index:2;
     right:10px; bottom:40px;
-    width:34px; height:130px;
+    width:var(--pitch-w, 34px); height:var(--pitch-h, 130px);
     border-radius:999px;
     border:1px solid var(--glass-border);
     background:var(--glass);
@@ -89,7 +89,7 @@
     display:flex; align-items:center; justify-content:center;
   }
   #pitch-slider{
-    width:110px; height:22px;
+    width:var(--pitch-len, 110px); height:22px;
     transform: rotate(-90deg);
     accent-color: var(--accent);
     cursor:pointer;
@@ -640,7 +640,9 @@
     .checkbox-row input{ width:22px; height:22px; }
     #resize-handle{ width:24px; margin-left:-12px; }
     #panel-toggle{ width:30px; height:64px; }
-    #pitch-slider{ height:32px; }
+    :root{ --pitch-w:44px; --pitch-h:150px; --pitch-len:124px; }   /* barre d'assiette plus grande au doigt */
+    #pitch-slider{ height:36px; }
+    #pitch-tooltip{ right:60px; }
     #map-ctx-menu .ctx-item{ padding:12px 10px; font-size:14px; }
     #map-ctx-menu .ctx-item input{ width:20px; height:20px; }
     .seek{ height:28px; }
@@ -663,7 +665,9 @@
     #resize-handle{ display:none; }
     #weather-bar{ top:10px; left:10px; right:auto; max-width:calc(100vw - 76px); }
     #track-title-badge{ top:52px; max-width:88vw; }
-    #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); height:100px; }
+    #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); }
+    /* l'info-bulle suit la barre : centrée sur sa hauteur, au-dessus du panneau (elle restait à 40 px du bas de l'écran) */
+    #pitch-tooltip{ bottom:calc(var(--panel-h, 0px) + 10px + var(--pitch-h, 130px) / 2); }
     .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
     #coord-box{ left:20px; bottom:calc(var(--panel-h, 0px) + 46px); top:auto; }
     #panel-toggle{
