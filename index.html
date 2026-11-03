@@ -11,6 +11,7 @@
 <script>try{if(localStorage.getItem('gpx3d-theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
 <style>
   :root{
+    --ctl:40px;   /* taille unique des pastilles rondes de la carte (zoom, boussole, Street View, fonds, météo, coordonnées, opacité, assiette), sur tous les écrans */
     --bg:#0e1217;
     --panel-bg: rgba(20,25,31,.92);
     --panel-border:#2a323c;
@@ -80,8 +81,8 @@
   /* ---------------------------------------------------- réglage d'assiette (barre verticale discrète) */
   #pitch-control{
     position:absolute; z-index:2;
-    right:10px; bottom:40px;
-    width:var(--pitch-w, 34px); height:var(--pitch-h, 130px);
+    right:var(--pitch-r, 10px); bottom:40px;
+    width:var(--ctl); height:var(--pitch-h, 130px);
     border-radius:999px;
     border:1px solid var(--glass-border);
     background:var(--glass);
@@ -97,7 +98,7 @@
   }
   #pitch-tooltip{
     position:absolute; z-index:3;
-    right:50px; bottom:40px;
+    right:calc(var(--pitch-r, 10px) + var(--ctl) + 6px); bottom:40px;
     transform: translate(var(--fdx, 0px), calc(var(--fdy, 0px) + 50%)); /* suit la barre d'assiette déplacée */
     padding:2px 7px;
     border-radius:6px;
@@ -323,14 +324,14 @@
   /* barre de zoom translucide (+ / −) et boussole */
   .zoom-bar{
     display:flex; flex-direction:column;
-    width:34px; border-radius:17px; overflow:hidden;
+    width:var(--ctl); border-radius:calc(var(--ctl) / 2); overflow:hidden;
     background:var(--glass);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     border:1px solid var(--glass-border);
     box-shadow:var(--glass-shadow);
   }
   .zoom-btn{
-    width:34px; height:34px; padding:0; border:none; background:transparent;
+    width:100%; height:calc(var(--ctl) - 2px); padding:0; border:none; background:transparent;
     color:var(--accent); font-family:var(--font-ui); font-size:21px; font-weight:600; line-height:1;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
@@ -341,10 +342,10 @@
     background:var(--glass) !important;
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     border:1px solid var(--glass-border);
-    border-radius:17px !important;
+    border-radius:calc(var(--ctl) / 2) !important;
     box-shadow:var(--glass-shadow) !important;
   }
-  .maplibregl-ctrl-group button{ width:32px; height:32px; } /* + bordure 1 px = 34 px, aligné sur les autres pastilles */
+  .maplibregl-ctrl-group button{ width:calc(var(--ctl) - 2px); height:calc(var(--ctl) - 2px); } /* + bordure 1 px = --ctl, aligné sur les autres pastilles */
   .maplibregl-ctrl-group button:not(:disabled):hover{ background-color:rgba(232,163,61,.18); }
   .maplibregl-ctrl-group .maplibregl-ctrl-icon{ filter:invert(1) hue-rotate(180deg); }
   /* boussole : nord en rouge, sud clair */
@@ -365,11 +366,11 @@
   }
   #coord-box:not(.expanded){ padding-right:4px; }
   #coord-toggle{
-    width:30px; height:30px; padding:0; flex:0 0 auto;
+    width:calc(var(--ctl) - 10px); height:calc(var(--ctl) - 10px); padding:0; flex:0 0 auto;
     background:transparent; border:none; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
   }
-  #coord-toggle img{ width:28px; height:28px; display:block; }
+  #coord-toggle img{ width:calc(var(--ctl) - 12px); height:calc(var(--ctl) - 12px); display:block; }
   .coord-expand{ display:none; }
   #coord-box.expanded .coord-expand{ display:inline-flex; align-items:center; }
   #coord-text{ min-width:150px; white-space:nowrap; }
@@ -401,7 +402,7 @@
   /* bouton « fond de carte et superpositions » (contrôle de carte, sous Street View) — comme The-GPX-Box */
   .map-menu{ position:relative; }
   .map-menu > .map-menu-btn{
-    width:34px; height:34px; padding:0; border-radius:50%;
+    width:var(--ctl); height:var(--ctl); padding:0; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
     background:var(--glass); color:var(--accent); cursor:pointer;
     border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
@@ -437,7 +438,7 @@
   #topo-opacity.on{ display:flex; }
   #topo-opacity input[type=range]{ width:150px; accent-color:var(--accent); cursor:pointer; }
   #topo-opacity-toggle{
-    display:none; width:30px; height:30px; padding:0; flex:0 0 auto;
+    display:none; width:calc(var(--ctl) - 10px); height:calc(var(--ctl) - 10px); padding:0; flex:0 0 auto;
     align-items:center; justify-content:center;
     background:transparent; border:none; border-radius:50%; color:var(--accent); cursor:pointer;
   }
@@ -592,8 +593,8 @@
     font-family:inherit;
   }
   .wb-toggle:hover{ background:var(--glass-hover); }
-  #weather-bar.collapsed{ padding:3px; }
-  #weather-bar.collapsed .wb-toggle{ width:38px; height:38px; margin:0; font-size:23px; }
+  #weather-bar.collapsed{ padding:4px; }
+  #weather-bar.collapsed .wb-toggle{ width:calc(var(--ctl) - 10px); height:calc(var(--ctl) - 10px); margin:0; font-size:20px; }
   #weather-bar.collapsed .wb-place, #weather-bar.collapsed .wb-now{ display:none; }
   .wb-place{
     display:inline-flex; align-items:center; gap:6px; flex:0 1 auto; min-width:0;
@@ -666,16 +667,14 @@
     .panel-header .hdr-actions{ gap:4px; }
     .hdr-title{ min-width:0; }
     .hdr-title h1{ white-space:nowrap; }
-    .map-menu > .map-menu-btn{ width:44px; height:44px; }
     .btn{ min-height:40px; }
     .btn-icon{ width:48px; height:40px; font-size:15px; }
     .checkbox-row{ padding:8px 0; font-size:14px; }
     .checkbox-row input{ width:22px; height:22px; }
     #resize-handle{ width:24px; margin-left:-12px; }
     #panel-toggle{ width:30px; height:64px; }
-    :root{ --pitch-w:44px; --pitch-h:150px; --pitch-len:124px; }   /* barre d'assiette plus grande au doigt */
+    :root{ --pitch-h:150px; --pitch-len:124px; }   /* barre d'assiette plus longue au doigt */
     #pitch-slider{ height:36px; }
-    #pitch-tooltip{ right:60px; }
     #map-ctx-menu .ctx-item{ padding:12px 10px; font-size:14px; }
     #map-ctx-menu .ctx-item input{ width:20px; height:20px; }
     .seek{ height:28px; }
@@ -689,7 +688,7 @@
   }
   /* téléphone en paysage : peu de hauteur, panneau latéral étroit et compact */
   @media (max-height: 500px) and (orientation: landscape){
-    :root{ --pitch-h:110px; --pitch-len:88px; --pitch-w:40px; }
+    :root{ --pitch-h:110px; --pitch-len:88px; --pitch-r:calc(20px + var(--ctl)); }   /* peu de hauteur : l'assiette à gauche de la colonne de boutons, qu'elle chevauchait */
     #panel{ width:min(300px, 42vw) !important; min-width:0 !important; padding:8px 12px 8px; gap:8px; }
     .panel-header .tagline, .panel-header h1{ display:none; }   /* 5 boutons + icône : pas de place pour le titre */
     .panel-header img.app-icon{ width:34px; height:34px; }
@@ -699,7 +698,7 @@
      toucher l'icône déplie le curseur vers la droite (comme les coordonnées) */
   @media (max-width: 560px), (max-height: 500px) and (orientation: landscape){
     html #topo-opacity{
-      left:calc(var(--panel-w, 0px) + 20px); top:auto; bottom:calc(var(--panel-h, 0px) + 122px);
+      left:calc(var(--panel-w, 0px) + 20px); top:auto; bottom:calc(var(--panel-h, 0px) + 82px + var(--ctl));
       transform:translate(var(--fdx, 0px), var(--fdy, 0px));
       gap:8px; padding:4px 12px 4px 4px;
     }
@@ -750,6 +749,18 @@
     #topo-opacity input[type=range]{ width:110px; }
     #panel-toggle svg{ transform:rotate(-90deg); }
     body.panel-hidden #panel-toggle svg{ transform:rotate(90deg); }
+  }
+  /* téléphone en portrait (panneau sous la carte) : assiette en haut à gauche sous la météo, échelle en bas à droite
+     (à gauche du bouton « i » des crédits, au-dessus de la languette du panneau) ; coordonnées et opacité en colonne à gauche */
+  @media (max-width: 560px) and (orientation: portrait), (max-width: 560px) and (min-height: 501px){
+    html #pitch-control{ left:10px; right:auto; top:calc(18px + var(--ctl)); bottom:auto; }
+    html #pitch-tooltip{
+      left:calc(18px + var(--ctl)); right:auto; top:calc(18px + var(--ctl) + var(--pitch-h, 130px) / 2); bottom:auto;
+      transform:translate(var(--fdx, 0px), calc(var(--fdy, 0px) - 50%));
+    }
+    html .maplibregl-ctrl-bottom-left{ left:auto !important; right:42px !important; bottom:calc(var(--panel-h, 0px) + 18px) !important; }
+    html #coord-box{ left:10px; bottom:calc(var(--panel-h, 0px) + 14px); }
+    html #topo-opacity{ left:10px; bottom:calc(var(--panel-h, 0px) + 22px + var(--ctl)); }
   }
   /* bouton Google Street View (contrôle de carte) */
   .maplibregl-ctrl-group button.sv-map-btn{ display:flex; align-items:center; justify-content:center; color:var(--accent); }
@@ -4716,8 +4727,8 @@ function syncPanelVars(){
   try { localStorage.removeItem('gpx3d-float'); } catch(e){}   // ancien format : positions faussées par le cumul de l'anti-chevauchement
   /* un décalage en pixels dépend de la place d'origine de l'icône, différente selon la mise en page
      (panneau à gauche / panneau sous la carte) : une clé de stockage par mise en page */
-  const layoutId = () => isStackedLayout() ? 's' : 'd';
-  const storeKey = () => layoutId() === 's' ? KEY_BASE + '-s' : KEY_BASE;
+  const layoutId = () => isStackedLayout() ? (isPhone() ? 'p' : 's') : 'd';   // p : téléphone en portrait (places d'origine propres)
+  const storeKey = () => { const l = layoutId(); return l === 'd' ? KEY_BASE : KEY_BASE + '-' + l; };
   let curLayout = layoutId();
   function loadSaved(){
     try { return JSON.parse(localStorage.getItem(storeKey()) || '{}') || {}; } catch(e){ return {}; }
@@ -4753,6 +4764,21 @@ function syncPanelVars(){
     ax: 0, ay: 0,   // part du décalage due au seul anti-chevauchement (recalculée à chaque recalage, jamais mémorisée)
     moved: false
   }));
+  /* téléphone : l'icône d'opacité fait bloc avec la boîte de coordonnées (même colonne, même décalage) ;
+     glisser l'une déplace les deux, et l'anti-chevauchement les traite ensemble */
+  const coordW = widgets.find(w => w.id === 'coordbox'), opacityW = widgets.find(w => w.id === 'opacity');
+  const grouped = () => !!(coordW && opacityW) && isPhone();
+  const isFree = w => !(w === opacityW && grouped());
+  /* rectangle d'une icône ; boîte de coordonnées groupée : on y ajoute l'icône d'opacité (sa seule pastille, même dépliée) */
+  function rectOf(w){
+    const r = w.el.getBoundingClientRect();
+    if (w !== coordW || !grouped() || !opacityW.el.classList.contains('on')) return r;
+    const t = opacityW.el.querySelector('#topo-opacity-toggle'), q = t ? t.getBoundingClientRect() : null;
+    if (!q || !q.width) return r;
+    const P = 5;   // marge intérieure + bordure de la pastille
+    const left = Math.min(r.left, q.left - P), top = Math.min(r.top, q.top - P), right = Math.max(r.right, q.right + P), bottom = Math.max(r.bottom, q.bottom + P);
+    return { left, top, right, bottom, width: right - left, height: bottom - top };
+  }
 
   /* zone où une icône peut se trouver : la carte visible (à droite du panneau ; au-dessus de lui sur mobile) */
   function area(){
@@ -4764,14 +4790,17 @@ function syncPanelVars(){
     return { left: Math.max(mr.left, pr.right), top: mr.top, right: mr.right, bottom: mr.bottom };
   }
   function setVars(w){
-    for (const t of [w.el, ...w.followers]){
+    if (!isFree(w)) return;                                        // icône d'opacité groupée : décalage posé par les coordonnées
+    const els = [w.el, ...w.followers];
+    if (w === coordW && grouped()) els.push(opacityW.el);
+    for (const t of els){
       t.style.setProperty('--fdx', w.dx + 'px');
       t.style.setProperty('--fdy', w.dy + 'px');
     }
   }
   /* borne le décalage pour que l'icône reste entièrement dans la zone */
   function place(w, dx, dy){
-    const r = w.el.getBoundingClientRect(), a = area(), M = 4;
+    const r = rectOf(w), a = area(), M = 4;
     if (!r.width && !r.height){ w.dx = dx; w.dy = dy; setVars(w); return; } // élément masqué : on garde la valeur
     const bl = r.left - w.dx, bt = r.top - w.dy;             // position sans décalage
     w.dx = Math.round(Math.max(a.left + M - bl, Math.min(dx, a.right - M - r.width - bl)));
@@ -4784,7 +4813,10 @@ function syncPanelVars(){
   const GAP = 6;
   function obstacleRects(w){
     const out = [];
-    widgets.forEach(o => { if (o !== w){ const r = o.el.getBoundingClientRect(); if (r.width && r.height) out.push(r); } });
+    widgets.forEach(o => {
+      if (o === w || (grouped() && ((w === coordW && o === opacityW) || (w === opacityW && o === coordW)))) return;
+      const r = o.el.getBoundingClientRect(); if (r.width && r.height) out.push(r);
+    });
     FIXED_OBSTACLES.forEach(sel => document.querySelectorAll(sel).forEach(n => {
       if (n.hidden || w.el.contains(n)) return;
       // crédits repliés (bouton « i ») : seul le bouton est un obstacle, pas la boîte invisible
@@ -4796,8 +4828,9 @@ function syncPanelVars(){
   }
   const hits = (r, o) => r.left < o.right + GAP && r.right > o.left - GAP && r.top < o.bottom + GAP && r.bottom > o.top - GAP;
   function resolveOverlap(w){
+    if (!isFree(w)) return;
     for (let it = 0; it < 12; it++){
-      const r = w.el.getBoundingClientRect();
+      const r = rectOf(w);
       if (!r.width || !r.height) return;
       const obs = obstacleRects(w), hit = obs.find(o => hits(r, o));
       if (!hit) return;
@@ -4820,7 +4853,7 @@ function syncPanelVars(){
   function dropAuto(w){               // repart de la position VOULUE (ni bornage ni décalage automatique passagers) et la répercute sur l'élément
     w.dx = w.ux; w.dy = w.uy; w.ax = 0; w.ay = 0; setVars(w);
   }
-  function settle(w){ dropAuto(w); place(w, w.dx, w.dy); resolveOverlap(w); }
+  function settle(w){ if (!isFree(w)) w = coordW; dropAuto(w); place(w, w.dx, w.dy); resolveOverlap(w); }
   /* Options › Icônes flottantes : Non = commandes fixes à leur place d'origine (positions mémorisées conservées) */
   const ON_KEY = 'gpx3d-float-on';
   let enabled = true;
@@ -4843,7 +4876,8 @@ function syncPanelVars(){
       widgets.forEach(w => { w.ax = 0; w.ay = 0; w.ux = w.dx = (pos[w.id] && +pos[w.id].dx) || 0; w.uy = w.dy = (pos[w.id] && +pos[w.id].dy) || 0; setVars(w); });
     }
     widgets.forEach(dropAuto);        // d'abord tous les décalages automatiques à zéro, pour résoudre depuis un état neutre
-    widgets.forEach(w => { place(w, w.dx, w.dy); resolveOverlap(w); });
+    widgets.forEach(w => { if (isFree(w)){ place(w, w.dx, w.dy); resolveOverlap(w); } });
+    if (coordW && opacityW && !grouped()) setVars(opacityW);   // sortie du mode téléphone : l'opacité reprend sa propre place
   } // variables d'abord : sinon le bornage se fait sur l'ancienne place du panneau
 
   widgets.forEach(w => {
@@ -4871,7 +4905,7 @@ function syncPanelVars(){
       if (w.moved){ resolveOverlap(w); persist(); setTimeout(() => { w.moved = false; }, 60); } // le clic qui suit le relâchement est ignoré
       drag = null;
     }
-    w.el.addEventListener('pointerdown', e => {
+    w.startDrag = e => {
       if (!enabled) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (e.target.closest('input, select, textarea')) return;   // curseur d'assiette, liste des systèmes : usage normal
@@ -4881,9 +4915,10 @@ function syncPanelVars(){
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
       window.addEventListener('pointercancel', onUp);
-    });
+    };
+    w.el.addEventListener('pointerdown', e => { if (isFree(w)) w.startDrag(e); else coordW.startDrag(e); });
     // en phase de capture : un glissement ne déclenche pas le bouton (zoom, boussole, dépliage des coordonnées) sous le pointeur
-    w.el.addEventListener('click', e => { if (w.moved){ e.stopPropagation(); e.preventDefault(); } }, true);
+    w.el.addEventListener('click', e => { if (w.moved || (!isFree(w) && coordW.moved)){ e.stopPropagation(); e.preventDefault(); } }, true);
   });
 
   function applyEnabled(){
@@ -4923,7 +4958,7 @@ function syncPanelVars(){
   document.querySelectorAll('[data-float-reset]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     widgets.forEach(w => { w.dx = w.dy = w.ux = w.uy = w.ax = w.ay = 0; setVars(w); });
-    try { localStorage.removeItem(KEY_BASE); localStorage.removeItem(KEY_BASE + '-s'); localStorage.removeItem('gpx3d-float'); } catch(e){}
+    try { localStorage.removeItem(KEY_BASE); localStorage.removeItem(KEY_BASE + '-s'); localStorage.removeItem(KEY_BASE + '-p'); localStorage.removeItem('gpx3d-float'); } catch(e){}
     reclampAll();
     persist();
   }));
