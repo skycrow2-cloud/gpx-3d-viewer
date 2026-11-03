@@ -551,6 +551,17 @@
     font-size:13px; white-space:nowrap; overflow:hidden;
   }
   #weather-bar[hidden], .wb-place[hidden], .wb-now[hidden]{ display:none; }
+  /* la bande se replie en une icône (la météo du moment) ; toucher l'icône la déploie */
+  .wb-toggle{
+    flex:0 0 auto; width:32px; height:32px; margin:-4px 6px -4px -10px; padding:0;
+    border:0; border-radius:50%; background:transparent; color:inherit; cursor:pointer;
+    font-size:20px; line-height:1; display:flex; align-items:center; justify-content:center;
+    font-family:inherit;
+  }
+  .wb-toggle:hover{ background:var(--glass-hover); }
+  #weather-bar.collapsed{ padding:3px; }
+  #weather-bar.collapsed .wb-toggle{ width:38px; height:38px; margin:0; font-size:23px; }
+  #weather-bar.collapsed .wb-place, #weather-bar.collapsed .wb-now{ display:none; }
   .wb-place{
     display:inline-flex; align-items:center; gap:6px; flex:0 1 auto; min-width:0;
     font-weight:700; color:var(--text); cursor:help;
@@ -559,7 +570,7 @@
   .wb-pin{ width:20px; height:20px; flex:0 0 auto; display:block; }
   .wb-place + .wb-now{ margin-left:10px; padding-left:12px; border-left:1px solid var(--panel-border); }
   .wb-now{ display:inline-flex; align-items:center; gap:6px; color:var(--text-muted); font-weight:500; cursor:help; }
-  .wb-icon{ font-size:18px; line-height:1; }
+  .wb-icon{ font-size:18px; line-height:1; display:none; } /* l'icône du bouton fait déjà office */
 
   .panel-footer{ margin-top:auto; padding-top:6px; }
   .attribution{ margin:0; font-size:10px; line-height:1.5; color:var(--muted-2); }
@@ -651,6 +662,7 @@
     }
     #resize-handle{ display:none; }
     #weather-bar{ top:10px; left:10px; right:56px; max-width:none; }
+    #weather-bar.collapsed{ right:auto; }
     #track-title-badge{ top:52px; max-width:88vw; }
     #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); height:100px; }
     .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
@@ -797,7 +809,8 @@
     </select>
   </div>
 
-  <div id="weather-bar" class="floatable" hidden>
+  <div id="weather-bar" class="floatable collapsed" hidden>
+    <button id="weather-toggle" class="wb-toggle" type="button" aria-expanded="false"><span id="weather-toggle-icon">🌤️</span></button>
     <span id="weather-place" class="wb-place" hidden><img class="wb-pin" src="data:image/png;base64,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" alt=""><span id="weather-place-name"></span></span>
     <span id="weather-now" class="wb-now" hidden><span id="weather-icon" class="wb-icon"></span><span id="weather-text"></span></span>
   </div>
@@ -1088,7 +1101,7 @@
       <div class="help-sub">Panneau</div>
       <ul>
         <li>Poignée au bord droit : redimensionner (largeur mémorisée)</li>
-        <li>Barre lieu + météo (en haut à droite de la carte) : lieu et météo actuelle ; survolez-la pour le détail</li>
+        <li>Icône météo (en haut à droite de la carte) : touchez-la pour déployer la bande lieu + météo actuelle ; survolez la bande pour le détail</li>
       </ul>
       <div class="help-sub">Langue</div>
       <ul>
@@ -1155,7 +1168,7 @@
 
         <h3>Lieu et météo</h3>
         <ul>
-          <li>Une barre translucide, en haut à droite de la carte, affiche le <b>nom du lieu</b> (commune) et la <b>météo actuelle</b> (« 16°C · Bruine légère · vent 17 km/h »). Le survol du lieu donne l'adresse complète ; le survol de la météo donne le détail (ressenti, humidité, vent et direction, rafales, nébulosité, précipitations sur 1 h, heure du relevé).</li>
+          <li>Une icône (le temps qu'il fait) en haut à droite de la carte déploie, quand on la touche, une barre translucide qui affiche le <b>nom du lieu</b> (commune) et la <b>météo actuelle</b> (« 16°C · Bruine légère · vent 17 km/h »). Le survol du lieu donne l'adresse complète ; le survol de la météo donne le détail (ressenti, humidité, vent et direction, rafales, nébulosité, précipitations sur 1 h, heure du relevé).</li>
           <li><b>Au démarrage</b> : la carte se centre sur la zone où vous vous trouvez si vous autorisez la géolocalisation, sinon sur la Belgique.</li>
           <li><b>Sans trace</b> : c'est le lieu de votre position (si vous autorisez la géolocalisation du navigateur ; en cas de refus, la barre attend qu'une trace soit chargée).</li>
           <li><b>Avec une trace</b> : le point de départ quand la trace complète est affichée, puis le point courant pendant la lecture.</li>
@@ -1238,7 +1251,7 @@
       <div class="help-sub">Panel</div>
       <ul>
         <li>Handle on the right edge: resize (width remembered)</li>
-        <li>Place + weather bar (top right of the map): place and current weather; hover it for details</li>
+        <li>Weather icon (top right of the map): tap it to unfold the place + current weather bar; hover the bar for details</li>
       </ul>
       <div class="help-sub">Language</div>
       <ul>
@@ -1305,7 +1318,7 @@
 
         <h3>Place and weather</h3>
         <ul>
-          <li>A translucent bar at the top right of the map shows the <b>place name</b> (locality) and the <b>current weather</b> (“16°C · Light drizzle · wind 17 km/h”). Hovering the place gives the full address; hovering the weather gives the details (feels-like, humidity, wind and direction, gusts, cloud cover, precipitation over 1 h, reading time).</li>
+          <li>An icon (the current weather) at the top right of the map unfolds, when tapped, a translucent bar that shows the <b>place name</b> (locality) and the <b>current weather</b> (“16°C · Light drizzle · wind 17 km/h”). Hovering the place gives the full address; hovering the weather gives the details (feels-like, humidity, wind and direction, gusts, cloud cover, precipitation over 1 h, reading time).</li>
           <li><b>At start-up</b>: the map centres on the area where you are if you allow geolocation, otherwise on Belgium.</li>
           <li><b>No track</b>: it is the place of your position (if you allow the browser's geolocation; if refused, the bar waits until a track is loaded).</li>
           <li><b>With a track</b>: the start point while the full track is displayed, then the current point during playback.</li>
@@ -1534,7 +1547,7 @@ const I18N = {
     'defName.track': "Trace", 'defName.route': "Itinéraire",
     'weather.unknown': "Conditions inconnues",
     'w.feels': "Ressenti", 'w.humidity': "Humidité", 'w.wind': "Vent", 'w.gusts': "Rafales", 'w.clouds': "Nébulosité", 'w.precip': "Précip. (1 h)",
-    'w.windShort': "vent {v} km/h", 'w.src': "Météo actuelle à cet endroit", 'w.srcTime': " · relevé de {t} (heure locale)",
+    'w.windShort': "vent {v} km/h", 'w.show': "Afficher la météo", 'w.hide': "Replier la météo", 'w.src': "Météo actuelle à cet endroit", 'w.srcTime': " · relevé de {t} (heure locale)",
     'pos.full': "Trajet complet : {n} / {n} — {km} km",
     'pos.cur': "Position : {i} / {n} — {d} / {km} km",
     preload: "Préchargement des tuiles de photos aériennes sur l'ensemble du trajet… ({done} / {total})"
@@ -1619,7 +1632,7 @@ const I18N = {
     'defName.track': "Track", 'defName.route': "Route",
     'weather.unknown': "Unknown conditions",
     'w.feels': "Feels like", 'w.humidity': "Humidity", 'w.wind': "Wind", 'w.gusts': "Gusts", 'w.clouds': "Cloud cover", 'w.precip': "Precip. (1 h)",
-    'w.windShort': "wind {v} km/h", 'w.src': "Current weather here", 'w.srcTime': " · reading at {t} (local time)",
+    'w.windShort': "wind {v} km/h", 'w.show': "Show weather", 'w.hide': "Collapse weather", 'w.src': "Current weather here", 'w.srcTime': " · reading at {t} (local time)",
     'pos.full': "Full track: {n} / {n} — {km} km",
     'pos.cur': "Position: {i} / {n} — {d} / {km} km",
     preload: "Preloading aerial photo tiles for the whole route… ({done} / {total})"
@@ -2216,6 +2229,8 @@ const el = {
   weatherPlaceName: document.getElementById('weather-place-name'),
   weatherNow: document.getElementById('weather-now'),
   weatherIcon: document.getElementById('weather-icon'),
+  weatherToggle: document.getElementById('weather-toggle'),
+  weatherToggleIcon: document.getElementById('weather-toggle-icon'),
   weatherText: document.getElementById('weather-text'),
   trackTitleBadge: document.getElementById('track-title-badge'),
   preloadOverlay: document.getElementById('preload-overlay'),
@@ -3321,10 +3336,24 @@ async function fetchPlace(lat, lon){
 function updateWeatherBarVisibility(){
   el.weatherBar.hidden = !(el.weatherPlaceName.textContent || el.weatherText.textContent);
 }
+/* bande météo repliée en icône / déployée ; choix mémorisé */
+const WEATHER_OPEN_KEY = 'gpx3d-weather-open';
+function setWeatherOpen(open, save){
+  el.weatherBar.classList.toggle('collapsed', !open);
+  el.weatherToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const t = tx(open ? 'w.hide' : 'w.show') + (open ? '' : (el.weatherText.textContent ? ' : ' + [el.weatherPlaceName.textContent, el.weatherText.textContent].filter(Boolean).join(' · ') : ''));
+  el.weatherToggle.title = t; el.weatherToggle.setAttribute('aria-label', t);
+  if (save){ try { localStorage.setItem(WEATHER_OPEN_KEY, open ? '1' : '0'); } catch(e){} }
+}
+function weatherIsOpen(){ return !el.weatherBar.classList.contains('collapsed'); }
+el.weatherToggle.addEventListener('click', e => { e.stopPropagation(); setWeatherOpen(!weatherIsOpen(), true); });
+try { setWeatherOpen(localStorage.getItem(WEATHER_OPEN_KEY) === '1', false); } catch(e){ setWeatherOpen(false, false); }
+onLanguageChange.push(() => setWeatherOpen(weatherIsOpen(), false));
 function setPlace(name, full){
   el.weatherPlaceName.textContent = name || '';
   el.weatherPlace.title = full || '';
   el.weatherPlace.hidden = !name;
+  setWeatherOpen(weatherIsOpen(), false);   // met à jour l'info-bulle de l'icône
   updateWeatherBarVisibility();
 }
 function showPlace(j, lat, lon){
@@ -3367,7 +3396,9 @@ function showWeather(c){
   parts.push(label);
   if (typeof c.wind_speed_10m === 'number') parts.push(tx('w.windShort', { v: Math.round(c.wind_speed_10m) }));
   el.weatherIcon.textContent = icon;
+  el.weatherToggleIcon.textContent = icon;   // l'icône repliée montre le temps qu'il fait
   el.weatherText.textContent = parts.join(' · ');
+  setWeatherOpen(weatherIsOpen(), false);
   const dir = (typeof c.wind_direction_10m === 'number') ? ' ' + compassFr(c.wind_direction_10m) : '';
   const hhmm = (typeof c.time === 'string' && c.time.length >= 16) ? c.time.slice(11, 16) : '';
   el.weatherNow.title = [
