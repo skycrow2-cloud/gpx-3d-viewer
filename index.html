@@ -540,7 +540,7 @@
   /* barre lieu + météo (sur la carte, toujours visible dès qu'un lieu est connu) */
   #weather-bar{
     position:absolute; z-index:4;
-    top:10px; right:56px;
+    top:10px; left:calc(var(--panel-w, 380px) + 10px); right:auto;
     display:flex; align-items:center; gap:0;
     max-width:calc(100vw - var(--panel-w, 380px) - 80px);
     padding:6px 14px; border-radius:999px;
@@ -661,8 +661,7 @@
       border-top:1px solid var(--panel-border);
     }
     #resize-handle{ display:none; }
-    #weather-bar{ top:10px; left:10px; right:56px; max-width:none; }
-    #weather-bar.collapsed{ right:auto; }
+    #weather-bar{ top:10px; left:10px; right:auto; max-width:calc(100vw - 76px); }
     #track-title-badge{ top:52px; max-width:88vw; }
     #pitch-control{ bottom:calc(var(--panel-h, 0px) + 10px); height:100px; }
     .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right{ bottom:var(--panel-h, 0px) !important; }
@@ -1101,7 +1100,7 @@
       <div class="help-sub">Panneau</div>
       <ul>
         <li>Poignée au bord droit : redimensionner (largeur mémorisée)</li>
-        <li>Icône météo (en haut à droite de la carte) : touchez-la pour déployer la bande lieu + météo actuelle ; survolez la bande pour le détail</li>
+        <li>Icône météo (en haut à gauche de la carte) : touchez-la pour déployer la bande lieu + météo actuelle ; survolez la bande pour le détail</li>
       </ul>
       <div class="help-sub">Langue</div>
       <ul>
@@ -1168,7 +1167,7 @@
 
         <h3>Lieu et météo</h3>
         <ul>
-          <li>Une icône (le temps qu'il fait) en haut à droite de la carte déploie, quand on la touche, une barre translucide qui affiche le <b>nom du lieu</b> (commune) et la <b>météo actuelle</b> (« 16°C · Bruine légère · vent 17 km/h »). Le survol du lieu donne l'adresse complète ; le survol de la météo donne le détail (ressenti, humidité, vent et direction, rafales, nébulosité, précipitations sur 1 h, heure du relevé).</li>
+          <li>Une icône (le temps qu'il fait) en haut à gauche de la carte déploie, quand on la touche, une barre translucide qui affiche le <b>nom du lieu</b> (commune) et la <b>météo actuelle</b> (« 16°C · Bruine légère · vent 17 km/h »). Le survol du lieu donne l'adresse complète ; le survol de la météo donne le détail (ressenti, humidité, vent et direction, rafales, nébulosité, précipitations sur 1 h, heure du relevé).</li>
           <li><b>Au démarrage</b> : la carte se centre sur la zone où vous vous trouvez si vous autorisez la géolocalisation, sinon sur la Belgique.</li>
           <li><b>Sans trace</b> : c'est le lieu de votre position (si vous autorisez la géolocalisation du navigateur ; en cas de refus, la barre attend qu'une trace soit chargée).</li>
           <li><b>Avec une trace</b> : le point de départ quand la trace complète est affichée, puis le point courant pendant la lecture.</li>
@@ -1251,7 +1250,7 @@
       <div class="help-sub">Panel</div>
       <ul>
         <li>Handle on the right edge: resize (width remembered)</li>
-        <li>Weather icon (top right of the map): tap it to unfold the place + current weather bar; hover the bar for details</li>
+        <li>Weather icon (top left of the map): tap it to unfold the place + current weather bar; hover the bar for details</li>
       </ul>
       <div class="help-sub">Language</div>
       <ul>
@@ -1318,7 +1317,7 @@
 
         <h3>Place and weather</h3>
         <ul>
-          <li>An icon (the current weather) at the top right of the map unfolds, when tapped, a translucent bar that shows the <b>place name</b> (locality) and the <b>current weather</b> (“16°C · Light drizzle · wind 17 km/h”). Hovering the place gives the full address; hovering the weather gives the details (feels-like, humidity, wind and direction, gusts, cloud cover, precipitation over 1 h, reading time).</li>
+          <li>An icon (the current weather) at the top left of the map unfolds, when tapped, a translucent bar that shows the <b>place name</b> (locality) and the <b>current weather</b> (“16°C · Light drizzle · wind 17 km/h”). Hovering the place gives the full address; hovering the weather gives the details (feels-like, humidity, wind and direction, gusts, cloud cover, precipitation over 1 h, reading time).</li>
           <li><b>At start-up</b>: the map centres on the area where you are if you allow geolocation, otherwise on Belgium.</li>
           <li><b>No track</b>: it is the place of your position (if you allow the browser's geolocation; if refused, the bar waits until a track is loaded).</li>
           <li><b>With a track</b>: the start point while the full track is displayed, then the current point during playback.</li>
@@ -4588,7 +4587,8 @@ function syncPanelVars(){
 
 (function initFloating(){
   syncPanelVars();
-  const KEY_BASE = 'gpx3d-float';
+  const KEY_BASE = 'gpx3d-float2';
+  try { localStorage.removeItem('gpx3d-float'); } catch(e){}   // ancien format : positions faussées par le cumul de l'anti-chevauchement
   /* un décalage en pixels dépend de la place d'origine de l'icône, différente selon la mise en page
      (panneau à gauche / panneau sous la carte) : une clé de stockage par mise en page */
   const layoutId = () => isStackedLayout() ? 's' : 'd';
@@ -4784,7 +4784,7 @@ function syncPanelVars(){
   document.querySelectorAll('[data-float-reset]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     widgets.forEach(w => { w.dx = 0; w.dy = 0; w.ax = 0; w.ay = 0; setVars(w); });
-    try { localStorage.removeItem(KEY_BASE); localStorage.removeItem(KEY_BASE + '-s'); } catch(e){}
+    try { localStorage.removeItem(KEY_BASE); localStorage.removeItem(KEY_BASE + '-s'); localStorage.removeItem('gpx3d-float'); } catch(e){}
     reclampAll();
     persist();
   }));
