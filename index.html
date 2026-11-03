@@ -472,6 +472,32 @@
   .hdr-btn:active{ transform:scale(.93); }
   .hdr-btn.active{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
 
+  /* menu « Outils » : remplace la rangée de boutons de l'en-tête sur tablette, téléphone et fenêtre étroite */
+  #btnTools{ display:none; }
+  #tools-menu{
+    position:fixed; z-index:3000; min-width:230px; max-width:calc(100vw - 16px);
+    max-height:calc(100% - 16px); overflow-y:auto;
+    padding:6px; border-radius:12px;
+    background:var(--window-bg); -webkit-backdrop-filter:var(--window-blur); backdrop-filter:var(--window-blur);
+    border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+  }
+  #tools-menu[hidden]{ display:none; }
+  #tools-menu .tm-item{
+    display:flex; align-items:center; gap:12px; width:100%; min-height:46px; padding:6px 10px;
+    border:0; border-radius:8px; background:transparent; color:var(--text);
+    font:500 14.5px/1.2 var(--font-ui); text-align:left; cursor:pointer; touch-action:manipulation;
+  }
+  #tools-menu .tm-item:hover, #tools-menu .tm-item:focus-visible{ background:var(--accent-soft); outline:none; }
+  #tools-menu .tm-item.active .tm-lbl{ color:var(--accent); }
+  #tools-menu .tm-ico{
+    flex:0 0 30px; width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--panel-border); background:var(--glass);
+    color:var(--accent); font-weight:700; font-size:16px;
+  }
+  #tools-menu .tm-ico.code{ font-size:11.5px; letter-spacing:.02em; }
+  #tools-menu .tm-item.active .tm-ico{ border-color:var(--accent); }
+
   /* options de la trace (couleur / épaisseur) */
   .track-style{
     border:1px solid var(--panel-border); border-radius:var(--radius);
@@ -672,6 +698,15 @@
   @media (pointer: coarse) and (max-width: 760px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
     #panel-toggle{ width:72px; height:30px; }
   }
+  /* tablette, téléphone, fenêtre étroite : un seul bouton « Outils » (menu déroulant) au lieu des 5 boutons de l'en-tête */
+  @media (pointer: coarse), (max-width: 760px), (max-width: 1024px) and (orientation: portrait){
+    #btnTools{ display:flex; }
+    .hdr-actions > .hdr-btn:not(#btnTools){ display:none; }
+  }
+  /* téléphone en paysage : avec le seul bouton « Outils », le titre retrouve sa place */
+  @media (max-height: 500px) and (orientation: landscape) and (pointer: coarse), (max-height: 500px) and (orientation: landscape) and (max-width: 760px){
+    .panel-header h1{ display:block; font-size:18px; }
+  }
 
   /* -------------------------------------------------------- mobile */
   @media (max-width: 760px), (max-width: 1024px) and (orientation: portrait){
@@ -861,6 +896,7 @@
         <button class="hdr-btn" id="btnOsm" type="button" data-i18n-title="osm" title="Traces GPS OpenStreetMap" aria-label="Traces GPS OpenStreetMap"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18.5H6a4 4 0 0 1-.6-7.95A6 6 0 0 1 17 9.2a4.6 4.6 0 0 1 1 9.1"/><path d="M10 21v-6.5M7.8 16.6 10 14.4l2.2 2.2"/><path d="M14.5 13v6.6M12.3 17.4l2.2 2.2 2.2-2.2"/></svg></button>
         <button class="hdr-btn" id="btnLang" type="button" data-i18n-title="lang" title="Switch to English" aria-label="Switch to English">EN</button>
         <button class="hdr-btn" id="btnInfo" type="button" data-i18n-title="help" title="Aide" aria-label="Aide">i</button>
+        <button class="hdr-btn" id="btnTools" type="button" data-i18n-title="tools" title="Outils" aria-label="Outils" aria-haspopup="menu" aria-expanded="false" aria-controls="tools-menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       </div>
     </div>
 
@@ -968,6 +1004,15 @@
   <div id="track-title-badge" hidden></div>
 
   <div id="sv-banner" hidden></div>
+
+  <!-- menu « Outils » (tablette, téléphone, fenêtre étroite) : chaque entrée déclenche le bouton d'en-tête correspondant -->
+  <div id="tools-menu" role="menu" aria-labelledby="btnTools" hidden>
+    <button class="tm-item" type="button" role="menuitem" data-for="btnToMaker"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.toMaker">Ouvrir dans The-GPX-Box</span></button>
+    <button class="tm-item" type="button" role="menuitem" data-for="btnTrackStyle"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.trackStyle">Options</span></button>
+    <button class="tm-item" type="button" role="menuitem" data-for="btnOsm"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.osm">Traces OpenStreetMap</span></button>
+    <button class="tm-item" type="button" role="menuitem" data-for="btnLang"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.lang">English</span></button>
+    <button class="tm-item" type="button" role="menuitem" data-for="btnInfo"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.help">Aide et documentation</span></button>
+  </div>
 
   <div id="osmPanel" role="dialog" aria-labelledby="osmTitle">
     <div class="osm-head">
@@ -1190,6 +1235,7 @@
           <li><b>Coordonnées du curseur</b> : cliquez sur l'icône épingle en bas de la carte, à côté de l'échelle ; elle se déplie et affiche la position sous le curseur (dernier appui sur écran tactile). La liste choisit le système : <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> ou <b>Lambert 2008</b> (X, Y en mètres). Le choix est mémorisé. Sans connexion, les conversions Lambert peuvent être indisponibles et seul le WGS84 s'affiche.</li>
           <li>La navigation est limitée à la vue générale de la trace agrandie ×4, pour éviter de charger des tuiles inutiles.</li>
           <li><b>Panneau</b> : la poignée verticale à son bord droit le redimensionne (largeur mémorisée). Sur écran étroit (760 px ou moins) ou tablette en portrait, il passe sous la carte.</li>
+          <li><b>Menu Outils</b> (bouton à trois traits, en haut du panneau) : sur tablette, téléphone ou fenêtre étroite, il regroupe les boutons de l'en-tête — The-GPX-Box, options, traces OpenStreetMap, langue et aide.</li>
           <li><b>Options</b> (bouton engrenage en haut du panneau) : <b>couleur</b> de la trace (<b>Auto</b> l'adapte au fond de carte), <b>épaisseur</b>, <b>thème</b> <b>Foncé</b> ou <b>Clair</b> de l'interface, et <b>icônes flottantes</b> (déplaçables ou fixes). Ces choix sont mémorisés.</li>
         </ul>
 
@@ -1340,6 +1386,7 @@
           <li><b>Cursor coordinates</b>: click the pin icon at the bottom of the map, next to the scale; it unfolds and shows the position under the cursor (last tap on touch screens). The list picks the system: <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> or <b>Lambert 2008</b> (X, Y in metres). The choice is remembered. Offline, the Lambert conversions may be unavailable and only WGS84 is shown.</li>
           <li>Navigation is limited to the track overview enlarged ×4, to avoid loading useless tiles.</li>
           <li><b>Panel</b>: the vertical handle on its right edge resizes it (width remembered). On narrow screens (760 px or less) or a tablet in portrait, it moves below the map.</li>
+          <li><b>Tools menu</b> (three-line button at the top of the panel): on a tablet, a phone or a narrow window, it gathers the header buttons — The-GPX-Box, options, OpenStreetMap tracks, language and help.</li>
           <li><b>Options</b> (gear button at the top of the panel): track <b>colour</b> (<b>Auto</b> adapts it to the basemap), <b>width</b>, <b>Dark</b> or <b>Light</b> interface <b>theme</b>, and <b>floating icons</b> (movable or fixed). These choices are remembered.</li>
         </ul>
 
@@ -1514,6 +1561,7 @@ const I18N = {
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
     'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.toMaker': "Ouvrir dans The-GPX-Box (créer / modifier un tracé) — la trace chargée y est transmise", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
+    'title.tools': "Outils", 'tools.toMaker': "Ouvrir dans The-GPX-Box", 'tools.trackStyle': "Options", 'tools.osm': "Traces OpenStreetMap", 'tools.lang': "English", 'tools.help': "Aide et documentation",
     'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.light': "Clair", 'ts.float': "Icônes flottantes", 'ts.yes': "Oui", 'ts.no': "Non", 'ctx.points': "Afficher les points", 'ctx.tips': "Infobulles sur les points", 'ctx.point': "Point",
     'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
@@ -1599,6 +1647,7 @@ const I18N = {
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
     'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.toMaker': "Open in The-GPX-Box (draw / edit a route) — the loaded track is passed on", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
+    'title.tools': "Tools", 'tools.toMaker': "Open in The-GPX-Box", 'tools.trackStyle': "Options", 'tools.osm': "OpenStreetMap tracks", 'tools.lang': "Français", 'tools.help': "Help and documentation",
     'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.light': "Light", 'ts.float': "Floating icons", 'ts.yes': "Yes", 'ts.no': "No", 'ctx.points': "Show points", 'ctx.tips': "Tooltips on points", 'ctx.point': "Point",
     'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
@@ -5028,6 +5077,67 @@ function syncPanelVars(){
   }
   window.addEventListener('hashchange', receive);
   window.__gpx3dMap.once('load', receive); // au démarrage : une fois la carte prête (sources de la trace créées)
+})();
+</script>
+<script>
+/* Menu « Outils » (tablette, téléphone, fenêtre étroite ; voir le @media du CSS) : chaque entrée déclenche le
+   bouton d'en-tête d'origine, masqué dans ces modes — même comportement, même état actif, même pastille. */
+(function toolsMenu(){
+  "use strict";
+  const btn = document.getElementById('btnTools'), menu = document.getElementById('tools-menu');
+  if (!btn || !menu) return;
+  const items = [...menu.querySelectorAll('.tm-item')]
+    .map(it => ({ it, src: document.getElementById(it.dataset.for), ico: it.querySelector('.tm-ico') }))
+    .filter(o => o.src);
+  const isOpen = () => !menu.hidden;
+
+  function sync(){
+    items.forEach(o => {
+      const svg = o.src.querySelector('svg');
+      if (svg){ if (!o.ico.firstChild) o.ico.appendChild(svg.cloneNode(true)); }
+      else { o.ico.textContent = o.src.textContent.trim(); o.ico.classList.toggle('code', o.ico.textContent.length > 1); }   // EN / FR, i
+      o.it.classList.toggle('active', o.src.classList.contains('active'));
+      o.ico.classList.add('in-use-host');
+      o.ico.classList.toggle('in-use', o.src.classList.contains('in-use'));
+    });
+    btn.classList.add('in-use-host');
+    btn.classList.toggle('in-use', items.some(o => o.src.classList.contains('in-use')));
+  }
+  // placé sous le bouton, ou au-dessus s'il n'y a pas la place (panneau en bas de l'écran), sans sortir de la fenêtre
+  function place(){
+    const r = btn.getBoundingClientRect(), pad = 8, gap = 6;
+    const mw = menu.offsetWidth, mh = menu.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+    let top = r.bottom + gap;
+    if (top + mh > vh - pad) top = (r.top - gap - mh >= pad) ? r.top - gap - mh : Math.max(pad, vh - pad - mh);
+    menu.style.left = Math.max(pad, Math.min(r.right - mw, vw - mw - pad)) + 'px';
+    menu.style.top = top + 'px';
+  }
+  function open(){
+    sync(); menu.hidden = false; place();
+    btn.classList.add('active'); btn.setAttribute('aria-expanded', 'true');
+  }
+  function close(refocus){
+    if (!isOpen()) return;
+    menu.hidden = true;
+    btn.classList.remove('active'); btn.setAttribute('aria-expanded', 'false');
+    if (refocus) btn.focus();
+  }
+
+  btn.addEventListener('click', () => { if (isOpen()) close(); else open(); });
+  items.forEach(o => o.it.addEventListener('click', ev => {
+    ev.stopPropagation();   // sinon les fermetures « clic à côté » (panneau OSM…) refermeraient aussitôt ce qui vient de s'ouvrir
+    close();
+    o.src.click();          // appel direct, dans le geste de l'utilisateur : l'ouverture d'onglet (The-GPX-Box) reste autorisée
+  }));
+  document.addEventListener('click', ev => { if (isOpen() && !menu.contains(ev.target) && !btn.contains(ev.target)) close(); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && isOpen()) close(true); });
+  window.addEventListener('resize', () => close());
+  const panel = document.getElementById('panel');
+  if (panel) panel.addEventListener('scroll', () => close(), { passive:true });
+  // pastille « en cours d'utilisation » reportée sur le bouton « Outils »
+  const mo = new MutationObserver(sync);
+  items.forEach(o => mo.observe(o.src, { attributes:true, attributeFilter:['class'] }));
+  sync();
 })();
 </script>
 <script>
