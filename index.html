@@ -695,7 +695,13 @@
     html #topo-opacity{ left:calc(var(--panel-w, 300px) + 350px); }
     html #topo-opacity input[type=range]{ width:80px; }
   }
-  @media (pointer: coarse) and (max-width: 760px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
+  /* téléphone en paysage étroit (iPhone avec barre d'onglets Safari : ~730 × 280) : pas de place à droite de l'échelle,
+     la barre d'opacité passe en haut, centrée sur la carte, sous le titre de la trace */
+  @media (max-height: 500px) and (orientation: landscape) and (max-width: 820px){
+    html #topo-opacity{ left:calc(var(--panel-w, 300px) + (100% - var(--panel-w, 300px)) / 2); top:44px; bottom:auto; }
+    html #topo-opacity input[type=range]{ width:60px; }
+  }
+  @media (pointer: coarse) and (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
     #panel-toggle{ width:72px; height:30px; }
   }
   /* tablette, téléphone, fenêtre étroite : un seul bouton « Outils » (menu déroulant) au lieu des 5 boutons de l'en-tête */
@@ -709,7 +715,7 @@
   }
 
   /* -------------------------------------------------------- mobile */
-  @media (max-width: 760px), (max-width: 1024px) and (orientation: portrait){
+  @media (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait){
     #app{ flex-direction:column; }
     #panel{
       order:2;
@@ -825,7 +831,7 @@
   .osm-trace .btn{ padding:3px 8px; font-size:11px; flex:none; }
   #osmStatus{ font-size:11px; color:var(--text-muted); margin-top:8px; min-height:14px; }
   #osmStatus.err{ color:var(--danger); }
-  @media (max-width: 760px), (max-width: 1024px) and (orientation: portrait){ #osmPanel{ left:12px; right:12px; top:12px; width:auto; max-width:none; } }
+  @media (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait){ #osmPanel{ left:12px; right:12px; top:12px; width:auto; max-width:none; } }
   /* ------------------------------------------------ thème clair (Options › Thème) */
   :root[data-theme="light"]{
     color-scheme: light;
@@ -1234,7 +1240,7 @@
           <li><b>Icônes flottantes</b> : la barre lieu + météo, les boutons + / −, la boussole, la barre d'inclinaison (glissez-la par sa poignée en pointillés, en haut) la boîte de coordonnées et l'échelle se déplacent <b>librement</b> dans la zone de la carte : glissez-les à la souris ou au doigt. Elles ne sortent jamais de la carte ni ne passent sous le panneau ; leurs positions sont mémorisées. Le bouton « Remettre les icônes de la carte à leur place » de l'aide rapide (en tête de cette fenêtre) rétablit la disposition d'origine. Dans les <b>Options</b>, « Icônes flottantes : Non » les fixe à leur place d'origine (vos positions sont gardées pour quand vous repassez à « Oui »).</li>
           <li><b>Coordonnées du curseur</b> : cliquez sur l'icône épingle en bas de la carte, à côté de l'échelle ; elle se déplie et affiche la position sous le curseur (dernier appui sur écran tactile). La liste choisit le système : <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> ou <b>Lambert 2008</b> (X, Y en mètres). Le choix est mémorisé. Sans connexion, les conversions Lambert peuvent être indisponibles et seul le WGS84 s'affiche.</li>
           <li>La navigation est limitée à la vue générale de la trace agrandie ×4, pour éviter de charger des tuiles inutiles.</li>
-          <li><b>Panneau</b> : la poignée verticale à son bord droit le redimensionne (largeur mémorisée). Sur écran étroit (760 px ou moins) ou tablette en portrait, il passe sous la carte.</li>
+          <li><b>Panneau</b> : la poignée verticale à son bord droit le redimensionne (largeur mémorisée). Sur écran étroit (760 px ou moins, sauf téléphone en paysage) ou tablette en portrait, il passe sous la carte.</li>
           <li><b>Menu Outils</b> (bouton à trois traits, en haut du panneau) : sur tablette, téléphone ou fenêtre étroite, il regroupe les boutons de l'en-tête — The-GPX-Box, options, traces OpenStreetMap, langue et aide.</li>
           <li><b>Options</b> (bouton engrenage en haut du panneau) : <b>couleur</b> de la trace (<b>Auto</b> l'adapte au fond de carte), <b>épaisseur</b>, <b>thème</b> <b>Foncé</b> ou <b>Clair</b> de l'interface, et <b>icônes flottantes</b> (déplaçables ou fixes). Ces choix sont mémorisés.</li>
         </ul>
@@ -1385,7 +1391,7 @@
           <li><b>Floating icons</b>: the place + weather bar, the + / − buttons, the compass, the tilt bar (drag it by its dotted handle at the top), the coordinates box and the scale can be moved <b>freely</b> within the map area: drag them with the mouse or a finger. They never leave the map or go under the panel; their positions are remembered. The “Put the map icons back in place” button of the quick help (at the top of this window) restores the original layout. In <b>Options</b>, “Floating icons: No” fixes them in their original place (your positions are kept for when you switch back to “Yes”).</li>
           <li><b>Cursor coordinates</b>: click the pin icon at the bottom of the map, next to the scale; it unfolds and shows the position under the cursor (last tap on touch screens). The list picks the system: <b>WGS84</b> (latitude, longitude), <b>Lambert 72</b> or <b>Lambert 2008</b> (X, Y in metres). The choice is remembered. Offline, the Lambert conversions may be unavailable and only WGS84 is shown.</li>
           <li>Navigation is limited to the track overview enlarged ×4, to avoid loading useless tiles.</li>
-          <li><b>Panel</b>: the vertical handle on its right edge resizes it (width remembered). On narrow screens (760 px or less) or a tablet in portrait, it moves below the map.</li>
+          <li><b>Panel</b>: the vertical handle on its right edge resizes it (width remembered). On narrow screens (760 px or less, except a phone in landscape) or a tablet in portrait, it moves below the map.</li>
           <li><b>Tools menu</b> (three-line button at the top of the panel): on a tablet, a phone or a narrow window, it gathers the header buttons — The-GPX-Box, options, OpenStreetMap tracks, language and help.</li>
           <li><b>Options</b> (gear button at the top of the panel): track <b>colour</b> (<b>Auto</b> adapts it to the basemap), <b>width</b>, <b>Dark</b> or <b>Light</b> interface <b>theme</b>, and <b>floating icons</b> (movable or fixed). These choices are remembered.</li>
         </ul>
@@ -1498,7 +1504,7 @@ function saveTrackStyle(){ try { localStorage.setItem(TRACK_STYLE_KEY, JSON.stri
 const MAX_REASONABLE_SPEED_KMH = 300;
 const FOLLOW_ZOOM = 22.8;        // zoom de repli si le calcul d'échelle échoue
 const FOLLOW_SCALE_DENOM = 500;  // échelle cartographique cible pendant le suivi : 1/500
-const STACKED_MQ = '(max-width: 760px), (max-width: 1024px) and (orientation: portrait)'; // même condition que le @media du CSS : panneau sous la carte
+const STACKED_MQ = '(max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait)'; // même condition que le @media du CSS : panneau sous la carte
 function isStackedLayout(){ return window.matchMedia(STACKED_MQ).matches; }
 const PHONE_MQ = '(max-width: 560px), (max-height: 500px) and (orientation: landscape)';
 function isPhone(){ return window.matchMedia(PHONE_MQ).matches; }
