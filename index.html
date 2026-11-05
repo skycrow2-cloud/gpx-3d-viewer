@@ -4722,6 +4722,35 @@ function syncPanelVars(){
   document.documentElement.style.setProperty('--panel-h', (!hidden && mobile ? r.height : 0) + 'px');
 }
 
+/* Tablette : au premier chargement, #app (fixed, inset:0) pouvait être plus grand que la fenêtre réellement
+   visible (bas et bord droit coupés) ; il est borné à la fenêtre visible (visualViewport), puis recalé
+   quelques fois après le chargement et après chaque rotation, le temps que le navigateur se stabilise.
+   Placé avant initFloating : ses écouteurs passent avant le recalage des icônes. */
+(function fitAppToViewport(){
+  const app = document.getElementById('app'), vv = window.visualViewport;
+  if (!app || !vv) return;
+  let lastW = 0, lastH = 0;
+  function fit(){
+    if (vv.scale > 1.01) return;   // page zoomée au pincement : on ne touche à rien
+    const a = document.activeElement;
+    if (a && a.matches && a.matches('input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), textarea, select')) return;   // clavier ouvert
+    const w = Math.round(vv.width), h = Math.round(vv.height);
+    if (!w || !h || (w === lastW && h === lastH)) return;
+    lastW = w; lastH = h;
+    app.style.right = 'auto'; app.style.bottom = 'auto';
+    app.style.width = w + 'px'; app.style.height = h + 'px';
+    if (map && map.resize) map.resize();
+    if (!inEvent) window.dispatchEvent(new Event('resize'));   // recalage tardif (minuterie) : icônes flottantes et panneau suivent
+  }
+  let inEvent = false;
+  const fitNow = () => { inEvent = true; try { fit(); } finally { inEvent = false; } };
+  const fitSoon = () => { fitNow(); setTimeout(fit, 300); setTimeout(fit, 900); };
+  fitNow();
+  ['resize', 'orientationchange', 'pageshow', 'load'].forEach(t => window.addEventListener(t, fitSoon));
+  vv.addEventListener('resize', fitSoon);
+  [150, 600, 1500, 3000].forEach(ms => setTimeout(fit, ms));
+})();
+
 (function initFloating(){
   syncPanelVars();
   const KEY_BASE = 'gpx3d-float2';
