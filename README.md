@@ -7,7 +7,7 @@ Visualiseur de traces GPX en 3D, dans un seul fichier HTML autonome : relief, ph
 ## Fonctionnalités
 
 - Terrain 3D (MapLibre GL, exagération du relief 1,6)
-- Fond photo aérienne Esri ou plan randonnée OpenTopoMap
+- Fond photo aérienne Esri ou plan randonnée OpenTopoMap ; superposition chasse du SPW (Wallonie) ; bouton légende
 - Profil altitude / vitesse (et extensions GPX : fréquence cardiaque, cadence, température)
 - Lecture animée avec suivi caméra (échelle 1:500), orientation selon le cap, vue générale
 - Panneau latéral redimensionnable, interface FR / EN
@@ -35,4 +35,4 @@ Bibliothèques : [MapLibre GL JS](https://maplibre.org/) 5.12, [proj4js](http://
 
 ## Auteur
 
-© A.Legat — v1.2.2
+© A.Legat — v1.3
