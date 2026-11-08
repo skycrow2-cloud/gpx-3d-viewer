@@ -19,6 +19,10 @@ Ouvrir `index.html` dans un navigateur récent, puis charger ou glisser-déposer
 
 La connexion OpenStreetMap exige une page servie en `https://` (GitHub Pages convient) ou sur `http://localhost` ; elle ne fonctionne pas en ouvrant le fichier en local (`file://`). Lors de la déclaration de l'application OAuth sur openstreetmap.org, utiliser comme URI de redirection l'adresse exacte de la page (par ex. `https://skycrow2-cloud.github.io/gpx-3d-viewer/`).
 
+### Application Android (APK)
+
+Le dossier `android/` contient une petite application qui ouvre le site publié en plein écran (elle suit donc chaque mise à jour du site). L'APK est construit par GitHub Actions à chaque modification de `android/` et publié dans la release **android-latest** (`GPX3D.apk`) ; on peut aussi le relancer depuis l'onglet Actions (*APK Android* → *Run workflow*).
+
 ### Publier avec GitHub Pages
 
 Settings → Pages → *Deploy from a branch* → branche `main`, dossier `/ (root)`.

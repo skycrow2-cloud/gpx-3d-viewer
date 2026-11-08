@@ -1,0 +1,35 @@
+plugins { id 'com.android.application' }
+
+// numéro de version = numéro d'exécution GitHub Actions (chaque APK peut remplacer le précédent)
+def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int
+
+android {
+    namespace 'io.github.skycrow2cloud.gpx3d'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'io.github.skycrow2cloud.gpx3d'
+        minSdk 24
+        targetSdk 34
+        versionCode runNumber
+        versionName "1.3." + runNumber
+    }
+    signingConfigs {
+        release {
+            // clé de signature fixe : les nouvelles versions s'installent par-dessus les anciennes
+            storeFile file('../gpx3d.jks')
+            storePassword System.getenv('KEYSTORE_PASSWORD')
+            keyAlias 'gpx3d'
+            keyPassword System.getenv('KEYSTORE_PASSWORD')
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
