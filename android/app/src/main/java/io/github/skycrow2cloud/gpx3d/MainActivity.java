@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -23,7 +24,9 @@ import android.webkit.WebViewClient;
  * (GitHub Pages). L'application suit donc automatiquement chaque nouvelle version du site.
  * - les liens vers d'autres sites (Street View, ChasseOnWeb, Waymarked Trails…) s'ouvrent dans le navigateur ;
  * - la connexion OpenStreetMap (OAuth) reste dans l'application pour revenir sur la page ;
- * - le sélecteur de fichier (« Charger un GPX… ») et la géolocalisation sont pris en charge.
+ * - le sélecteur de fichier (« Charger un GPX… ») et la géolocalisation sont pris en charge ;
+ * - « Ouvrir dans The-GPX-Box » passe directement à l'application The-GPX-Box si elle est installée
+ *   (pont JavaScript GpxSuiteAndroid, voir Handoff), sinon la page bascule sur le site.
  */
 public class MainActivity extends Activity {
     static final String HOME = "https://skycrow2-cloud.github.io/gpx-3d-viewer/";
@@ -34,6 +37,13 @@ public class MainActivity extends Activity {
     ValueCallback<Uri[]> fileCallback;
     GeolocationPermissions.Callback geoCallback;
     String geoOrigin;
+    volatile String pendingHandoff;   // trace reçue de The-GPX-Box, en attente d'être lue par la page
+
+    /** Pont JavaScript : window.GpxSuiteAndroid.openOther(json) / takeHandoff() */
+    class Bridge {
+        @JavascriptInterface public boolean openOther(String payload) { return Handoff.send(MainActivity.this, payload); }
+        @JavascriptInterface public String takeHandoff() { String p = pendingHandoff; pendingHandoff = null; return p == null ? "" : p; }
+    }
 
     @Override
     protected void onCreate(Bundle state) {
@@ -102,8 +112,22 @@ public class MainActivity extends Activity {
             }
         });
 
+        web.addJavascriptInterface(new Bridge(), "GpxSuiteAndroid");
+        pendingHandoff = Handoff.read(this, getIntent());
+
         if (state != null) web.restoreState(state);
         else web.loadUrl(HOME);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String p = Handoff.read(this, intent);
+        if (p != null && web != null) {
+            pendingHandoff = p;
+            // page déjà ouverte : elle vient chercher la trace (si la carte n'est pas prête, elle le fera au chargement)
+            web.evaluateJavascript("window.__gpxSuiteReceive && window.__gpxSuiteReceive()", null);
+        }
     }
 
     void openExternal(Uri u) {

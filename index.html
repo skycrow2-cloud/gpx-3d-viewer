@@ -5300,30 +5300,45 @@ function syncPanelVars(){
 <script>
 /* Passage GPX 3D ⇄ The-GPX-Box : les deux pages sont sur le même site (skycrow2-cloud.github.io), elles se
    transmettent la trace par le stockage local (clé 'gpxsuite.handoff') puis ouvrent l'autre page dans son
-   propre onglet, réutilisé d'une fois à l'autre ; l'adresse se termine par #handoff. */
+   propre onglet, réutilisé d'une fois à l'autre ; l'adresse se termine par #handoff.
+   Dans l'application Android (pont window.GpxSuiteAndroid), la trace passe directement à l'application
+   The-GPX-Box si elle est installée ; sinon, on bascule sur le site comme ci-dessus. */
 (function appSwitch(){
   "use strict";
   const KEY = 'gpxsuite.handoff', MAX_AGE_MS = 2 * 60 * 1000;
   const MAKER_URL = 'https://skycrow2-cloud.github.io/the-gpx-box/';
+  const NATIVE = window.GpxSuiteAndroid;
   document.getElementById('btnToMaker').addEventListener('click', e => {
     e.stopPropagation();
     const t = window.__gpx3dState && window.__gpx3dState.track;
+    const payload = (t && t.gpxText) ? JSON.stringify({ gpx: t.gpxText, name: t.fileName || t.name || 'trace', from: 'gpx3d', t: Date.now() }) : '';
+    if (NATIVE){ try { if (NATIVE.openOther(payload)) return; } catch(err){} }   // application The-GPX-Box installée
     try {
-      if (t && t.gpxText) localStorage.setItem(KEY, JSON.stringify({ gpx: t.gpxText, name: t.fileName || t.name || 'trace', from: 'gpx3d', t: Date.now() }));
+      if (payload) localStorage.setItem(KEY, payload);
       else localStorage.removeItem(KEY);
     } catch(err){}
     window.open(MAKER_URL + (t ? '#handoff' : ''), 'the-gpx-box');
   });
-  function receive(){
-    if (location.hash !== '#handoff') return;
-    history.replaceState(null, '', location.pathname + location.search);
-    let h = null;
-    try { h = JSON.parse(localStorage.getItem(KEY) || 'null'); localStorage.removeItem(KEY); } catch(err){}
+  function load(h){
     if (!h || !h.gpx || h.from === 'gpx3d' || Date.now() - h.t > MAX_AGE_MS) return;
     const name = String(h.name || 'trace').replace(/\.gpx$/i, '') + '.gpx';
     window.__gpx3dLoadFile(new File([h.gpx], name, { type: 'application/gpx+xml' }));
   }
+  function receive(){
+    if (NATIVE){                                  // trace reçue de l'application The-GPX-Box
+      let p = '';
+      try { p = NATIVE.takeHandoff(); } catch(err){}
+      if (p){ try { load(JSON.parse(p)); } catch(err){} return; }
+    }
+    if (location.hash !== '#handoff') return;
+    history.replaceState(null, '', location.pathname + location.search);
+    let h = null;
+    try { h = JSON.parse(localStorage.getItem(KEY) || 'null'); localStorage.removeItem(KEY); } catch(err){}
+    load(h);
+  }
   window.addEventListener('hashchange', receive);
+  // appelé par l'application quand une trace arrive alors que la page est ouverte (rien tant que la carte n'est pas prête)
+  window.__gpxSuiteReceive = () => { if (window.__gpx3dMapReady) receive(); };
   // au démarrage : une fois la carte prête (sources de la trace créées) ; « load » peut déjà avoir eu lieu
   if (window.__gpx3dMapReady) receive(); else window.__gpx3dMap.once('load', receive);
 })();
