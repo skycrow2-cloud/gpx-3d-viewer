@@ -39,4 +39,4 @@ Bibliothèques : [MapLibre GL JS](https://maplibre.org/) 5.12, [proj4js](http://
 
 ## Auteur
 
-© A.Legat — v1.3
+© A.Legat — v1.3.1
