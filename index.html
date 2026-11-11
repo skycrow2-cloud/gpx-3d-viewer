@@ -708,7 +708,7 @@
   }
   /* téléphone en paysage : peu de hauteur, panneau latéral étroit et compact */
   @media (max-height: 500px) and (orientation: landscape){
-    :root{ --pitch-h:110px; --pitch-len:88px; --pitch-r:calc(20px + var(--ctl)); }   /* peu de hauteur : l'assiette à gauche de la colonne de boutons, qu'elle chevauchait */
+    :root{ --pitch-h:110px; --pitch-len:88px; }   /* peu de hauteur : assiette plus courte (placée en haut à gauche, voir plus bas) */
     #panel{ width:min(300px, 42vw) !important; min-width:0 !important; padding:8px 12px 8px; gap:8px; }
     .panel-header .tagline, .panel-header h1{ display:none; }   /* 5 boutons + icône : pas de place pour le titre */
     .panel-header img.app-icon{ width:34px; height:34px; }
@@ -726,6 +726,17 @@
     html #topo-opacity:not(.expanded) .to-expand{ display:none; }
     html #topo-opacity-toggle{ display:flex; }
     html #topo-opacity input[type=range]{ width:80px; }
+  }
+  /* téléphone en paysage : assiette en haut à gauche de la carte sous la météo ; échelle, coordonnées et opacité descendues */
+  @media (max-height: 500px) and (orientation: landscape){
+    html #pitch-control{ left:calc(var(--panel-w, 0px) + 10px); right:auto; top:calc(18px + var(--ctl)); bottom:auto; }
+    html #pitch-tooltip{
+      left:calc(var(--panel-w, 0px) + 18px + var(--ctl)); right:auto; top:calc(18px + var(--ctl) + var(--pitch-h, 130px) / 2); bottom:auto;
+      transform:translate(var(--fdx, 0px), calc(var(--fdy, 0px) - 50%));
+    }
+    html .maplibregl-ctrl-bottom-left{ bottom:6px !important; }
+    html #coord-box{ bottom:34px; }
+    html #topo-opacity{ bottom:calc(42px + var(--ctl)); }
   }
   @media (pointer: coarse) and (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
     #panel-toggle{ width:72px; height:30px; }
