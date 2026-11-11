@@ -737,6 +737,8 @@
     html .maplibregl-ctrl-bottom-left{ bottom:6px !important; }
     html #coord-box{ bottom:34px; }
     html #topo-opacity{ bottom:calc(42px + var(--ctl)); }
+    /* languette du panneau : entre l'assiette et la colonne coordonnées / opacité, pour ne plus décaler l'assiette */
+    html #panel-toggle{ width:24px; height:40px; top:calc((18px + var(--ctl) + var(--pitch-h, 110px) + 100% - 82px - 2 * var(--ctl)) / 2); }
   }
   @media (pointer: coarse) and (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
     #panel-toggle{ width:72px; height:30px; }
