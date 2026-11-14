@@ -101,7 +101,23 @@
     transform: rotate(-90deg);
     accent-color: var(--accent);
     cursor:pointer;
+    -webkit-appearance:none; appearance:none; background:transparent; margin:0;
   }
+  /* curseur d'assiette : même habillage que les boutons de menu de la carte (fond verre, liseré, point orange) */
+  #pitch-slider::-webkit-slider-runnable-track{ height:4px; border-radius:99px; background:var(--accent); }
+  #pitch-slider::-moz-range-track{ height:4px; border-radius:99px; background:var(--accent); }
+  #pitch-slider::-webkit-slider-thumb{
+    -webkit-appearance:none; width:var(--pitch-thumb, 18px); height:var(--pitch-thumb, 18px); margin-top:calc((4px - var(--pitch-thumb, 18px)) / 2);
+    border-radius:50%; border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+    background:radial-gradient(circle, var(--accent) 0 26%, transparent 30%), linear-gradient(var(--glass), var(--glass)), var(--panel-bg);
+  }
+  #pitch-slider::-moz-range-thumb{
+    width:var(--pitch-thumb, 18px); height:var(--pitch-thumb, 18px); box-sizing:border-box;
+    border-radius:50%; border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+    background:radial-gradient(circle, var(--accent) 0 26%, transparent 30%), linear-gradient(var(--glass), var(--glass)), var(--panel-bg);
+  }
+  #pitch-slider:hover::-webkit-slider-thumb{ background:radial-gradient(circle, var(--accent) 0 26%, transparent 30%), linear-gradient(var(--glass-hover), var(--glass-hover)), var(--panel-bg); }
+  #pitch-slider:hover::-moz-range-thumb{ background:radial-gradient(circle, var(--accent) 0 26%, transparent 30%), linear-gradient(var(--glass-hover), var(--glass-hover)), var(--panel-bg); }
   #pitch-tooltip{
     position:absolute; z-index:3;
     right:calc(var(--pitch-r, 10px) + var(--ctl) + 6px); bottom:40px;
@@ -710,7 +726,7 @@
     #resize-handle{ width:24px; margin-left:-12px; }
     #panel-toggle{ width:30px; height:64px; }
     :root{ --pitch-h:150px; --pitch-len:124px; }   /* barre d'assiette plus longue au doigt */
-    #pitch-slider{ height:36px; }
+    #pitch-slider{ height:36px; --pitch-thumb:24px; }
     #map-ctx-menu .ctx-item{ padding:12px 10px; font-size:14px; }
     #map-ctx-menu .ctx-item input{ width:20px; height:20px; }
     .seek{ height:28px; }
@@ -1090,7 +1106,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.4.0 · © A.Legat</p>
+      <p class="version-line">v1.4.1 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
