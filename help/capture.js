@@ -109,6 +109,7 @@ async function newContext(browser, opts = {}){
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, locale: 'fr-BE', ...opts });
   if (LOCAL_JS.maplibre) await ctx.route('**/maplibre-gl.min.js', r => r.fulfill({ path: LOCAL_JS.maplibre, contentType: 'text/javascript' }));
   if (LOCAL_JS.proj4) await ctx.route('**/proj4.js', r => r.fulfill({ path: LOCAL_JS.proj4, contentType: 'text/javascript' }));
+  ctx.setDefaultTimeout(60000);
   return ctx;
 }
 async function open(ctx, base){
@@ -155,6 +156,47 @@ async function shot(page, name, opts = {}){
     console.warn('  ! ' + path.basename(file) + ' : ' + e.message.split('\n')[0]);
   }
 }
+/* commandes passées directement au DOM : pendant une lecture animée (ou un chargement de
+   tuiles sur un runner sans carte graphique), la page n'est jamais « stable » et les clics,
+   cases et curseurs de Playwright finissent par expirer. */
+async function jsClick(page, sel){
+  await page.evaluate(s => { const e = document.querySelector(s); if (e) e.click(); }, sel);
+  await sleep(300);
+}
+async function setCheck(page, sel, on){
+  await page.evaluate(([s, v]) => {
+    const c = document.querySelector(s);
+    if (c && c.checked !== v){ c.checked = v; c.dispatchEvent(new Event('change', { bubbles: true })); }
+  }, [sel, on]);
+  await sleep(300);
+}
+async function setRange(page, sel, value){
+  await page.evaluate(([s, v]) => {
+    const r = document.querySelector(s);
+    if (!r) return;
+    r.value = String(v);
+    r.dispatchEvent(new Event('input', { bubbles: true }));
+    r.dispatchEvent(new Event('change', { bubbles: true }));
+  }, [sel, value]);
+  await sleep(300);
+}
+async function selectIndex(page, sel, index){
+  await page.evaluate(([s, i]) => {
+    const el = document.querySelector(s);
+    if (!el || !el.options[i]) return;
+    el.selectedIndex = i;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }, [sel, index]);
+  await sleep(300);
+}
+/* capture d'une carte en cours de lecture : on met en pause le temps du cliché,
+   sinon la capture elle-même peut expirer */
+async function shotPaused(page, name){
+  await jsClick(page, '#btn-pause');
+  await sleep(1500);
+  await shot(page, name, { map: true, jpeg: true });
+}
+
 /* ouvre un menu de la carte par le code : un contrôle voisin peut recouvrir le bouton
    quand la mise en page flottante a bougé, ce qui ferait échouer un vrai clic */
 async function openMapMenu(page, id){
@@ -195,7 +237,7 @@ async function images(browser, base){
   await shot(page, '01-interface', { jpeg: true });
   await shot(page, '03-stats', { sel: '#stats-section' });
 
-  await page.selectOption('#mode-select', { index: 2 }).catch(() => {});
+  await selectIndex(page, '#mode-select', 2);
   await sleep(600);
   await shot(page, '04-profil', { sel: '#profile-section' });
   await shot(page, '05-lecture', { sel: '#playback-section' });
@@ -205,25 +247,25 @@ async function images(browser, base){
   await page.evaluate(([lon, lat]) => window.__gpx3dMap.jumpTo({ center: [lon, lat], zoom: 16.5, pitch: 0, bearing: 0 }), [start.lon, start.lat]);
   await sleep(4000);
   await shot(page, '06-depart-arrivee', { map: true, jpeg: true });
-  await page.click('#btn-stop');   // recadre la caméra sur l'ensemble de la trace
+  await jsClick(page, '#btn-stop');   // recadre la caméra sur l'ensemble de la trace
   await sleep(2500);
 
   // lecture en vue générale
-  await page.click('#btn-play');
+  await jsClick(page, '#btn-play');
   await sleep(6000);
-  await shot(page, '07-vue-generale', { map: true, jpeg: true });
-  await page.click('#btn-stop');
+  await shotPaused(page, '07-vue-generale');
+  await jsClick(page, '#btn-stop');
   await sleep(2000);
 
   // suivi rapproché + cap (la vue générale est cochée par défaut : on la décoche)
-  await page.uncheck('#overview-check');
-  await page.check('#orient-check');
-  await page.click('#btn-play');
+  await setCheck(page, '#overview-check', false);
+  await setCheck(page, '#orient-check', true);
+  await jsClick(page, '#btn-play');
   await sleep(14000);
-  await shot(page, '08-suivi', { map: true, jpeg: true });
-  await page.click('#btn-stop');
-  await page.uncheck('#orient-check');   // avant de recocher la vue générale, qui la grise
-  await page.check('#overview-check');
+  await shotPaused(page, '08-suivi');
+  await jsClick(page, '#btn-stop');
+  await setCheck(page, '#orient-check', false);   // avant de recocher la vue générale, qui la grise
+  await setCheck(page, '#overview-check', true);
   await sleep(2500);
 
   // menus de la carte
@@ -235,15 +277,15 @@ async function images(browser, base){
   await closeMapMenu(page, 'menu-legend');
 
   // options et thème clair
-  await page.click('#btnTrackStyle');
+  await jsClick(page, '#btnTrackStyle');
   await sleep(600);
   await shot(page, '11-options', { sel: '#track-style-section' });
-  await page.click('#theme-light');
+  await jsClick(page, '#theme-light');
   await sleep(3000);
   await shot(page, '12-theme-clair', { jpeg: true });
-  await page.click('#theme-dark');
+  await jsClick(page, '#theme-dark');
   await sleep(2000);
-  await page.click('#btnTsClose').catch(() => {});
+  await jsClick(page, '#btnTsClose');
 
   // barre météo (dépliée) et coordonnées
   await page.evaluate(() => {
@@ -252,17 +294,17 @@ async function images(browser, base){
   });
   await sleep(1500);
   await shot(page, '15-meteo', { sel: '#weather-bar' });
-  await page.click('#coord-toggle', { force: true });
+  await jsClick(page, '#coord-toggle');
   const box = await page.locator('#map').boundingBox();
   await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
   await sleep(800);
   await shot(page, '14-coordonnees', { sel: '#coord-box' });
 
   // relief : inclinaison de la caméra
-  await page.locator('#pitch-slider').fill('55');
+  await setRange(page, '#pitch-slider', 55);
   await sleep(3500);
   await shot(page, '16-assiette', { map: true, jpeg: true });
-  await page.locator('#pitch-slider').fill('0');
+  await setRange(page, '#pitch-slider', 0);
   await sleep(2000);
 
   // points de la trace (menu du clic droit)
@@ -272,22 +314,22 @@ async function images(browser, base){
   await page.mouse.up({ button: 'right' });
   await sleep(600);
   await shot(page, '13-menu-clic-droit', { sel: '#map-ctx-menu' });
-  await page.click('#ctx-show-points', { force: true }).catch(() => {});
+  await jsClick(page, '#ctx-show-points');
   await sleep(1800);
   await shot(page, '13-points', { map: true, jpeg: true });
-  await page.click('#ctx-show-points', { force: true }).catch(() => {});
+  await jsClick(page, '#ctx-show-points');
   await page.keyboard.press('Escape');
 
   // panneaux : OpenStreetMap, aide rapide
-  await page.click('#btnOsm');
+  await jsClick(page, '#btnOsm');
   await sleep(900);
   await shot(page, '21-osm', { sel: '#osmPanel' });
-  await page.click('#btnOsmClose').catch(() => page.keyboard.press('Escape'));
+  await jsClick(page, '#btnOsmClose');
   await sleep(500);
-  await page.click('#btnInfo');
+  await jsClick(page, '#btnInfo');
   await sleep(900);
   await shot(page, '22-aide-rapide', { sel: '.doc-modal' });
-  await page.click('#btnDocClose').catch(() => page.keyboard.press('Escape'));
+  await jsClick(page, '#btnDocClose');
   await ctx.close();
 }
 
@@ -304,7 +346,7 @@ async function phoneImages(browser, base){
   await loadDemo(ppage);
   await ppage.screenshot({ path: path.join(IMG, '23-telephone.jpg'), type: 'jpeg', quality: 82 });
   console.log('  ✔ img/23-telephone.jpg');
-  await ppage.click('#btnTools');
+  await jsClick(ppage, '#btnTools');
   await sleep(700);
   await ppage.locator('#tools-menu').screenshot({ path: path.join(IMG, '24-outils.png') });
   console.log('  ✔ img/24-outils.png');
@@ -331,11 +373,11 @@ async function guidanceImages(browser, base){
   });
   const page = await open(ctx, base);
   await loadDemo(page);
-  await page.click('#btn-nav');
+  await jsClick(page, '#btn-nav');
   await page.waitForSelector('#nav-far:not([hidden])', { timeout: 20000 }).catch(() => {});
   await sleep(900);
   await shot(page, '20-guidage-depart', { jpeg: true });
-  await page.click('#nav-far-close');
+  await jsClick(page, '#nav-far-close');
   await sleep(500);
 
   // sur la trace, à l'approche d'un virage marqué
@@ -349,7 +391,7 @@ async function guidanceImages(browser, base){
   await walk(ctx, dTurn - 60, dTurn - 40, { step: 10, ms: 400, offset: 70 });
   await sleep(2500);
   await shotAround(page, '19-guidage-hors-trace', '#track-title-badge', 80);
-  await page.click('#btn-nav');
+  await jsClick(page, '#btn-nav');
   await ctx.close();
 }
 
@@ -405,9 +447,9 @@ async function videos(browser, base){
     prepare: async page => { await sleep(1200); },
     act: async page => {
       await loadDemo(page);
-      await page.click('#btn-play');
+      await jsClick(page, '#btn-play');
       await sleep(11000);
-      await page.click('#btn-stop');
+      await jsClick(page, '#btn-stop');
       await sleep(1500);
     },
   });
@@ -416,13 +458,13 @@ async function videos(browser, base){
     context: geo,
     prepare: async page => { await loadDemo(page); },
     act: async page => {
-      await page.uncheck('#overview-check');
+      await setCheck(page, '#overview-check', false);
       await sleep(1200);
-      await page.check('#orient-check');
+      await setCheck(page, '#orient-check', true);
       await sleep(1200);
-      await page.click('#btn-play');
+      await jsClick(page, '#btn-play');
       await sleep(18000);
-      await page.click('#btn-stop');
+      await jsClick(page, '#btn-stop');
     },
   });
 
@@ -432,18 +474,18 @@ async function videos(browser, base){
     act: async page => {
       await openMapMenu(page, 'menu-map');
       await sleep(800);
-      await page.check('input[name="basemap"][value="cyclosm"]');
+      await setCheck(page, 'input[name="basemap"][value="cyclosm"]', true);
       await sleep(3000);
-      await page.check('input[name="basemap"][value="opentopo"]');
+      await setCheck(page, 'input[name="basemap"][value="opentopo"]', true);
       await sleep(2500);
-      await page.locator('#topo-opacity-range').fill('80');
+      await setRange(page, '#topo-opacity-range', 80);
       await sleep(2500);
-      await page.locator('#topo-opacity-range').fill('30');
+      await setRange(page, '#topo-opacity-range', 30);
       await sleep(2000);
       await closeMapMenu(page, 'menu-map');
-      await page.locator('#pitch-slider').fill('55');
+      await setRange(page, '#pitch-slider', 55);
       await sleep(3500);
-      await page.locator('#pitch-slider').fill('0');
+      await setRange(page, '#pitch-slider', 0);
       await sleep(1500);
     },
   });
@@ -475,7 +517,7 @@ async function videos(browser, base){
     },
     prepare: async (page, ctx) => {
       await loadDemo(page);
-      await page.click('#btn-nav');
+      await jsClick(page, '#btn-nav');
       await sleep(2500);
     },
     act: async (page, ctx) => {
