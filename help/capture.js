@@ -130,8 +130,14 @@ async function open(ctx, base){
   return page;
 }
 async function loadDemo(page, file){
-  await page.setInputFiles('#file-input', file || GPX);
-  await page.waitForSelector('#stats-section:not([hidden])', { timeout: 30000 });
+  for (let essai = 1; essai <= 2; essai++){
+    await page.setInputFiles('#file-input', file || GPX);
+    try { await page.waitForSelector('#stats-section:not([hidden])', { timeout: 60000 }); break; }
+    catch (e) {
+      if (essai === 2) throw e;
+      console.warn('  … trace non chargée après 60 s, nouvel essai');
+    }
+  }
   await page.waitForSelector('#preload-overlay[hidden]', { state: 'attached', timeout: 120000 }).catch(() => {});
   await page.waitForFunction(() => window.__gpx3dMap.loaded(), null, { timeout: 30000 }).catch(() => {});
   await sleep(3000);
@@ -198,11 +204,12 @@ async function selectIndex(page, sel, index){
   }, [sel, index]);
   await sleep(300);
 }
-/* capture d'une carte en cours de lecture : on met en pause le temps du cliché,
-   sinon la capture elle-même peut expirer */
-async function shotPaused(page, name){
-  await jsClick(page, '#btn-pause');
-  await sleep(1500);
+/* capture d'une carte à un point donné du parcours : on y place le curseur de lecture
+   au lieu de capturer pendant l'animation — une page qui se redessine en continu fait
+   expirer la capture elle-même sur un runner sans carte graphique */
+async function shotAt(page, name, frac){
+  await setRange(page, '#seek', Math.round(frac * 1000));
+  await mapIdle(page, 2500);
   await shot(page, name, { map: true, jpeg: true });
 }
 
@@ -259,19 +266,15 @@ async function images(browser, base){
   await jsClick(page, '#btn-stop');   // recadre la caméra sur l'ensemble de la trace
   await sleep(2500);
 
-  // lecture en vue générale
-  await jsClick(page, '#btn-play');
-  await sleep(6000);
-  await shotPaused(page, '07-vue-generale');
+  // vue générale, position à mi-parcours
+  await shotAt(page, '07-vue-generale', 0.45);
   await jsClick(page, '#btn-stop');
   await sleep(2000);
 
   // suivi rapproché + cap (la vue générale est cochée par défaut : on la décoche)
   await setCheck(page, '#overview-check', false);
   await setCheck(page, '#orient-check', true);
-  await jsClick(page, '#btn-play');
-  await sleep(14000);
-  await shotPaused(page, '08-suivi');
+  await shotAt(page, '08-suivi', 0.45);
   await jsClick(page, '#btn-stop');
   await setCheck(page, '#orient-check', false);   // avant de recocher la vue générale, qui la grise
   await setCheck(page, '#overview-check', true);
