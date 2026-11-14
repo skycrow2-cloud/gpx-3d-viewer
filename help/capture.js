@@ -31,6 +31,10 @@ const ROOT = path.resolve(__dirname, '..');
 const IMG = path.join(__dirname, 'img');
 const VID = path.join(__dirname, 'video');
 const GPX = path.join(__dirname, 'demo.gpx');
+const GPX_NAV = path.join(__dirname, 'demo-guidage.gpx');   // trace courte à virages francs, pour le guidage
+/* OpenTopoMap renvoie des tuiles filigranées aux adresses de centre de données (politique
+   d'usage) : les captures passent donc par CartoWeb.be, qui couvre la zone des traces. */
+const CAPTURE_BASEMAP = process.env.CAPTURE_BASEMAP || 'cartoweb';
 const W = 1440, H = 810;          // captures (fenêtre d'ordinateur)
 const VW = 1280, VH = 720;        // vidéos (plus légères)
 const PHONE = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
@@ -56,9 +60,7 @@ const server = http.createServer((req, res) => {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-/* ------------------------------------------------- trace d'exemple : géométrie */
-const PTS = [...fs.readFileSync(GPX, 'utf8').matchAll(/<trkpt[^>]*lat="([-\d.]+)"[^>]*lon="([-\d.]+)"/g)]
-  .map(m => ({ lat: +m[1], lon: +m[2] }));
+/* ------------------------------------------------- traces d'exemple : géométrie */
 const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
 function distM(a, b){
   const dphi = rad(b.lat - a.lat), dl = rad(b.lon - a.lon);
@@ -78,31 +80,37 @@ function dest(p, brg, d){
     lon: p.lon + d * Math.sin(rad(brg)) / (111320 * Math.cos(rad(p.lat))),
   };
 }
-const CUM = [0];
-for (let i = 1; i < PTS.length; i++) CUM[i] = CUM[i - 1] + distM(PTS[i - 1], PTS[i]);
-const TOTAL = CUM[CUM.length - 1];
-/* point situé à `d` mètres du départ, le long de la trace */
-function at(d){
-  d = Math.max(0, Math.min(TOTAL, d));
-  let i = 1;
-  while (i < CUM.length - 1 && CUM[i] < d) i++;
-  const seg = CUM[i] - CUM[i - 1];
-  const t = seg > 0 ? (d - CUM[i - 1]) / seg : 0;
-  const a = PTS[i - 1], b = PTS[i];
-  return { lat: a.lat + (b.lat - a.lat) * t, lon: a.lon + (b.lon - a.lon) * t };
+/* lit un GPX et en tire de quoi se déplacer le long de la trace (mètres depuis le départ) */
+function readTrack(file){
+  const pts = [...fs.readFileSync(file, 'utf8').matchAll(/<trkpt[^>]*lat="([-\d.]+)"[^>]*lon="([-\d.]+)"/g)]
+    .map(m => ({ lat: +m[1], lon: +m[2] }));
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum[i] = cum[i - 1] + distM(pts[i - 1], pts[i]);
+  const total = cum[cum.length - 1];
+  const at = d => {
+    d = Math.max(0, Math.min(total, d));
+    let i = 1;
+    while (i < cum.length - 1 && cum[i] < d) i++;
+    const seg = cum[i] - cum[i - 1];
+    const t = seg > 0 ? (d - cum[i - 1]) / seg : 0;
+    const a = pts[i - 1], b = pts[i];
+    return { lat: a.lat + (b.lat - a.lat) * t, lon: a.lon + (b.lon - a.lon) * t };
+  };
+  /* changement de cap à `d` mètres : même fenêtre de 30 m que le guidage de l'outil */
+  const turnAt = d => {
+    const h1 = bearing(at(d - 30), at(d)), h2 = bearing(at(d), at(d + 30));
+    return ((h2 - h1 + 540) % 360) - 180;
+  };
+  /* virage le plus marqué après `from` mètres, avec de la marge pour l'aborder */
+  const findTurn = (from, minDeg) => {
+    for (let d = from; d < total - 60; d += 5) if (Math.abs(turnAt(d)) >= minDeg) return d;
+    return Math.min(from + 200, total - 100);
+  };
+  const headingAt = d => bearing(at(Math.max(0, d - 5)), at(Math.min(total, d + 5)));
+  return { file, pts, cum, total, at, turnAt, findTurn, headingAt };
 }
-/* changement de cap à `d` mètres (même fenêtre de 30 m que le guidage de l'outil) */
-function turnAt(d){
-  const h1 = bearing(at(d - 30), at(d)), h2 = bearing(at(d), at(d + 30));
-  return ((h2 - h1 + 540) % 360) - 180;
-}
-/* premier virage marqué après `from` mètres : la caméra a de la marge pour l'aborder */
-function findTurn(from, minDeg){
-  for (let d = from; d < TOTAL - 60; d += 5) if (Math.abs(turnAt(d)) >= minDeg) return d;
-  return Math.min(from + 200, TOTAL - 100);
-}
-/* cap de la trace à `d` mètres (pour décaler la position perpendiculairement) */
-function headingAt(d){ return bearing(at(Math.max(0, d - 5)), at(Math.min(TOTAL, d + 5))); }
+const DEMO = readTrack(GPX);
+const NAV = readTrack(GPX_NAV);
 
 /* ---------------------------------------------------------------- navigateur */
 async function newContext(browser, opts = {}){
@@ -117,11 +125,12 @@ async function open(ctx, base){
   page.on('pageerror', e => console.warn('  [erreur page]', e.message));
   await page.goto(base + '/index.html');
   await page.waitForFunction(() => window.__gpx3dMapReady === true, null, { timeout: 60000 }).catch(() => {});
-  await sleep(2000);
+  await setCheck(page, 'input[name="basemap"][value="' + CAPTURE_BASEMAP + '"]', true);
+  await sleep(2500);
   return page;
 }
-async function loadDemo(page){
-  await page.setInputFiles('#file-input', GPX);
+async function loadDemo(page, file){
+  await page.setInputFiles('#file-input', file || GPX);
   await page.waitForSelector('#stats-section:not([hidden])', { timeout: 30000 });
   await page.waitForSelector('#preload-overlay[hidden]', { state: 'attached', timeout: 120000 }).catch(() => {});
   await page.waitForFunction(() => window.__gpx3dMap.loaded(), null, { timeout: 30000 }).catch(() => {});
@@ -223,7 +232,7 @@ async function shotAround(page, name, sel, pad = 70){
 /* ---------------------------------------------------------------- captures */
 async function images(browser, base){
   console.log('Captures…');
-  const start = PTS[0];
+  const start = DEMO.pts[0];
   const ctx = await newContext(browser, {
     permissions: ['geolocation'],
     geolocation: { latitude: start.lat, longitude: start.lon, accuracy: 8 },
@@ -335,7 +344,7 @@ async function images(browser, base){
 
 async function phoneImages(browser, base){
   console.log('Captures téléphone…');
-  const start = PTS[0];
+  const start = DEMO.pts[0];
   // téléphone : mise en page empilée et menu Outils
   const pctx = await newContext(browser, {
     viewport: { width: PHONE.width, height: PHONE.height },
@@ -353,12 +362,18 @@ async function phoneImages(browser, base){
   await pctx.close();
 }
 
-/* positions successives le long de la trace, transmises comme des relevés GPS */
-async function walk(ctx, fromD, toD, opts = {}){
+/* attend que la carte ait fini de charger ce qu'elle affiche (tuiles comprises) */
+async function mapIdle(page, extra){
+  await page.waitForFunction(() => window.__gpx3dMap && window.__gpx3dMap.loaded(), null, { timeout: 30000 }).catch(() => {});
+  await sleep(extra || 1500);
+}
+
+/* positions successives le long d'une trace, transmises comme des relevés GPS */
+async function walk(ctx, trk, fromD, toD, opts = {}){
   const step = opts.step || 4, ms = opts.ms || 250, off = opts.offset || 0;
   for (let d = fromD; d <= toD; d += step){
-    let p = at(d);
-    if (off) p = dest(p, headingAt(d) + 90, off);
+    let p = trk.at(d);
+    if (off) p = dest(p, trk.headingAt(d) + 90, off);
     await ctx.setGeolocation({ latitude: p.lat, longitude: p.lon, accuracy: opts.accuracy || 8 });
     await sleep(ms);
   }
@@ -366,31 +381,30 @@ async function walk(ctx, fromD, toD, opts = {}){
 
 async function guidanceImages(browser, base){
   console.log('Captures du guidage…');
-  const far = dest(PTS[0], 25, 3000);   // 3 km du départ : la fenêtre « départ éloigné » s'ouvre
+  const far = dest(NAV.pts[0], 25, 3000);   // 3 km du départ : la fenêtre « départ éloigné » s'ouvre
   const ctx = await newContext(browser, {
     permissions: ['geolocation'],
     geolocation: { latitude: far.lat, longitude: far.lon, accuracy: 8 },
   });
   const page = await open(ctx, base);
-  await loadDemo(page);
+  await loadDemo(page, GPX_NAV);
   await jsClick(page, '#btn-nav');
   await page.waitForSelector('#nav-far:not([hidden])', { timeout: 20000 }).catch(() => {});
   await sleep(900);
   await shot(page, '20-guidage-depart', { jpeg: true });
   await jsClick(page, '#nav-far-close');
-  await sleep(500);
 
-  // sur la trace, à l'approche d'un virage marqué
-  const dTurn = findTurn(250, 60);
-  await walk(ctx, dTurn - 140, dTurn - 60, { step: 8, ms: 160 });
-  await sleep(2000);
-  await shotAround(page, '18-guidage-virage', '#track-title-badge', 80);
+  // sur la trace, à l'approche d'un virage franc
+  const dTurn = NAV.findTurn(120, 60);
+  await walk(ctx, NAV, dTurn - 140, dTurn - 60, { step: 8, ms: 160 });
+  await mapIdle(page, 2500);
+  await shotAround(page, '18-guidage-virage', '#track-title-badge', 90);
   await shot(page, '17-guidage-etat', { sel: '#nav-section' });
 
   // écart de 70 m : au-delà de deux fois la tolérance, la sortie est signalée tout de suite
-  await walk(ctx, dTurn - 60, dTurn - 40, { step: 10, ms: 400, offset: 70 });
-  await sleep(2500);
-  await shotAround(page, '19-guidage-hors-trace', '#track-title-badge', 80);
+  await walk(ctx, NAV, dTurn - 60, dTurn - 40, { step: 10, ms: 400, offset: 70 });
+  await mapIdle(page, 2500);
+  await shotAround(page, '19-guidage-hors-trace', '#track-title-badge', 90);
   await jsClick(page, '#btn-nav');
   await ctx.close();
 }
@@ -439,7 +453,7 @@ async function recordVideo(browser, base, name, scenario){
 async function video(browser, base, name, scenario){ return safe('video ' + name, () => recordVideo(browser, base, name, scenario)); }
 
 async function videos(browser, base){
-  const start = PTS[0];
+  const start = DEMO.pts[0];
   const geo = { permissions: ['geolocation'], geolocation: { latitude: start.lat, longitude: start.lon, accuracy: 8 } };
 
   await video(browser, base, '01-demarrer', {
@@ -473,11 +487,7 @@ async function videos(browser, base){
     prepare: async page => { await loadDemo(page); },
     act: async page => {
       await openMapMenu(page, 'menu-map');
-      await sleep(800);
-      await setCheck(page, 'input[name="basemap"][value="cyclosm"]', true);
-      await sleep(3000);
-      await setCheck(page, 'input[name="basemap"][value="opentopo"]', true);
-      await sleep(2500);
+      await sleep(2000);
       await setRange(page, '#topo-opacity-range', 80);
       await sleep(2500);
       await setRange(page, '#topo-opacity-range', 30);
@@ -507,24 +517,24 @@ async function videos(browser, base){
     },
   });
 
-  // guidage GPS : marche simulée, sortie de trace puis retour
-  const dTurn = findTurn(250, 60);
-  const d0 = Math.max(40, dTurn - 180);
+  // guidage GPS : marche simulée sur la trace à virages, sortie de trace puis retour
+  const dTurn = NAV.findTurn(120, 60);
+  const d0 = Math.max(40, dTurn - 120);
   await video(browser, base, '04-guidage', {
     context: {
       permissions: ['geolocation'],
-      geolocation: { latitude: at(d0).lat, longitude: at(d0).lon, accuracy: 8 },
+      geolocation: { latitude: NAV.at(d0).lat, longitude: NAV.at(d0).lon, accuracy: 8 },
     },
     prepare: async (page, ctx) => {
-      await loadDemo(page);
+      await loadDemo(page, GPX_NAV);
       await jsClick(page, '#btn-nav');
-      await sleep(2500);
+      await sleep(3000);
     },
     act: async (page, ctx) => {
-      await walk(ctx, d0, dTurn + 60, { step: 3, ms: 220 });            // approche et passage du virage
-      await walk(ctx, dTurn + 60, dTurn + 110, { step: 5, ms: 260, offset: 70 });  // sortie de trace
-      await sleep(2500);
-      await walk(ctx, dTurn + 110, dTurn + 150, { step: 5, ms: 260 });  // retour sur la trace
+      await walk(ctx, NAV, d0, dTurn + 120, { step: 3, ms: 220 });                      // approche et passage du virage
+      await walk(ctx, NAV, dTurn + 120, dTurn + 170, { step: 5, ms: 260, offset: 70 }); // sortie de trace
+      await sleep(3000);
+      await walk(ctx, NAV, dTurn + 170, dTurn + 230, { step: 5, ms: 260 });             // retour sur la trace
       await sleep(2000);
     },
   });
@@ -534,7 +544,9 @@ async function videos(browser, base){
 (async () => {
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   const base = 'http://127.0.0.1:' + server.address().port;
-  console.log('Trace d\'exemple : ' + PTS.length + ' points, ' + (TOTAL / 1000).toFixed(2) + ' km');
+  console.log('Traces d\'exemple : ' + DEMO.pts.length + ' points / ' + (DEMO.total / 1000).toFixed(2) + ' km'
+    + ' · guidage ' + NAV.pts.length + ' points / ' + (NAV.total / 1000).toFixed(2) + ' km'
+    + ' · fond ' + CAPTURE_BASEMAP);
   const browser = await chromium.launch({
     executablePath: CHROME_PATH || undefined,
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],

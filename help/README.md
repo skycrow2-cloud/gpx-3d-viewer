@@ -1,7 +1,8 @@
 # Aide illustrée de GPX 3D
 
 - `index.html` — la page d'aide, bilingue FR / EN (bouton **i** de l'outil → « Aide illustrée », ou `help/index.html`).
-- `demo.gpx` — trace d'exemple fictive : elle illustre toute l'aide et se télécharge depuis la page.
+- `demo.gpx` — trace d'exemple fictive (boucle de 6,5 km) : elle illustre l'aide et se télécharge depuis la page.
+- `demo-guidage.gpx` — sentier d'exemple court (0,86 km) avec des virages francs et un demi-tour : la boucle de `demo.gpx` est trop lisse (aucun changement de cap ≥ 45°) pour illustrer le guidage.
 - `capture.js` — génère `img/*.png|jpg` et `video/*.mp4` en pilotant l'outil réel.
 - `img/`, `video/` — les médias, déposés par l'action GitHub. Tant qu'un média manque, l'aide affiche un cadre pointillé à sa place.
 
@@ -50,5 +51,8 @@ Variables d'environnement utiles à la mise au point hors ligne : `CHROME_PATH` 
 | `video/04-guidage` | guidage GPS simulé : virage, sortie de trace, retour |
 | `video/05-profil` | déplacer la position en glissant sur le profil |
 
-Le guidage est capturé avec une **géolocalisation simulée** (Playwright) qui suit la trace d'exemple :
+Le guidage est capturé avec une **géolocalisation simulée** (Playwright) qui suit `demo-guidage.gpx` :
 aucun déplacement réel n'est nécessaire. Le temps de chargement est coupé au montage des vidéos.
+
+Les captures utilisent **CartoWeb.be** comme fond (variable `CAPTURE_BASEMAP`) : OpenTopoMap, le fond par
+défaut de l'outil, renvoie des tuiles filigranées aux adresses de centre de données comme celles des runners.
