@@ -13,6 +13,9 @@ Le plus simple est de laisser faire l'action **« Aide — captures et vidéos �
 (`all`, `img` ou `video`). Elle exécute le script sur un runner, puis commite `help/img` et `help/video`.
 Elle part aussi d'elle-même quand `index.html`, `help/capture.js` ou `help/demo.gpx` changent.
 
+L'action part sur `index.html`, `help/capture.js` et `help/demo.gpx` ; après une modification de
+`help/demo-guidage.gpx`, relancez-la à la main.
+
 À la main, depuis la racine du dépôt :
 
     npm i playwright && npx playwright install --with-deps chromium
