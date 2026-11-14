@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.801 --> 00:00:06.351
+To begin, load a GPX file: the panel button, or simply drag and drop one.
+
+2
+00:00:28.115 --> 00:00:33.235
+The map frames the track. The start is marked in green, the finish in red.
+
+3
+00:00:34.429 --> 00:00:39.897
+The Play button replays the route: a blue dot moves along the track, and the profile follows.
+
+4
+00:00:45.743 --> 00:00:48.448
+The Stop button goes back to the whole track.
