@@ -39,6 +39,7 @@ const W = 1440, H = 810;          // captures (fenêtre d'ordinateur)
 const VW = 1280, VH = 720;        // vidéos (plus légères)
 const PHONE = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
 const what = process.argv[2] || 'all';
+const only = process.argv[3] || null;   // ne traiter qu'une vidéo : node help/capture.js video 04-guidage
 const CHROME_PATH = process.env.CHROME_PATH || null;
 const LOCAL_JS = { maplibre: process.env.MAPLIBRE_JS, proj4: process.env.PROJ4_JS };
 
@@ -422,6 +423,109 @@ async function guidanceImages(browser, base){
 }
 
 /* ---------------------------------------------------------------- vidéos */
+/* ============================================================
+   Narration des vidéos
+   Chaque ligne est accrochée à un repère (« mark ») posé par le scénario au moment
+   exact où l'action se produit : la voix reste calée même si le runner est lent.
+   La synthèse est faite par Piper (voix de synthèse libre, hors ligne) quand les
+   variables PIPER_BIN / PIPER_FR / PIPER_EN sont là, sinon par espeak-ng ; sans
+   aucun des deux, les vidéos restent muettes.
+   ============================================================ */
+const LANGS = ['fr', 'en'];
+const NARRATION = {
+  '01-demarrer': [
+    { at: 'charger', fr: "Pour commencer, chargez un fichier GPX : le bouton du panneau, ou un simple glisser-déposer.",
+                     en: "To begin, load a GPX file: the panel button, or simply drag and drop one." },
+    { at: 'charge',  fr: "La carte se cadre sur la trace. Le départ est marqué en vert, l'arrivée en rouge.",
+                     en: "The map frames the track. The start is marked in green, the finish in red." },
+    { at: 'lecture', fr: "Le bouton Lecture rejoue le parcours : un point bleu avance le long de la trace, et le profil suit.",
+                     en: "The Play button replays the route: a blue dot moves along the track, and the profile follows." },
+    { at: 'arret',   fr: "Le bouton Arrêt revient à la trace entière.",
+                     en: "The Stop button goes back to the whole track." },
+  ],
+  '02-suivi-cap': [
+    { at: 'vue',     fr: "Décochez « Rester en vue générale » : le suivi et le cap deviennent disponibles.",
+                     en: "Untick Stay in overview: follow and heading become available." },
+    { at: 'cap',     fr: "Avec le cap, la carte pivote pour regarder le tracé de côté.",
+                     en: "With heading on, the map turns to look at the track from the side." },
+    { at: 'lecture', fr: "La caméra reste collée au point, à l'échelle un pour cinq cents, et la trace se dessine au fur et à mesure.",
+                     en: "The camera stays locked on the point, at a scale of one to five hundred, and the track is drawn as it goes." },
+  ],
+  '03-fonds': [
+    { at: 'menu',     fr: "Le menu des fonds réunit le fond de carte, les superpositions et l'opacité.",
+                      en: "The basemap menu gathers the basemap, the overlays and the opacity." },
+    { at: 'opacite',  fr: "Le curseur règle le plan par-dessus la photo aérienne : ici jusqu'à quatre-vingts pour cent, puis retour à trente.",
+                      en: "The slider sets the map over the aerial photo: here up to eighty percent, then back to thirty." },
+    { at: 'assiette', fr: "La barre verticale incline la vue : le relief apparaît, avec son ombrage.",
+                      en: "The vertical bar tilts the view: the terrain appears, with its hillshading." },
+  ],
+  '05-profil': [
+    { at: 'profil',  fr: "Le profil montre l'altitude et la vitesse du parcours.",
+                     en: "The profile shows the elevation and the speed along the route." },
+    { at: 'glisser', fr: "Glissez dessus : la position se déplace sur la carte, au même instant.",
+                     en: "Drag across it: the position moves on the map at the same time." },
+  ],
+  '04-guidage': [
+    { at: 'depart', fr: "Sur le terrain, la pastille n'affiche qu'une flèche et une distance.",
+                    en: "In the field, the badge shows only an arrow and a distance." },
+    { at: 'virage', fr: "À l'approche d'un changement de direction, la flèche en montre le sens, et le chiffre la distance qui reste.",
+                    en: "As a direction change comes up, the arrow shows which way, and the figure how far it still is." },
+    { at: 'hors',   fr: "Si vous quittez la trace, la pastille passe au rouge : la flèche pointe vers elle et donne la distance pour la rejoindre.",
+                    en: "If you leave the track, the badge turns red: the arrow points to it and gives the distance to rejoin it." },
+    { at: 'retour', fr: "Dès que vous êtes revenu dessus, le guidage reprend.",
+                    en: "As soon as you are back on it, guidance resumes." },
+  ],
+};
+
+const TTS = {
+  bin: process.env.PIPER_BIN,
+  model: { fr: process.env.PIPER_FR, en: process.env.PIPER_EN },
+  fake: process.env.TTS_FAKE === '1',   // mise au point : un bip à la place de la voix
+  engine: null,
+};
+function ttsEngine(){
+  if (TTS.engine) return TTS.engine;
+  if (TTS.fake) return (TTS.engine = 'bip');
+  if (TTS.bin && fs.existsSync(TTS.bin) && TTS.model.fr && fs.existsSync(TTS.model.fr)) return (TTS.engine = 'piper');
+  try { execFileSync('espeak-ng', ['--version'], { stdio: 'ignore' }); return (TTS.engine = 'espeak-ng'); } catch (e) {}
+  return (TTS.engine = 'aucun');
+}
+/* fabrique un fichier WAV à partir d'un texte ; renvoie sa durée en secondes, ou 0 */
+function synth(text, lang, out){
+  const engine = ttsEngine();
+  try {
+    if (engine === 'piper'){
+      const model = TTS.model[lang] || TTS.model.fr;
+      execFileSync(TTS.bin, ['--model', model, '--output_file', out], { input: text, stdio: ['pipe', 'ignore', 'ignore'] });
+    } else if (engine === 'espeak-ng'){
+      execFileSync('espeak-ng', ['-v', lang === 'en' ? 'en-gb' : 'fr', '-s', '155', '-w', out, '--', text], { stdio: 'ignore' });
+    } else if (engine === 'bip'){
+      const d = Math.max(1.5, text.split(/\s+/).length * 0.38);
+      execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'sine=frequency=330:duration=' + d.toFixed(2), out]);
+    } else return 0;
+    return mediaDuration(out);
+  } catch (e) {
+    console.warn('  ! synthèse vocale (' + engine + ') : ' + String(e.message || e).split('\n')[0]);
+    return 0;
+  }
+}
+function mediaDuration(file){
+  try {
+    const out = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file]);
+    return parseFloat(String(out).trim()) || 0;
+  } catch (e) { return 0; }
+}
+function vttTime(t){
+  const h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + s.toFixed(3).padStart(6, '0');
+}
+/* sous-titres : même texte que la voix, utile quand le son est coupé */
+function writeVtt(file, lines){
+  const body = lines.map((l, i) =>
+    (i + 1) + '\n' + vttTime(l.t) + ' --> ' + vttTime(l.t + Math.max(1.6, l.dur)) + '\n' + l.text + '\n').join('\n');
+  fs.writeFileSync(file, 'WEBVTT\n\n' + body);
+}
+
 async function recordVideo(browser, base, name, scenario){
   console.log('Vidéo ' + name + '…');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gpx3d-vid-'));
@@ -435,7 +539,11 @@ async function recordVideo(browser, base, name, scenario){
   const video = page.video();
   if (scenario.prepare) await scenario.prepare(page, ctx);
   const skip = Math.min(90, Math.max(0, (Date.now() - t0) / 1000 - 0.8));   // on coupe le chargement au montage
-  await scenario.act(page, ctx);
+  const tAct = Date.now();
+  const marks = {};
+  /* repère posé par le scénario : la narration s'y accroche (+0,8 s gardées avant l'action) */
+  const mark = label => { if (!(label in marks)) marks[label] = (Date.now() - tAct) / 1000 + 0.8; };
+  await scenario.act(page, ctx, mark);
   await sleep(600);
   await ctx.close();
   if (!video){   // enregistrement indisponible (ffmpeg de Playwright absent)
@@ -445,93 +553,151 @@ async function recordVideo(browser, base, name, scenario){
     return;
   }
   const webm = await video.path();
-  const mp4 = path.join(VID, name + '.mp4');
-  const encode = from => execFileSync('ffmpeg', ['-y', '-loglevel', 'error']
-    .concat(from > 0 ? ['-ss', from.toFixed(1)] : [])
-    .concat(['-i', webm, '-an', '-c:v', 'libx264', '-crf', '30', '-preset', 'veryfast',
-             '-pix_fmt', 'yuv420p', '-movflags', '+faststart', mp4]));
-  try {
-    encode(skip);
-    // garde-fou : si la coupe du chargement a tout emporté, on réencode la vidéo entière
-    if (fs.statSync(mp4).size < 20000) encode(0);
-    console.log('  ✔ video/' + name + '.mp4 (' + Math.round(fs.statSync(mp4).size / 1024) + ' Ko)');
-  } catch (e) {
-    fs.copyFileSync(webm, path.join(VID, name + '.webm'));
-    console.warn('  ffmpeg indisponible : video/' + name + '.webm écrit à la place');
-  }
+  for (const lang of LANGS) await buildVideo(webm, skip, name, lang, marks, dir);
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
-async function video(browser, base, name, scenario){ return safe('video ' + name, () => recordVideo(browser, base, name, scenario)); }
+/* assemble une version d'une vidéo : coupe du chargement, voix posées sur les repères,
+   sous-titres tirés du même texte */
+async function buildVideo(webm, skip, name, lang, marks, dir, key){
+  const mp4 = path.join(VID, name + '.' + lang + '.mp4');
+  const lines = [];
+  for (const l of (NARRATION[key || name] || [])){
+    const t = marks[l.at];
+    if (t == null){ console.warn('  ! repère « ' + l.at + ' » absent de ' + name); continue; }
+    const wav = path.join(dir, name + '-' + lang + '-' + l.at + '.wav');
+    const dur = synth(l[lang], lang, wav);
+    if (dur > 0) lines.push({ t, dur, text: l[lang], wav });
+  }
+  lines.sort((a, b) => a.t - b.t);
+  lines.forEach((l, i) => {
+    const next = lines[i + 1];
+    if (next && l.t + l.dur > next.t + 0.3)
+      console.warn('  ! ' + name + ' (' + lang + ') : la phrase « ' + l.text.slice(0, 30) + '… » déborde sur la suivante');
+  });
+
+  const args = ['-y', '-loglevel', 'error'];
+  if (skip > 0) args.push('-ss', skip.toFixed(1));
+  args.push('-i', webm);
+  lines.forEach(l => args.push('-i', l.wav));
+  if (lines.length){
+    const parts = lines.map((l, i) =>
+      '[' + (i + 1) + ':a]adelay=' + Math.round(l.t * 1000) + ':all=1[d' + i + ']');
+    const mix = lines.map((l, i) => '[d' + i + ']').join('') +
+      'amix=inputs=' + lines.length + ':normalize=0:dropout_transition=0[m]';
+    parts.push(mix, '[m]aresample=44100,aformat=channel_layouts=stereo,volume=1.4[a]');
+    args.push('-filter_complex', parts.join(';'), '-map', '0:v', '-map', '[a]',
+      '-c:a', 'aac', '-b:a', '96k', '-shortest');
+  } else {
+    args.push('-an');
+  }
+  args.push('-c:v', 'libx264', '-crf', '30', '-preset', 'veryfast', '-pix_fmt', 'yuv420p',
+    '-movflags', '+faststart', mp4);
+  try {
+    execFileSync('ffmpeg', args);
+    if (fs.statSync(mp4).size < 20000 && skip > 0){   // la coupe a tout emporté : on reprend depuis le début
+      return buildVideo(webm, 0, name, lang, marks, dir, key);
+    }
+    if (lines.length) writeVtt(path.join(VID, name + '.' + lang + '.vtt'), lines);
+    console.log('  ✔ video/' + name + '.' + lang + '.mp4 (' + Math.round(fs.statSync(mp4).size / 1024) + ' Ko, '
+      + (lines.length ? lines.length + ' phrases, voix ' + ttsEngine() : 'muet') + ')');
+  } catch (e) {
+    missing.push('video ' + name + '.' + lang);
+    console.warn('  ! montage de ' + name + ' (' + lang + ') : ' + String(e.message || e).split('\n')[0]);
+  }
+}
+
+async function video(browser, base, name, scenario){
+  if (only && !name.includes(only)) return;
+  return safe('video ' + name, () => recordVideo(browser, base, name, scenario));
+}
 
 async function videos(browser, base){
+  // anciens fichiers sans langue (01-demarrer.mp4) : remplacés par 01-demarrer.fr.mp4 / .en.mp4
+  if (!only) for (const f of fs.readdirSync(VID)) if (/^[0-9]{2}-[a-z0-9-]+\.(mp4|webm)$/.test(f)) fs.rmSync(path.join(VID, f));
   const start = DEMO.pts[0];
   const geo = { permissions: ['geolocation'], geolocation: { latitude: start.lat, longitude: start.lon, accuracy: 8 } };
 
   await video(browser, base, '01-demarrer', {
     context: geo,
     prepare: async page => { await sleep(1200); },
-    act: async page => {
+    act: async (page, ctx, mark) => {
+      mark('charger');
+      await sleep(3500);
       await loadDemo(page);
+      mark('charge');
+      await sleep(6000);
       await jsClick(page, '#btn-play');
+      mark('lecture');
       await sleep(11000);
       await jsClick(page, '#btn-stop');
-      await sleep(1500);
+      mark('arret');
+      await sleep(4000);
     },
   });
 
   await video(browser, base, '02-suivi-cap', {
     context: geo,
     prepare: async page => { await loadDemo(page); },
-    act: async page => {
+    act: async (page, ctx, mark) => {
       await setCheck(page, '#overview-check', false);
-      await sleep(1200);
+      mark('vue');
+      await sleep(5000);
       await setCheck(page, '#orient-check', true);
-      await sleep(1200);
+      mark('cap');
+      await sleep(5000);
       await jsClick(page, '#btn-play');
+      mark('lecture');
       await sleep(18000);
       await jsClick(page, '#btn-stop');
+      await sleep(2000);
     },
   });
 
   await video(browser, base, '03-fonds', {
     context: geo,
     prepare: async page => { await loadDemo(page); },
-    act: async page => {
+    act: async (page, ctx, mark) => {
       await openMapMenu(page, 'menu-map');
-      await sleep(2000);
+      mark('menu');
+      await sleep(5000);
       await setRange(page, '#topo-opacity-range', 80);
-      await sleep(2500);
+      mark('opacite');
+      await sleep(4000);
       await setRange(page, '#topo-opacity-range', 30);
-      await sleep(2000);
+      await sleep(3000);
       await closeMapMenu(page, 'menu-map');
       await setRange(page, '#pitch-slider', 55);
-      await sleep(3500);
+      mark('assiette');
+      await sleep(5000);
       await setRange(page, '#pitch-slider', 0);
-      await sleep(1500);
+      await sleep(2500);
     },
   });
 
   await video(browser, base, '05-profil', {
     context: geo,
     prepare: async page => { await loadDemo(page); },
-    act: async page => {
+    act: async (page, ctx, mark) => {
+      mark('profil');
+      await sleep(4500);
       const b = await page.locator('#chart').boundingBox();
       const y = b.y + b.height / 2;
       await page.mouse.move(b.x + 6, y);
       await page.mouse.down();
+      mark('glisser');
       for (let i = 1; i <= 24; i++){
         await page.mouse.move(b.x + (b.width - 12) * (i / 24), y);
-        await sleep(260);
+        await sleep(300);
       }
       await page.mouse.up();
-      await sleep(1200);
+      await sleep(3000);
     },
   });
 
   // guidage GPS : marche simulée sur la trace à virages, sortie de trace puis retour
   const dTurn = NAV.findTurn(120, 60);
-  const d0 = Math.max(40, dTurn - 120);
+  const d0 = Math.max(20, dTurn - 100);   // assez de chemin avant le virage pour la phrase d'ouverture
   await video(browser, base, '04-guidage', {
     context: {
       permissions: ['geolocation'],
@@ -542,18 +708,39 @@ async function videos(browser, base){
       await jsClick(page, '#btn-nav');
       await sleep(3000);
     },
-    act: async (page, ctx) => {
-      await walk(ctx, NAV, d0, dTurn + 120, { step: 3, ms: 220 });                      // approche et passage du virage
-      await walk(ctx, NAV, dTurn + 120, dTurn + 170, { step: 5, ms: 260, offset: 70 }); // sortie de trace
-      await sleep(3000);
-      await walk(ctx, NAV, dTurn + 170, dTurn + 230, { step: 5, ms: 260 });             // retour sur la trace
-      await sleep(2000);
+    act: async (page, ctx, mark) => {
+      mark('depart');
+      await walk(ctx, NAV, d0, dTurn - 40, { step: 2.5, ms: 250 });                     // approche du virage
+      mark('virage');
+      await walk(ctx, NAV, dTurn - 40, dTurn + 110, { step: 2.5, ms: 250 });            // passage du virage
+      mark('hors');
+      await walk(ctx, NAV, dTurn + 110, dTurn + 160, { step: 5, ms: 300, offset: 70 }); // sortie de trace
+      await sleep(7000);
+      await walk(ctx, NAV, dTurn + 160, dTurn + 220, { step: 5, ms: 300 });             // retour sur la trace
+      mark('retour');
+      await sleep(5000);
     },
   });
 }
 
+/* vérifie le montage (voix, mixage, sous-titres) sans navigateur, sur une mire :
+   node help/capture.js audio [nom-de-la-video] */
+async function audioTest(){
+  const name = only || '01-demarrer';
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gpx3d-audio-'));
+  const webm = path.join(dir, 'mire.webm');
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi',
+    '-i', 'testsrc=size=640x360:rate=25:duration=40', '-c:v', 'libvpx', '-b:v', '300k', webm]);
+  const marks = {};
+  (NARRATION[name] || []).forEach((l, i) => { marks[l.at] = 2 + i * 8; });
+  for (const lang of LANGS) await buildVideo(webm, 0, name + '-essai', lang, marks, dir, name);
+  fs.rmSync(dir, { recursive: true, force: true });
+  console.log('Montage d\'essai écrit dans help/video/' + name + '-essai.*');
+}
+
 /* ---------------------------------------------------------------- */
 (async () => {
+  if (what === 'audio'){ await audioTest(); return; }
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   const base = 'http://127.0.0.1:' + server.address().port;
   console.log('Traces d\'exemple : ' + DEMO.pts.length + ' points / ' + (DEMO.total / 1000).toFixed(2) + ' km'

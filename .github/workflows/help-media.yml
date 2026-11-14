@@ -50,6 +50,33 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
 
+      - name: Installer la voix de synthèse (Piper)
+        continue-on-error: true   # sans elle, les vidéos sortent muettes mais le reste passe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          cd "$HOME"
+          url=https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz
+          curl -fsSL "$url" -o piper.tgz || curl -fsSL -o piper.tgz \
+            "$(gh api repos/rhasspy/piper/releases/latest --jq '.assets[] | select(.name|test("linux_x86_64")) | .browser_download_url' | head -1)"
+          tar xzf piper.tgz
+          voix=https://huggingface.co/rhasspy/piper-voices/resolve/main
+          curl -fsSL -o piper/fr.onnx      "$voix/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx"
+          curl -fsSL -o piper/fr.onnx.json "$voix/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json"
+          curl -fsSL -o piper/en.onnx      "$voix/en/en_GB/alba/medium/en_GB-alba-medium.onnx"
+          curl -fsSL -o piper/en.onnx.json "$voix/en/en_GB/alba/medium/en_GB-alba-medium.onnx.json"
+          test -s piper/fr.onnx && test -s piper/en.onnx
+          export LD_LIBRARY_PATH="$HOME/piper"
+          echo bonjour | ./piper/piper --model piper/fr.onnx --output_file /tmp/essai.wav
+          test -s /tmp/essai.wav
+          {
+            echo "PIPER_BIN=$HOME/piper/piper"
+            echo "PIPER_FR=$HOME/piper/fr.onnx"
+            echo "PIPER_EN=$HOME/piper/en.onnx"
+            echo "LD_LIBRARY_PATH=$HOME/piper"
+          } >> "$GITHUB_ENV"
+
       - name: Générer les médias
         run: node help/capture.js ${{ github.event.inputs.cible || 'all' }}
 

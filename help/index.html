@@ -156,13 +156,12 @@
   <p data-l="fr">Pas de fichier sous la main ? Prenez la <a href="demo.gpx" download>trace d'exemple</a> (boucle fictive de 6,5 km en Ardenne) : c'est elle qui illustre cette page. Le <a href="demo-guidage.gpx" download>sentier d'exemple</a>, plus court et plus sinueux, sert aux illustrations du <a href="#guidage">guidage</a>.</p>
   <p data-l="en">No file at hand? Take the <a href="demo.gpx" download>sample track</a> (fictitious 6.5 km loop in the Ardennes): it illustrates this page. The <a href="demo-guidage.gpx" download>sample path</a>, shorter and twistier, is used for the <a href="#guidage">guidance</a> illustrations.</p>
   <figure>
-    <video controls muted playsinline preload="metadata">
-      <source src="video/01-demarrer.mp4" type="video/mp4">
-      <source src="video/01-demarrer.webm" type="video/webm">
-    </video>
+    <video controls playsinline preload="metadata" data-clip="01-demarrer"></video>
     <figcaption data-l="fr">Charger un fichier GPX, puis lancer la lecture du parcours.</figcaption>
     <figcaption data-l="en">Loading a GPX file, then starting playback of the route.</figcaption>
   </figure>
+  <p class="note" data-l="fr">Les cinq vidéos de cette page sont <b>commentées</b> (voix de synthèse) et <b>sous-titrées</b>, en français comme en anglais : le commentaire suit la langue choisie en haut de page.</p>
+  <p class="note" data-l="en">The five videos on this page have a <b>spoken commentary</b> (synthetic voice) and <b>subtitles</b>, in French and in English: the commentary follows the language chosen at the top of the page.</p>
   <figure>
     <img loading="lazy" src="img/00-accueil.jpg" alt="Écran de départ, avant tout chargement">
     <figcaption data-l="fr">L'écran de départ, avant tout chargement : la carte se place sur votre région si vous autorisez la géolocalisation, sinon sur la Belgique.</figcaption>
@@ -298,10 +297,7 @@
   <p data-l="fr"><b>Cliquez ou glissez sur le graphique</b> pour placer la lecture à cet endroit du parcours : le marqueur se déplace sur la carte au même instant.</p>
   <p data-l="en"><b>Click or drag on the chart</b> to move playback to that point of the route: the marker moves on the map at the same time.</p>
   <figure>
-    <video controls muted playsinline preload="metadata">
-      <source src="video/05-profil.mp4" type="video/mp4">
-      <source src="video/05-profil.webm" type="video/webm">
-    </video>
+    <video controls playsinline preload="metadata" data-clip="05-profil"></video>
     <figcaption data-l="fr">Glisser sur le profil déplace la position le long de la trace.</figcaption>
     <figcaption data-l="en">Dragging across the profile moves the position along the track.</figcaption>
   </figure>
@@ -376,10 +372,7 @@
     </figure>
   </div>
   <figure>
-    <video controls muted playsinline preload="metadata">
-      <source src="video/02-suivi-cap.mp4" type="video/mp4">
-      <source src="video/02-suivi-cap.webm" type="video/webm">
-    </video>
+    <video controls playsinline preload="metadata" data-clip="02-suivi-cap"></video>
     <figcaption data-l="fr">Lecture en suivi rapproché, avec orientation selon le cap et relief 3D.</figcaption>
     <figcaption data-l="en">Playback in close follow mode, with heading orientation and 3D terrain.</figcaption>
   </figure>
@@ -404,10 +397,7 @@
     </figure>
   </div>
   <figure>
-    <video controls muted playsinline preload="metadata">
-      <source src="video/04-guidage.mp4" type="video/mp4">
-      <source src="video/04-guidage.webm" type="video/webm">
-    </video>
+    <video controls playsinline preload="metadata" data-clip="04-guidage"></video>
     <figcaption data-l="fr">Guidage simulé sur le <a href="demo-guidage.gpx" download>sentier d'exemple</a> : approche d'un virage, sortie de trace (pastille rouge), puis retour sur la trace.</figcaption>
     <figcaption data-l="en">Simulated guidance on the <a href="demo-guidage.gpx" download>sample path</a>: approaching a turn, leaving the track (red badge), then returning to it.</figcaption>
   </figure>
@@ -546,10 +536,7 @@
     <figcaption data-l="en">Tilt bar pushed to 55°: the relief reads at a glance.</figcaption>
   </figure>
   <figure>
-    <video controls muted playsinline preload="metadata">
-      <source src="video/03-fonds.mp4" type="video/mp4">
-      <source src="video/03-fonds.webm" type="video/webm">
-    </video>
+    <video controls playsinline preload="metadata" data-clip="03-fonds"></video>
     <figcaption data-l="fr">Ouvrir le menu des fonds, régler l'opacité du plan par-dessus la photo aérienne, puis incliner la vue.</figcaption>
     <figcaption data-l="en">Opening the basemap menu, setting the opacity of the map over the aerial photo, then tilting the view.</figcaption>
   </figure>
@@ -780,6 +767,27 @@
       btn.title = (l === 'fr') ? 'Switch to English' : 'Passer en français';
       document.documentElement.setAttribute('lang', l);
       document.title = (l === 'fr') ? 'Aide illustrée · GPX 3D' : 'Illustrated help · GPX 3D';
+      clips(l);
+    }
+    /* chaque vidéo existe en deux versions, commentées et sous-titrées : 01-demarrer.fr.mp4,
+       01-demarrer.en.mp4… On pose la source de la langue courante. */
+    function clips(l){
+      document.querySelectorAll('video[data-clip]').forEach(function(v){
+        var src = 'video/' + v.dataset.clip + '.' + l + '.mp4';
+        if (v.getAttribute('src') === src) return;
+        v.pause();
+        v.closest('figure').classList.remove('missing');
+        v.setAttribute('src', src);
+        v.querySelectorAll('track').forEach(function(t){ t.remove(); });
+        var tr = document.createElement('track');
+        tr.kind = 'captions';
+        tr.srclang = l;
+        tr.label = (l === 'fr') ? 'Français' : 'English';
+        tr.src = 'video/' + v.dataset.clip + '.' + l + '.vtt';
+        tr.default = true;
+        v.appendChild(tr);
+        v.load();
+      });
     }
     btn.addEventListener('click', function(){
       var l = document.documentElement.getAttribute('data-lang') === 'fr' ? 'en' : 'fr';
@@ -794,13 +802,8 @@
   document.querySelectorAll('figure img').forEach(function(img){
     img.addEventListener('error', function(){ img.closest('figure').classList.add('missing'); });
   });
-  document.querySelectorAll('figure video').forEach(function(v){
-    var sources = v.querySelectorAll('source'), failed = 0;
-    sources.forEach(function(s){
-      s.addEventListener('error', function(){
-        if (++failed >= sources.length) v.closest('figure').classList.add('missing');
-      });
-    });
+  document.querySelectorAll('video[data-clip]').forEach(function(v){
+    v.addEventListener('error', function(){ v.closest('figure').classList.add('missing'); });
   });
 
   /* ----- sommaire : met en évidence la section à l'écran ----- */

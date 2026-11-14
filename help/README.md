@@ -48,11 +48,24 @@ Variables d'environnement utiles à la mise au point hors ligne : `CHROME_PATH` 
 | `18-guidage-virage.jpg`, `19-guidage-hors-trace.jpg`, `20-guidage-depart.jpg` | pastilles du guidage et fenêtre « départ éloigné » |
 | `21-osm.png`, `22-aide-rapide.png` | panneau OpenStreetMap, fenêtre d'aide rapide |
 | `23-telephone.jpg`, `24-outils.png` | rendu téléphone, menu Outils |
-| `video/01-demarrer` | charger un GPX puis lancer la lecture |
-| `video/02-suivi-cap` | suivi rapproché avec orientation selon le cap |
-| `video/03-fonds` | changer de fond, régler l'opacité, incliner la vue |
-| `video/04-guidage` | guidage GPS simulé : virage, sortie de trace, retour |
-| `video/05-profil` | déplacer la position en glissant sur le profil |
+| `video/01-demarrer.<lang>` | charger un GPX puis lancer la lecture |
+| `video/02-suivi-cap.<lang>` | suivi rapproché avec orientation selon le cap |
+| `video/03-fonds.<lang>` | changer de fond, régler l'opacité, incliner la vue |
+| `video/04-guidage.<lang>` | guidage GPS simulé : virage, sortie de trace, retour |
+| `video/05-profil.<lang>` | déplacer la position en glissant sur le profil |
+
+## Voix des vidéos
+
+Chaque vidéo existe en français et en anglais (`04-guidage.fr.mp4`, `04-guidage.en.mp4`), avec un
+fichier de sous-titres `.vtt` tiré du même texte. Les phrases sont dans la table `NARRATION` de
+`capture.js` : chacune est accrochée à un **repère** (`mark('virage')`) posé par le scénario au moment
+exact de l'action, donc la voix reste calée même si le runner est lent. Le script prévient quand une
+phrase déborde sur la suivante — c'est le signe qu'il faut allonger l'attente du scénario.
+
+La synthèse est faite par **Piper** (voix `fr_FR-siwis-medium` et `en_GB-alba-medium`), installé par
+l'action ; sans lui, `espeak-ng` prend le relais, et sans aucun des deux les vidéos restent muettes.
+Pour vérifier le montage sans navigateur : `TTS_FAKE=1 node help/capture.js audio 04-guidage`
+(un bip remplace la voix, les fichiers `*-essai.*` sont écrits dans `help/video`).
 
 Le guidage est capturé avec une **géolocalisation simulée** (Playwright) qui suit `demo-guidage.gpx` :
 aucun déplacement réel n'est nécessaire. Le temps de chargement est coupé au montage des vidéos.
