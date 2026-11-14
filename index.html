@@ -1297,6 +1297,7 @@
         <h3>Charger un GPX</h3>
         <ul>
           <li><b>Bouton « Charger un GPX… »</b> ou glisser-déposer d'un fichier <b>.gpx</b> n'importe où dans la fenêtre.</li>
+          <li><b>Application Android</b> : le GPX chargé est repris d'un écran à l'autre (écran externe d'un pliable comme le Motorola razr ⇄ écran principal) et à la réouverture de l'application.</li>
           <li>Si le fichier contient plusieurs traces, une liste déroulante permet de choisir. Les <b>itinéraires</b> (<code>rte</code>) ne sont lus que s'il n'y a aucune trace ; les points de passage isolés (<code>wpt</code>) ne sont pas affichés.</li>
           <li>La carte se cadre sur la trace, puis les tuiles de photo aérienne sont préchargées (bouton « Annuler » disponible) avant l'affichage de la trace complète.</li>
           <li>Le <b>nom de la trace</b> s'affiche dans une pastille centrée en haut de la carte.</li>
@@ -1449,6 +1450,7 @@
         <h3>Loading a GPX</h3>
         <ul>
           <li><b>“Charger un GPX…” button</b> or drag and drop a <b>.gpx</b> file anywhere in the window.</li>
+          <li><b>Android app</b>: the loaded GPX carries over from one screen to the other (cover screen of a foldable such as the Motorola razr ⇄ main screen) and when the app is reopened.</li>
           <li>If the file holds several tracks, a drop-down list lets you pick one. <b>Routes</b> (<code>rte</code>) are read only when there is no track; standalone waypoints (<code>wpt</code>) are not displayed.</li>
           <li>The map frames the track, then aerial photo tiles are preloaded (“Annuler” / Cancel available) before the full track is displayed.</li>
           <li>The <b>track name</b> is shown in a badge centred at the top of the map.</li>
@@ -3315,8 +3317,11 @@ window.addEventListener('drop', e => {
   if (f) loadFile(f);
 });
 
+let loadsPending = 0;   // lectures de fichier en cours (la reprise de session ne passe pas devant un GPX qui arrive)
 function loadFile(file){
   const reader = new FileReader();
+  loadsPending++;
+  reader.onloadend = () => { loadsPending--; };
   reader.onload = () => {
     let tracks;
     try { tracks = parseGPX(reader.result); tracks.forEach(t => { t.gpxText = reader.result; }); }
@@ -3332,12 +3337,58 @@ function loadFile(file){
       el.trackSelect.appendChild(opt);
     });
     el.trackSelect.hidden = tracks.length < 2;
-    selectTrack(0);
+    const idx = (file.__idx > 0 && file.__idx < tracks.length) ? file.__idx : 0;   // trace reprise de la session : même trace choisie
+    el.trackSelect.value = idx;
+    selectTrack(idx);
+    sessionSave(reader.result, file.name, file.__fromSession);
   };
   reader.onerror = () => alert(tx('err.file'));
   reader.readAsText(file);
 }
-el.trackSelect.addEventListener('change', () => selectTrack(parseInt(el.trackSelect.value, 10)));
+el.trackSelect.addEventListener('change', () => { const i = parseInt(el.trackSelect.value, 10); selectTrack(i); sessionIdx(i); });
+
+/* Application Android : continuité entre l'écran externe (pliable Motorola razr) et l'écran principal.
+   Le GPX chargé (et la trace choisie) est gardé dans le stockage local de l'application ; une page qui
+   (re)démarre ou redevient visible, sur l'un ou l'autre écran, reprend ce même GPX. Sur le site : rien. */
+const SESSION_KEY = 'gpx3d.session', SESSION_ON = !!window.GpxSuiteAndroid;
+let sessionStamp = 0;   // horodatage de la session affichée par cette page
+function sessionRead(){ try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ return null; } }
+function sessionWrite(o){
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(o)); }
+  catch(e){ try { localStorage.removeItem(SESSION_KEY); } catch(e2){} }   // GPX trop gros pour le stockage : pas de reprise
+}
+function sessionSave(gpx, name, fromSession){
+  if (!SESSION_ON || fromSession) return;
+  sessionStamp = Date.now();
+  sessionWrite({ gpx, name: name || 'trace.gpx', idx: 0, t: sessionStamp });
+}
+function sessionIdx(i){
+  if (!SESSION_ON) return;
+  const s = sessionRead();
+  if (!s || s.t !== sessionStamp) return;
+  s.idx = i; sessionWrite(s);
+}
+function sessionSync(){
+  if (!SESSION_ON || !window.__gpx3dMapReady || document.hidden) return;
+  const s = sessionRead();
+  if (!s || !s.gpx) return;
+  if (s.t !== sessionStamp){                       // autre GPX chargé sur l'autre écran (ou page redémarrée)
+    if (loadsPending) return;                      // un GPX est déjà en cours de chargement (passage depuis The-GPX-Box…)
+    sessionStamp = s.t;
+    const f = new File([s.gpx], s.name, { type: 'application/gpx+xml' });
+    f.__fromSession = true; f.__idx = s.idx || 0;
+    loadFile(f);
+  } else if (state.tracks.length > 1){             // même GPX, autre trace choisie sur l'autre écran
+    const cur = state.tracks.indexOf(state.track);
+    if (s.idx !== cur && s.idx >= 0 && s.idx < state.tracks.length){ el.trackSelect.value = s.idx; selectTrack(s.idx); }
+  }
+}
+if (SESSION_ON){
+  map.once('load', () => setTimeout(sessionSync, 0));   // après le passage éventuel depuis The-GPX-Box
+  document.addEventListener('visibilitychange', sessionSync);
+  window.addEventListener('focus', sessionSync);
+  window.addEventListener('storage', e => { if (e.key === SESSION_KEY) sessionSync(); });
+}
 // accès pour le passage vers / depuis The-GPX-Box (script séparé, plus bas)
 window.__gpx3dLoadFile = loadFile;
 window.__gpx3dState = state;
