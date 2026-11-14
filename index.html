@@ -1105,7 +1105,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.0 · © A.Legat</p>
+      <p class="version-line">v1.5.1 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1729,7 +1729,7 @@ const I18N = {
     'bm.aerial': "Photo aérienne", 'bm.trails': "Sentiers balisés", 'bm.terrain': "Relief 3D",
     'bm.hunt': "Chasse (SPW, Wallonie)", 'bm.huntDate': "Date",
     'title.legend': "Légende", 'lg.title': "Légende", 'lg.empty': "Rien de particulier à légender.",
-    'lg.track': "Trace GPX", 'lg.pos': "Position (lecture)", 'lg.pts': "Points de la trace",
+    'lg.track': "Trace GPX", 'lg.start': "Départ", 'lg.end': "Arrivée", 'lg.pos': "Position (lecture)", 'lg.pts': "Points de la trace",
     'lg.huntTitle': "Chasse du {date} (SPW)", 'lg.huntClosed': "Chasse avec fermeture des chemins",
     'lg.huntOpen': "Chasse annoncée, chemins ouverts", 'lg.huntTerr': "Limite de territoire de chasse",
     'lg.huntNote': "Wallonie uniquement. Information indicative : seules les affiches sur le terrain font foi.",
@@ -1841,7 +1841,7 @@ const I18N = {
     'bm.aerial': "Aerial photo", 'bm.trails': "Waymarked trails", 'bm.terrain': "3D terrain",
     'bm.hunt': "Hunting (SPW, Wallonia)", 'bm.huntDate': "Date",
     'title.legend': "Legend", 'lg.title': "Legend", 'lg.empty': "Nothing in particular to explain.",
-    'lg.track': "GPX track", 'lg.pos': "Position (playback)", 'lg.pts': "Track points",
+    'lg.track': "GPX track", 'lg.start': "Start", 'lg.end': "Finish", 'lg.pos': "Position (playback)", 'lg.pts': "Track points",
     'lg.huntTitle': "Hunting on {date} (SPW)", 'lg.huntClosed': "Hunt with paths closed",
     'lg.huntOpen': "Hunt announced, paths open", 'lg.huntTerr': "Hunting territory boundary",
     'lg.huntNote': "Wallonia only. For information only: the signs on site prevail.",
@@ -2992,6 +2992,8 @@ function renderLegend(){
     h += row(line(currentTrackColor()), tx('lg.track'));
     let pc = '#49b6c4', ps = '#0e1217';
     try { pc = map.getPaintProperty('position-point', 'circle-color') || pc; ps = map.getPaintProperty('position-point', 'circle-stroke-color') || ps; } catch(e){}
+    h += row(dot(START_COLOR, '#ffffff'), tx('lg.start'));
+    h += row(dot(END_COLOR, '#ffffff'), tx('lg.end'));
     h += row(dot(pc, ps), tx('lg.pos'));
     if (map.getLayer('track-points') && map.getLayoutProperty('track-points', 'visibility') === 'visible')
       h += row(dot('#ffffff', '#e8a33d'), tx('lg.pts'));
@@ -3201,6 +3203,20 @@ map.on('load', () => {
     id: 'hover-point', type: 'circle', source: 'hover',
     paint: { 'circle-radius': 6, 'circle-color': '#ffffff', 'circle-stroke-width': 3, 'circle-stroke-color': '#49b6c4' }
   });
+
+  // repères de départ (vert) et d'arrivée (rouge), au-dessus du point de lecture (posé sur l'arrivée au repos).
+  // boucle : départ dessiné par-dessus l'arrivée, plus petit → pastille verte cerclée de rouge
+  map.addSource('start-end', { type: 'geojson', data: emptyPoint() });
+  map.addLayer({
+    id: 'start-end-points', type: 'circle', source: 'start-end',
+    paint: {
+      'circle-radius': ['case', ['==', ['get', 'k'], 'end'], 9, 7],
+      'circle-color': ['case', ['==', ['get', 'k'], 'end'], END_COLOR, START_COLOR],
+      'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff',
+      'circle-pitch-alignment': 'viewport'
+    }
+  }, 'hover-point');
+  if (state.track) setStartEndSource(state.track);
 });
 
 /* ============================================================
@@ -3355,6 +3371,16 @@ function applyMarkerStyle(){
   map.setPaintProperty('position-point', 'circle-radius', ov ? 8 : 7);
   map.setPaintProperty('position-point', 'circle-stroke-width', ov ? 3 : 2);
   map.setPaintProperty('position-point', 'circle-stroke-color', ov ? '#ffffff' : '#0e1217');
+}
+const START_COLOR = '#2fbf71', END_COLOR = '#e5484d';
+function setStartEndSource(track){
+  const src = map.getSource('start-end'); if (!src) return;
+  if (!track || !track.points.length){ src.setData(emptyPoint()); return; }
+  const a = track.points[0], z = track.points[track.points.length - 1];
+  src.setData({ type: 'FeatureCollection', features: [   // arrivée d'abord : le départ est dessiné par-dessus
+    { type: 'Feature', geometry: { type: 'Point', coordinates: [z.lon, z.lat] }, properties: { k: 'end' } },
+    { type: 'Feature', geometry: { type: 'Point', coordinates: [a.lon, a.lat] }, properties: { k: 'start' } },
+  ]});
 }
 function setPositionSource(coord){ const src = map.getSource('position'); if (src) src.setData(pointFeature(coord)); }
 
@@ -4036,6 +4062,7 @@ function showFullTrack(track){
   const coords = track.coords;
   setTrackSource(coords.length < 2 ? [coords[0]||[0,0], coords[0]||[0,0]] : coords);
   setTrackProgress(1); // trace entièrement visible
+  setStartEndSource(track);
   const last = track.points[n-1];
   setPositionSource([last.lon, last.lat]);
   requestPlaceWeather(track.points[0].lat, track.points[0].lon, true); // trace complète : lieu + météo du point de départ
@@ -4264,8 +4291,8 @@ const NAV_TURN_MIN_DEG = 45;
 const NAV_TURN_MERGE_M = 40;
 const NAV_SCALE_DENOM = 2500;   // échelle de la caméra pendant le guidage (1/2500)
 const NAV_LOST_MS = 20000;      // sans relevé depuis 20 s : signal perdu
-const NAV_PAN_PAUSE_MS = 8000;
-const NAV_START_FAR_M = 500;    // départ à plus de 500 m (et trace pas encore rejointe) : proposer une appli d'itinéraire  // après un déplacement manuel de la carte, recentrage suspendu 8 s
+const NAV_PAN_PAUSE_MS = 8000;  // après un déplacement manuel de la carte, recentrage suspendu 8 s
+const NAV_START_FAR_M = 500;    // départ à plus de 500 m (et trace pas encore rejointe) : proposer une appli d'itinéraire
 
 var navEl = {
   section: document.getElementById('nav-section'),
