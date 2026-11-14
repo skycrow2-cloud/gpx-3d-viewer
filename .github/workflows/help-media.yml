@@ -1,0 +1,81 @@
+name: Aide — captures et vidéos
+
+# Génère les illustrations de l'aide (help/img, help/video) en pilotant l'outil réel
+# avec help/demo.gpx, puis les dépose dans le dépôt. Le runner a l'accès Internet
+# nécessaire aux tuiles de carte, ce qui n'est pas le cas d'un poste hors ligne.
+#
+# Déclenchement : manuel (Actions → « Aide — captures et vidéos » → Run workflow),
+# ou automatique quand l'outil ou le script de captures changent.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cible:
+        description: "Médias à générer"
+        type: choice
+        options: [all, img, video]
+        default: all
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'help/capture.js'
+      - 'help/demo.gpx'
+      - '.github/workflows/help-media.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: help-media
+  cancel-in-progress: false
+
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer Playwright et ffmpeg
+        run: |
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+          npx playwright install ffmpeg || true   # requis par l'enregistrement vidéo de Playwright
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Générer les médias
+        run: node help/capture.js ${{ github.event.inputs.cible || 'all' }}
+
+      - name: Récapitulatif
+        run: |
+          echo "### Médias générés" >> "$GITHUB_STEP_SUMMARY"
+          ls -la help/img help/video 2>/dev/null | sed 's/^/    /' >> "$GITHUB_STEP_SUMMARY" || true
+          du -sh help/img help/video 2>/dev/null | sed 's/^/    /' >> "$GITHUB_STEP_SUMMARY" || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aide-medias
+          path: |
+            help/img
+            help/video
+          if-no-files-found: warn
+
+      - name: Déposer dans le dépôt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A help/img help/video
+          if git diff --cached --quiet; then
+            echo "Aucun média modifié."
+            exit 0
+          fi
+          git commit -m "Aide : captures et vidéos régénérées (run ${{ github.run_number }})"
+          git pull --rebase origin main
+          git push origin HEAD:main

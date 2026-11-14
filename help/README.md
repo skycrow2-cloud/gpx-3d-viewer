@@ -1,15 +1,54 @@
-# Aide en ligne GPX 3D
+# Aide illustrée de GPX 3D
 
-- `index.html` — la page d'aide (lien « Aide illustrée » dans la fenêtre « i » de l'outil, ou `help/index.html`).
-- `demo.gpx` — trace d'exemple fictive, utilisée pour les captures et téléchargeable depuis l'aide.
-- `capture.js` — génère `img/*.png` et `video/*.mp4` à partir de l'outil réel.
+- `index.html` — la page d'aide, bilingue FR / EN (bouton **i** de l'outil → « Aide illustrée », ou `help/index.html`).
+- `demo.gpx` — trace d'exemple fictive : elle illustre toute l'aide et se télécharge depuis la page.
+- `capture.js` — génère `img/*.png|jpg` et `video/*.mp4` en pilotant l'outil réel.
+- `img/`, `video/` — les médias, déposés par l'action GitHub. Tant qu'un média manque, l'aide affiche un cadre pointillé à sa place.
 
-## Générer les captures et vidéos
+## Régénérer les médias
 
-Depuis la racine du dépôt (Internet requis pour les tuiles de carte) :
+Les captures ont besoin d'Internet (tuiles de carte, MapLibre par CDN, Nominatim et Open-Meteo).
+Le plus simple est de laisser faire l'action **« Aide — captures et vidéos »** : onglet *Actions* → *Run workflow*
+(`all`, `img` ou `video`). Elle exécute le script sur un runner, puis commite `help/img` et `help/video`.
+Elle part aussi d'elle-même quand `index.html`, `help/capture.js` ou `help/demo.gpx` changent.
 
-    npm i playwright && npx playwright install chromium
-    node help/capture.js          # tout (ou : img / video)
+À la main, depuis la racine du dépôt :
 
-`ffmpeg` convertit les vidéos en .mp4 (sinon .webm). Tant qu'un média manque, l'aide affiche un cadre pointillé à sa place.
-Relancer le script après toute modification de l'interface garde l'aide à jour.
+    npm i playwright && npx playwright install --with-deps chromium
+    node help/capture.js            # ou : img / video
+
+`ffmpeg` convertit les vidéos en `.mp4` ; sans lui elles restent en `.webm`, que la page accepte aussi.
+Une capture qui échoue (service injoignable, élément masqué) n'interrompt pas les autres : le script
+liste les médias manquants à la fin.
+
+Variables d'environnement utiles à la mise au point hors ligne : `CHROME_PATH` (Chrome du système),
+`MAPLIBRE_JS` et `PROJ4_JS` (copies locales des bibliothèques servies à la place du CDN).
+
+## Ce que contient chaque média
+
+| Fichier | Contenu |
+|---|---|
+| `00-accueil.jpg` | écran de départ, sans trace |
+| `01-interface.jpg` | vue d'ensemble, trace chargée |
+| `02-charger.png` | zone de chargement du panneau |
+| `03-stats.png`, `04-profil.png` | statistiques, profil altitude + vitesse |
+| `05-lecture.png` | commandes de lecture et cases de caméra |
+| `06-depart-arrivee.jpg` | repères vert (départ) et rouge (arrivée) |
+| `07-vue-generale.jpg`, `08-suivi.jpg` | lecture en vue générale, puis en suivi 1:500 avec cap |
+| `09-fonds.png`, `10-legende.png` | menu des fonds de carte, légende |
+| `11-options.png`, `12-theme-clair.jpg` | options, thème clair |
+| `13-menu-clic-droit.png`, `13-points.jpg` | menu du clic droit, points affichés |
+| `14-coordonnees.png`, `15-meteo.png` | boîte de coordonnées, barre lieu + météo |
+| `16-assiette.jpg` | vue inclinée à 55° |
+| `17-guidage-panneau.png`, `17-guidage-etat.png` | section guidage : bouton, case, ligne d'état |
+| `18-guidage-virage.jpg`, `19-guidage-hors-trace.jpg`, `20-guidage-depart.jpg` | pastilles du guidage et fenêtre « départ éloigné » |
+| `21-osm.png`, `22-aide-rapide.png` | panneau OpenStreetMap, fenêtre d'aide rapide |
+| `23-telephone.jpg`, `24-outils.png` | rendu téléphone, menu Outils |
+| `video/01-demarrer` | charger un GPX puis lancer la lecture |
+| `video/02-suivi-cap` | suivi rapproché avec orientation selon le cap |
+| `video/03-fonds` | changer de fond, régler l'opacité, incliner la vue |
+| `video/04-guidage` | guidage GPS simulé : virage, sortie de trace, retour |
+| `video/05-profil` | déplacer la position en glissant sur le profil |
+
+Le guidage est capturé avec une **géolocalisation simulée** (Playwright) qui suit la trace d'exemple :
+aucun déplacement réel n'est nécessaire. Le temps de chargement est coupé au montage des vidéos.
