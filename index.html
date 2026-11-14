@@ -3392,18 +3392,19 @@ const VIEW_KEY = 'gpx3d.view', PAGE_ID = Math.random().toString(36).slice(2);
 const VIEW_CTLS = '#menu-map input, #topo-opacity-range, #follow-check, #orient-check, #overview-check, #mode-select, #duration';
 let viewApplying = false, viewSeen = 0, viewTimer = null, viewPending = false;   // viewPending : trace reprise de l'autre écran, vue à appliquer une fois chargée
 function ctlKey(c){ return c.id || (c.name + ':' + c.value); }
-function viewSave(){
+function viewSave(now){
   if (!SESSION_ON || viewApplying || viewPending || !sessionStamp) return;   // pas pendant la reprise depuis l'autre écran
   clearTimeout(viewTimer);
-  viewTimer = setTimeout(() => {
+  const write = () => {
     const c = map.getCenter(), ctl = {};
     document.querySelectorAll(VIEW_CTLS).forEach(x => { ctl[ctlKey(x)] = (x.type === 'checkbox' || x.type === 'radio') ? x.checked : x.value; });
     const full = !state.labelInfo || state.labelInfo.kind === 'full';
     const at = Date.now(); viewSeen = at;
     try { localStorage.setItem(VIEW_KEY, JSON.stringify({ t: sessionStamp, from: PAGE_ID, at,
       cam: { c: [c.lng, c.lat], z: map.getZoom(), b: map.getBearing(), p: map.getPitch(), e: map.getCenterElevation ? map.getCenterElevation() : 0 },
-      pos: full ? null : state.position, ctl })); } catch(e){}
-  }, 250);
+      pos: full ? null : state.position, playing: !!state.playing, ctl })); } catch(e){}
+  };
+  if (now === true) write(); else viewTimer = setTimeout(write, 250);   // écran quitté : tout de suite (la page peut être gelée)
 }
 /* reprend la vue enregistrée par l'autre écran ; afterLoad : la trace vient d'être (re)chargée ici */
 function viewApply(afterLoad){
@@ -3436,6 +3437,7 @@ function viewApply(afterLoad){
         map.setMaxBounds([[mb.getWest() - gx, Math.max(-85, mb.getSouth() - gy)], [mb.getEast() + gx, Math.min(85, mb.getNorth() + gy)]]);
       }
     }
+    if (v.playing && state.track) el.btnPlay.click();   // lecture en cours sur l'autre écran : elle continue ici
   } finally {
     setTimeout(() => { viewApplying = false; }, 300);   // les « moveend » du saut ne réécrivent pas la vue
   }
@@ -3444,8 +3446,8 @@ if (SESSION_ON){
   map.on('moveend', viewSave);
   document.addEventListener('change', e => { if (e.target.closest && e.target.closest(VIEW_CTLS)) viewSave(); });
   document.addEventListener('input', e => { if (e.target.closest && (e.target.closest(VIEW_CTLS) || e.target === el.seek)) viewSave(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden){ viewSave(); } });
-  window.addEventListener('pagehide', viewSave);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) viewSave(true); });
+  window.addEventListener('pagehide', () => viewSave(true));
   window.addEventListener('storage', e => { if (e.key === VIEW_KEY && !document.hidden) viewApply(false); });
 }
 if (SESSION_ON){
