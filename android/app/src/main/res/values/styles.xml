@@ -5,4 +5,13 @@
         <item name="android:statusBarColor">#0e1217</item>
         <item name="android:navigationBarColor">#0e1217</item>
     </style>
+    <!-- statistiques du widget « dernière trace » -->
+    <style name="WidgetStat">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">10dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#e6e9ee</item>
+        <item name="android:textSize">13sp</item>
+    </style>
 </resources>

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GPX 3D</string>
+    <string name="widget_desc">Dernière trace ouverte : distance, dénivelé, profil</string>
+    <string name="widget_empty">GPX 3D — touchez pour ouvrir une trace</string>
+    <string name="widget_track">Trace</string>
 </resources>

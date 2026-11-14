@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_desc">Last opened track: distance, elevation, profile</string>
+    <string name="widget_empty">GPX 3D — tap to open a track</string>
+    <string name="widget_track">Track</string>
+</resources>

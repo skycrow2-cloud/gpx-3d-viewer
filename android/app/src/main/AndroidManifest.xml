@@ -37,5 +37,17 @@
             android:authorities="io.github.skycrow2cloud.gpx3d.handoff"
             android:exported="false"
             android:grantUriPermissions="true" />
+        <!-- widget « dernière trace » (écran d'accueil, écran externe des pliables type Motorola razr) -->
+        <receiver
+            android:name=".TrackWidget"
+            android:exported="false"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_track_info" />
+        </receiver>
     </application>
 </manifest>

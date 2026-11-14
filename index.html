@@ -3450,6 +3450,27 @@ function updateStats(track){
     if (!track.hasTime) notes.push(tx('note.noTime'));
     el.stats.innerHTML += `<div class="stat wide"><span class="stat-note">${notes.join(' ')}</span></div>`;
   }
+  sendToAndroidWidget(track, gain, loss);
+}
+/* application Android : résumé de la trace pour le widget « dernière trace » (écran d'accueil, écran externe razr) */
+function sendToAndroidWidget(track, gain, loss){
+  const NATIVE = window.GpxSuiteAndroid;
+  if (!NATIVE || typeof NATIVE.updateWidget !== 'function') return;
+  try {
+    const pts = track.points, n = pts.length, N = Math.min(160, n);
+    const ele = [];
+    for (let k = 0; k < N; k++){
+      const e = pts[Math.round(k * (n - 1) / Math.max(1, N - 1))].ele;
+      ele.push(e == null ? null : Math.round(e));
+    }
+    const times = pts.filter(p => p.time != null);
+    const durS = times.length > 1 ? Math.round((times[times.length - 1].time - times[0].time) / 1000) : null;
+    NATIVE.updateWidget(JSON.stringify({
+      name: trackName(track), km: track.totalDistanceKm,
+      gain: track.hasElevation ? gain : null, loss: track.hasElevation ? loss : null,
+      durS, ele: track.hasElevation ? ele : null,
+    }));
+  } catch(e){}
 }
 function stat(label, value){
   return `<div class="stat"><span class="stat-label">${label}</span><span class="stat-value">${value}</span></div>`;

@@ -39,8 +39,9 @@ public class MainActivity extends Activity {
     String geoOrigin;
     volatile String pendingHandoff;   // trace reçue de The-GPX-Box, en attente d'être lue par la page
 
-    /** Pont JavaScript : window.GpxSuiteAndroid.openOther(json) / takeHandoff() */
+    /** Pont JavaScript : window.GpxSuiteAndroid.openOther(json) / takeHandoff() / updateWidget(json) */
     class Bridge {
+        @JavascriptInterface public void updateWidget(String json) { TrackWidget.save(getApplicationContext(), json); }
         @JavascriptInterface public boolean openOther(String payload) { return Handoff.send(MainActivity.this, payload); }
         @JavascriptInterface public String takeHandoff() { String p = pendingHandoff; pendingHandoff = null; return p == null ? "" : p; }
     }
