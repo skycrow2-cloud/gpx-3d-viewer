@@ -144,9 +144,24 @@ async function loadDemo(page, file){
 }
 /* zone de carte réellement visible (à droite du panneau) : cadrage des captures de carte */
 async function mapClip(page){
+  const vp = page.viewportSize();
   const p = await page.locator('#panel').boundingBox();
   const left = Math.round((p ? p.x + p.width : 0) + 10);
-  return { x: left, y: 10, width: W - left - 10, height: H - 20 };
+  return { x: left, y: 10, width: vp.width - left - 10, height: vp.height - 20 };
+}
+/* cadrage d'un élément, borné à la fenêtre : `locator.screenshot` attend un élément
+   « stable », ce que la carte qui se redessine derrière un menu translucide empêche */
+async function clipOf(page, sel, pad){
+  const b = await page.locator(sel).first().boundingBox({ timeout: 15000 });
+  if (!b) throw new Error('élément absent : ' + sel);
+  pad = pad || 0;
+  const vp = page.viewportSize();
+  const x = Math.max(0, Math.floor(b.x - pad)), y = Math.max(0, Math.floor(b.y - pad));
+  return {
+    x, y,
+    width: Math.max(1, Math.min(Math.ceil(b.width + 2 * pad), vp.width - x)),
+    height: Math.max(1, Math.min(Math.ceil(b.height + 2 * pad), vp.height - y)),
+  };
 }
 const missing = [];
 /* une étape qui échoue n'interrompt pas les suivantes : les autres médias sont quand même produits */
@@ -161,7 +176,7 @@ async function shot(page, name, opts = {}){
   const file = path.join(IMG, name + (jpeg ? '.jpg' : '.png'));
   const o = jpeg ? { path: file, type: 'jpeg', quality: 82 } : { path: file };
   try {
-    if (opts.sel) await page.locator(opts.sel).first().screenshot({ ...o, timeout: 15000 });
+    if (opts.sel) await page.screenshot({ ...o, clip: await clipOf(page, opts.sel) });
     else if (opts.clip) await page.screenshot({ ...o, clip: opts.clip });
     else if (opts.map) await page.screenshot({ ...o, clip: await mapClip(page) });
     else await page.screenshot(o);
@@ -227,12 +242,8 @@ async function closeMapMenu(page, id){
 
 /* capture d'un élément avec sa marge de carte autour (pastille de guidage, etc.) */
 async function shotAround(page, name, sel, pad = 70){
-  const b = await page.locator(sel).first().boundingBox().catch(() => null);
-  if (!b){ missing.push(name); return console.warn('  ! élément introuvable : ' + sel); }
-  const clip = {
-    x: Math.max(0, b.x - pad), y: Math.max(0, b.y - pad),
-    width: Math.min(W, b.width + 2 * pad), height: Math.min(H, b.height + 2 * pad),
-  };
+  const clip = await clipOf(page, sel, pad).catch(() => null);
+  if (!clip){ missing.push(name); return console.warn('  ! élément introuvable : ' + sel); }
   await shot(page, name, { clip, jpeg: true });
 }
 
@@ -356,12 +367,10 @@ async function phoneImages(browser, base){
   });
   const ppage = await open(pctx, base);
   await loadDemo(ppage);
-  await ppage.screenshot({ path: path.join(IMG, '23-telephone.jpg'), type: 'jpeg', quality: 82 });
-  console.log('  ✔ img/23-telephone.jpg');
+  await shot(ppage, '23-telephone', { jpeg: true });
   await jsClick(ppage, '#btnTools');
   await sleep(700);
-  await ppage.locator('#tools-menu').screenshot({ path: path.join(IMG, '24-outils.png') });
-  console.log('  ✔ img/24-outils.png');
+  await shot(ppage, '24-outils', { sel: '#tools-menu' });
   await pctx.close();
 }
 
