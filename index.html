@@ -650,6 +650,22 @@
     text-overflow:ellipsis;
   }
   #track-title-badge[hidden]{ display:none; }
+  /* guidage GPS : la pastille du nom devient le bandeau d'instruction (même placement) */
+  #track-title-badge.nav{
+    display:flex; align-items:center; gap:10px;
+    white-space:normal; border-radius:14px; padding:7px 14px 7px 10px;
+    font-size:15px; font-weight:600; color:var(--text); line-height:1.25;
+    min-width:min(260px, 80vw);
+  }
+  #track-title-badge.nav.off{ border-color:#e5484d; background:rgba(229,72,77,.82); color:#fff; }
+  #track-title-badge.nav.warn{ border-color:#e8a33d; }
+  #track-title-badge.nav .nav-arrow{ flex:none; width:34px; height:34px; color:var(--accent); }
+  #track-title-badge.nav.off .nav-arrow{ color:#fff; }
+  #track-title-badge.nav .nav-sub{ display:block; font-size:12px; font-weight:500; color:var(--text-muted); }
+  #track-title-badge.nav.off .nav-sub{ color:#fff; }
+  .nav-status{ margin:0; font-size:12px; line-height:1.45; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+  .nav-status b{ color:var(--accent); font-weight:600; }
+  #btn-nav.active{ background:#e5484d; border-color:#e5484d; }
 
   /* --------------------------------------------------- préchargement */
   .overlay{
@@ -1063,9 +1079,18 @@
       <p class="position-label" id="position-label">—</p>
     </div>
 
+    <div class="panel-section" id="nav-section" hidden>
+      <button class="btn btn-primary" id="btn-nav" type="button" style="width:100%;">Suivre cette trace sur le terrain (GPS)</button>
+      <label class="checkbox-row">
+        <input type="checkbox" id="nav-voice" checked>
+        <span data-i18n="nav.voice">Annonces vocales et vibrations</span>
+      </label>
+      <p class="nav-status" id="nav-status" hidden></p>
+    </div>
+
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.3.1 · © A.Legat</p>
+      <p class="version-line">v1.4.0 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1325,6 +1350,16 @@
           <li><b>Vue générale</b> : la trace entière est cadrée et reste affichée en entier (pas de dessin progressif) ; seul un point bleu la parcourt, et la caméra ne bouge plus (suivi et cap sont désactivés sans changer leur état). La durée saisie est alors la durée réelle de lecture ; elle est proposée automatiquement (environ 6 s par km, entre 30 et 600 s) et mémorisée séparément de celle du mode suivi.</li>
         </ul>
 
+        <h3>Suivre la trace sur le terrain (GPS)</h3>
+        <ul>
+          <li>Bouton <b>Suivre cette trace sur le terrain</b> (sous la lecture) : la carte se centre sur votre position réelle (1:2500, orientée dans le sens de marche si « Cap » est coché) ; la partie déjà parcourue est colorée. La lecture animée arrête le guidage.</li>
+          <li><b>Changements de direction majeurs</b> : tout virage d'au moins 45° (cap mesuré sur 30 m avant et après) est annoncé dans la pastille en haut de la carte avec une flèche et la distance : légèrement (45–70°), tourner (70–110°), virage serré (110–150°), demi-tour (≥ 150°). Annonce vocale vers 80 m puis « Maintenant » à l'approche, avec vibration (case <b>Annonces vocales et vibrations</b>).</li>
+          <li><b>Hors trace</b> : la tolérance s'adapte à la qualité du signal : 15 m + 1,5 × la précision annoncée par le GPS, entre 25 et 120 m (GPS ±8 m → 27 m ; ±40 m → 75 m). La sortie est confirmée après deux relevés (au moins 3 s) ou immédiatement au-delà de deux fois la tolérance ; le retour est validé sous 70 % de la tolérance. La pastille passe au rouge avec la distance et la direction pour rejoindre la trace.</li>
+          <li>Signal faible (précision au-delà de 100 m) : pas de verdict hors trace. Sans relevé depuis 20 s : « Signal GPS perdu ». Marche en sens inverse de la trace : signalée.</li>
+          <li>Boucles et allers-retours : la position est recherchée d'abord autour du dernier point reconnu, en favorisant la continuité, puis sur toute la trace si vous l'avez quittée.</li>
+          <li>Un déplacement manuel de la carte suspend le recentrage 8 s ; un zoom manuel est conservé. L'écran reste allumé pendant le guidage (navigateurs compatibles et application Android).</li>
+        </ul>
+
         <h3>Affichage de la carte</h3>
         <ul>
           <li><b>Fond de carte</b> : bouton carte (dans la carte, sous Street View). Fond au choix : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM (vélo / VTT). Superpositions : <b>photo aérienne</b> (cochée par défaut ; un curseur en bas de la carte règle alors l'opacité du fond par-dessus, 30 % au départ, 0 % = photo seule), <b>sentiers balisés</b> (Waymarked Trails), <b>chasse</b> (carte du SPW pour la Wallonie : territoires où une chasse est annoncée à la date choisie, aujourd'hui par défaut ; hachures rouges = chemins fermés) et <b>relief 3D</b> (coché par défaut). La trace passe de l'orange au bleu quand le fond dessiné domine. Le fond et les sentiers choisis sont mémorisés. Hors de la zone couverte par un fond régional (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap est affichée à sa place.</li>
@@ -1476,6 +1511,16 @@
           <li><b>Follow</b> (checked by default): the camera stays centred on the point at scale 1:500, capped at 1:1000 during the first 10 seconds while tiles load. A manual gesture pauses following and resumes it 300 ms later; a manual zoom is kept until stop.</li>
           <li><b>Heading</b>: the map rotates to look at the track from the side (+90° relative to the direction of travel), with a 25 m look-ahead and smoothing.</li>
           <li><b>Overview</b>: the whole track is framed and stays fully drawn (no progressive drawing); only a blue dot travels along it, and the camera stays put (follow and heading are disabled without changing their state). The duration you enter is then the real playback time; it is suggested automatically (about 6 s per km, between 30 and 600 s) and stored separately from the follow-mode one.</li>
+        </ul>
+
+        <h3>Following the track in the field (GPS)</h3>
+        <ul>
+          <li><b>Follow this track in the field</b> button (below playback): the map centres on your real position (1:2500, rotated to your walking direction if “Heading” is ticked); the part already covered is coloured. Animated playback stops the guidance.</li>
+          <li><b>Major direction changes</b>: any turn of at least 45° (heading measured over 30 m before and after) is shown in the badge at the top of the map with an arrow and the distance: bear (45–70°), turn (70–110°), sharp (110–150°), U-turn (≥ 150°). Spoken prompt at about 80 m, then “Now” when close, with vibration (<b>Voice prompts and vibrations</b> box).</li>
+          <li><b>Off track</b>: the tolerance follows the signal quality: 15 m + 1.5 × the accuracy reported by the GPS, between 25 and 120 m (GPS ±8 m → 27 m; ±40 m → 75 m). Leaving is confirmed after two fixes (at least 3 s) or at once beyond twice the tolerance; returning is accepted below 70 % of the tolerance. The badge turns red with the distance and direction to rejoin the track.</li>
+          <li>Weak signal (accuracy above 100 m): no off-track verdict. No fix for 20 s: “GPS signal lost”. Walking the wrong way along the track is reported.</li>
+          <li>Loops and out-and-back sections: your position is first searched around the last matched point, favouring continuity, then over the whole track if you have left it.</li>
+          <li>Panning the map by hand pauses re-centring for 8 s; a manual zoom is kept. The screen stays on during guidance (supporting browsers and the Android app).</li>
         </ul>
 
         <h3>Map display</h3>
@@ -1742,7 +1787,20 @@ const I18N = {
     'w.windShort': "vent {v} km/h", 'w.show': "Afficher la météo", 'w.hide': "Replier la météo", 'w.src': "Météo actuelle à cet endroit", 'w.srcTime': " · relevé de {t} (heure locale)",
     'pos.full': "Trajet complet : {n} / {n} — {km} km",
     'pos.cur': "Position : {i} / {n} — {d} / {km} km",
-    preload: "Préchargement des tuiles de photos aériennes sur l'ensemble du trajet… ({done} / {total})"
+    preload: "Préchargement des tuiles de photos aériennes sur l'ensemble du trajet… ({done} / {total})",
+    'nav.start': "Suivre cette trace sur le terrain (GPS)", 'nav.stop': "Arrêter le suivi GPS",
+    'nav.voice': "Annonces vocales et vibrations",
+    'nav.wait': "Recherche du signal GPS…", 'nav.noGeo': "Géolocalisation indisponible ou refusée.",
+    'nav.lost': "Signal GPS perdu", 'nav.poor': "Signal GPS faible (±{acc} m) : écart non évalué",
+    'nav.on': "Sur la trace", 'nav.off': "Hors trace", 'nav.offSay': "Vous quittez la trace", 'nav.backSay': "Retour sur la trace",
+    'nav.back': "Rejoindre la trace : {d} vers {dir}",
+    'nav.reverse': "Sens inverse de la trace", 'nav.arrived': "Arrivée", 'nav.straight': "Tout droit",
+    'nav.in': "Dans {d}", 'nav.now': "Maintenant", 'nav.then': "{d} jusqu'à l'arrivée",
+    'nav.slightL': "Légèrement à gauche", 'nav.slightR': "Légèrement à droite",
+    'nav.turnL': "Tourner à gauche", 'nav.turnR': "Tourner à droite",
+    'nav.sharpL': "Virage serré à gauche", 'nav.sharpR': "Virage serré à droite", 'nav.uturn': "Demi-tour",
+    'nav.status': "Écart <b>{dev}</b> · tolérance {tol} (GPS ±{acc} m)<br>Parcouru {done} / {total} · reste {left}",
+    'nav.sayIn': "Dans {d}, {what}"
   },
   en: {
     tagline: "View your GPS tracks",
@@ -1838,6 +1896,19 @@ const I18N = {
     'w.windShort': "wind {v} km/h", 'w.show': "Show weather", 'w.hide': "Collapse weather", 'w.src': "Current weather here", 'w.srcTime': " · reading at {t} (local time)",
     'pos.full': "Full track: {n} / {n} — {km} km",
     'pos.cur': "Position: {i} / {n} — {d} / {km} km",
+    'nav.start': "Follow this track in the field (GPS)", 'nav.stop': "Stop GPS guidance",
+    'nav.voice': "Voice prompts and vibrations",
+    'nav.wait': "Waiting for GPS signal…", 'nav.noGeo': "Geolocation unavailable or denied.",
+    'nav.lost': "GPS signal lost", 'nav.poor': "Weak GPS signal (±{acc} m): deviation not assessed",
+    'nav.on': "On track", 'nav.off': "Off track", 'nav.offSay': "You are leaving the track", 'nav.backSay': "Back on track",
+    'nav.back': "Rejoin the track: {d} to the {dir}",
+    'nav.reverse': "Going the wrong way along the track", 'nav.arrived': "Arrived", 'nav.straight': "Straight on",
+    'nav.in': "In {d}", 'nav.now': "Now", 'nav.then': "{d} to the finish",
+    'nav.slightL': "Bear left", 'nav.slightR': "Bear right",
+    'nav.turnL': "Turn left", 'nav.turnR': "Turn right",
+    'nav.sharpL': "Sharp left", 'nav.sharpR': "Sharp right", 'nav.uturn': "U-turn",
+    'nav.status': "Deviation <b>{dev}</b> · tolerance {tol} (GPS ±{acc} m)<br>Done {done} / {total} · {left} left",
+    'nav.sayIn': "In {d}, {what}",
     preload: "Preloading aerial photo tiles for the whole route… ({done} / {total})"
   }
 };
@@ -3463,6 +3534,7 @@ window.__gpx3dMap = map;
 map.once('load', () => { window.__gpx3dMapReady = true; });   // le script de passage peut arriver après l'événement « load »
 
 async function selectTrack(index){
+  if (nav && nav.on) navStop();   // guidage GPS lié à la trace précédente
   stopPlayback();
   const track = state.tracks[index];
   state.track = track;
@@ -3479,6 +3551,7 @@ async function selectTrack(index){
   el.statsSection.hidden = false;
   el.profileSection.hidden = false;
   el.playbackSection.hidden = false;
+  document.getElementById('nav-section').hidden = false;
 
   updateStats(track);
   populateModeSelect(track);
@@ -4076,6 +4149,7 @@ el.seek.addEventListener('input', () => {
 
 el.btnPlay.addEventListener('click', () => {
   const track = state.track; if (!track) return;
+  if (nav.on) navStop();   // la lecture animée remplace le guidage GPS
   if (state.position >= track.points.length - 1) state.position = 0;
   state.playing = true;
   state.animStartTs = null;
@@ -4135,6 +4209,337 @@ el.overviewCheck.addEventListener('change', () => {
   }
 });
 el.btnStop.addEventListener('click', stopPlayback);
+
+/* ============================================================
+   Guidage sur le terrain : suivre la trace chargée avec la position GPS réelle.
+   - recalage de la position sur la trace : recherche locale autour du dernier point reconnu
+     (boucles, allers-retours, passages répétés), recherche sur toute la trace sinon ;
+   - tolérance de sortie = NAV_TOL_BASE_M + NAV_TOL_ACC_FACTOR × précision GPS annoncée,
+     bornée [NAV_TOL_MIN_M, NAV_TOL_MAX_M] ; sortie confirmée sur 2 relevés (≥ 3 s) ou un seul
+     au-delà de 2 × la tolérance ; retour sous 70 % (hystérésis) ; précision > NAV_ACC_POOR_M :
+     aucun verdict (signal trop faible) ;
+   - changements de direction majeurs précalculés : écart de cap ≥ NAV_TURN_MIN_DEG entre les
+     NAV_TURN_WIN_M qui précèdent et ceux qui suivent un point, regroupés sur NAV_TURN_MERGE_M.
+   ============================================================ */
+const NAV_TOL_BASE_M = 15;
+const NAV_TOL_ACC_FACTOR = 1.5;
+const NAV_TOL_MIN_M = 25;
+const NAV_TOL_MAX_M = 120;
+const NAV_ACC_POOR_M = 100;
+const NAV_TURN_WIN_M = 30;
+const NAV_TURN_MIN_DEG = 45;
+const NAV_TURN_MERGE_M = 40;
+const NAV_SCALE_DENOM = 2500;   // échelle de la caméra pendant le guidage (1/2500)
+const NAV_LOST_MS = 20000;      // sans relevé depuis 20 s : signal perdu
+const NAV_PAN_PAUSE_MS = 8000;  // après un déplacement manuel de la carte, recentrage suspendu 8 s
+
+var navEl = {
+  section: document.getElementById('nav-section'),
+  btn: document.getElementById('btn-nav'),
+  voice: document.getElementById('nav-voice'),
+  status: document.getElementById('nav-status'),
+};
+var nav = {
+  on: false, watchId: null, track: null, turns: [], fix: null, matched: false,
+  idx: 0, t: 0, along: 0, dev: 0, tol: NAV_TOL_MIN_M, poor: false, off: false, offCount: 0, offSince: 0,
+  refAlong: null, reverse: false, arrived: false, lost: false, said: {}, lostTimer: null,
+  wakeLock: null, panUntil: 0, zoom: null, error: false,
+};
+
+function navFmtDist(m){
+  if (m < 1000) return (m < 100 ? Math.round(m / 5) * 5 : Math.round(m / 10) * 10) + ' m';
+  return (m / 1000).toFixed(m < 10000 ? 1 : 0).replace('.', LANG === 'fr' ? ',' : '.') + ' km';
+}
+
+/* virages majeurs de la trace : [{ idx, distM, angle }] (angle > 0 = vers la droite) */
+function navComputeTurns(track){
+  const pts = track.points, d = track.distancesM, n = pts.length, total = d[n - 1];
+  const delta = new Float32Array(n);
+  for (let i = 0; i < n; i++){
+    if (d[i] < NAV_TURN_WIN_M || total - d[i] < NAV_TURN_WIN_M) continue;
+    const a = findBehindIndex(track, i, NAV_TURN_WIN_M), b = findAheadIndex(track, i, NAV_TURN_WIN_M);
+    if (a === i || b === i) continue;
+    const h1 = bearingDeg(pts[a].lat, pts[a].lon, pts[i].lat, pts[i].lon);
+    const h2 = bearingDeg(pts[i].lat, pts[i].lon, pts[b].lat, pts[b].lon);
+    delta[i] = ((h2 - h1 + 540) % 360) - 180;
+  }
+  const turns = [];
+  let i = 0;
+  while (i < n){
+    if (Math.abs(delta[i]) < NAV_TURN_MIN_DEG){ i++; continue; }
+    const sign = Math.sign(delta[i]);
+    let best = i;
+    while (i < n && Math.sign(delta[i]) === sign && Math.abs(delta[i]) >= NAV_TURN_MIN_DEG * 0.6){
+      if (Math.abs(delta[i]) > Math.abs(delta[best])) best = i;
+      i++;
+    }
+    const last = turns[turns.length - 1];
+    if (last && d[best] - last.distM < NAV_TURN_MERGE_M && Math.sign(last.angle) === sign){
+      if (Math.abs(delta[best]) > Math.abs(last.angle)){ last.idx = best; last.distM = d[best]; last.angle = delta[best]; }
+      continue;
+    }
+    turns.push({ idx: best, distM: d[best], angle: delta[best] });
+  }
+  return turns;
+}
+function navTurnKind(angle){ const a = Math.abs(angle); return a >= 150 ? 'uturn' : a >= 110 ? 'sharp' : a >= 70 ? 'turn' : 'slight'; }
+function navTurnText(t){
+  const k = navTurnKind(t.angle);
+  return k === 'uturn' ? tx('nav.uturn') : tx('nav.' + k + (t.angle < 0 ? 'L' : 'R'));
+}
+/* flèche : droite = 0°, tournée de l'angle du virage (demi-tour : flèche en U) */
+function navArrowSvg(angle, kind){
+  if (kind === 'uturn'){
+    const flip = angle < 0 ? '' : ' transform="translate(24,0) scale(-1,1)"';   // dessin de base : demi-tour par la gauche
+    return '<svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><g' + flip + '><path d="M16 21V10a5 5 0 0 0-10 0v4"/><path d="M3 11l3 3 3-3"/></g></svg>';
+  }
+  if (kind === 'off') return '<svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18v.01"/></svg>';
+  const a = Math.max(-135, Math.min(135, angle || 0));
+  return '<svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(' + a.toFixed(0) + ' 12 12)"><path d="M12 21V4"/><path d="M6 10l6-6 6 6"/></g></svg>';
+}
+
+/* projection d'un point sur les segments [i0, i1] de la trace (mètres, projection locale).
+   refAlong fourni : on favorise la continuité — reculer le long de la trace coûte 0,5 m par mètre,
+   avancer de plus de 30 m 0,02 m par mètre — pour ne pas confondre l'aller et le
+   retour d'un aller-retour, ni deux passages d'une boucle qui se croise. */
+function navProject(track, lat, lon, i0, i1, refAlong){
+  const pts = track.points, d = track.distancesM;
+  const kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110540;
+  let best = { dist: Infinity, score: Infinity, idx: i0, t: 0 };
+  for (let i = i0; i < i1; i++){
+    const ax = (pts[i].lon - lon) * kx, ay = (pts[i].lat - lat) * ky;
+    const dx = (pts[i + 1].lon - lon) * kx - ax, dy = (pts[i + 1].lat - lat) * ky - ay;
+    const L2 = dx * dx + dy * dy;
+    const t = L2 > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)) : 0;
+    const dist = Math.hypot(ax + t * dx, ay + t * dy);
+    let score = dist;
+    if (refAlong != null){
+      const da = d[i] + (d[i + 1] - d[i]) * t - refAlong;
+      score += da < 0 ? -da * 0.5 : Math.max(0, da - 30) * 0.02;
+    }
+    if (score < best.score) best = { dist, score, idx: i, t };
+  }
+  return best;
+}
+function navMatch(track, lat, lon){
+  const n = track.points.length, d = track.distancesM;
+  let m = null;
+  if (nav.matched){
+    const i0 = findBehindIndex(track, nav.idx, 150), i1 = Math.min(n - 1, findAheadIndex(track, nav.idx, 1500));
+    if (i1 > i0) m = navProject(track, lat, lon, i0, i1, nav.along);
+  }
+  if (!m || m.dist > nav.tol){
+    const g = navProject(track, lat, lon, 0, n - 1);
+    if (!m || g.dist < m.dist - 10){ m = g; nav.refAlong = null; nav.reverse = false; }   // raccourci, ou reprise ailleurs sur la trace
+  }
+  m.along = d[m.idx] + (d[Math.min(n - 1, m.idx + 1)] - d[m.idx]) * m.t;
+  return m;
+}
+
+function navSay(text, vibration){
+  if (!navEl.voice.checked) return;
+  try { if (vibration && navigator.vibrate) navigator.vibrate(vibration); } catch(e){}
+  try {
+    if (window.GpxSuiteAndroid && window.GpxSuiteAndroid.speak){ window.GpxSuiteAndroid.speak(text, LANG); return; }
+    if (window.speechSynthesis){
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = LANG === 'en' ? 'en-GB' : 'fr-FR';
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    }
+  } catch(e){}
+}
+function navOnce(key, text, vibration){ if (nav.said[key]) return; nav.said[key] = true; navSay(text, vibration); }
+
+function navKeepAwake(on){
+  try { if (window.GpxSuiteAndroid && window.GpxSuiteAndroid.keepScreenOn) window.GpxSuiteAndroid.keepScreenOn(on); } catch(e){}
+  if (on && navigator.wakeLock && !nav.wakeLock){
+    navigator.wakeLock.request('screen').then(l => { nav.wakeLock = l; l.addEventListener('release', () => { nav.wakeLock = null; }); }).catch(() => {});
+  } else if (!on && nav.wakeLock){ nav.wakeLock.release().catch(() => {}); nav.wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => { if (nav.on && document.visibilityState === 'visible') navKeepAwake(true); });
+
+function navStart(){
+  const track = state.track;
+  if (!track || nav.on) return;
+  if (!navigator.geolocation){ nav.error = true; navRender(); return; }
+  if (state.playing){ state.playing = false; updatePlayButtons(); }
+  if (nav.track !== track){ nav.track = track; nav.turns = navComputeTurns(track); }
+  Object.assign(nav, { on: true, fix: null, matched: false, idx: 0, along: 0, dev: 0, tol: NAV_TOL_MIN_M, poor: false,
+    off: false, offCount: 0, offSince: 0, refAlong: null, reverse: false, arrived: false, lost: false, said: {},
+    panUntil: 0, zoom: null, error: false });
+  document.body.classList.add('nav-on');
+  setTrackProgress(1);
+  nav.watchId = navigator.geolocation.watchPosition(navOnFix, err => {
+    if (err && err.code === 1){ navStop(); nav.error = true; navRender(); }   // permission refusée
+  }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 30000 });
+  navKeepAwake(true);
+  navRender();
+}
+function navStop(){
+  if (nav.watchId != null) try { navigator.geolocation.clearWatch(nav.watchId); } catch(e){}
+  nav.watchId = null;
+  clearTimeout(nav.lostTimer);
+  const was = nav.on;
+  nav.on = false;
+  document.body.classList.remove('nav-on');
+  navKeepAwake(false);
+  try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e){}
+  navRender();
+  if (was && state.track){ setPosition(state.position, { instant: true }); showFullTrack(state.track); }
+}
+
+function navOnFix(pos){
+  const track = nav.track;
+  if (!nav.on || !track || track !== state.track) return;
+  const c = pos.coords, now = Date.now();
+  nav.fix = { lat: c.latitude, lon: c.longitude, acc: c.accuracy || 50, speed: c.speed, ts: now };
+  nav.lost = false;
+  clearTimeout(nav.lostTimer);
+  nav.lostTimer = setTimeout(() => { nav.lost = true; navRender(); }, NAV_LOST_MS);
+
+  const acc = nav.fix.acc;
+  nav.tol = Math.max(NAV_TOL_MIN_M, Math.min(NAV_TOL_MAX_M, NAV_TOL_BASE_M + NAV_TOL_ACC_FACTOR * acc));
+  nav.poor = acc > NAV_ACC_POOR_M;
+  const m = navMatch(track, c.latitude, c.longitude);
+  nav.matched = true; nav.idx = m.idx; nav.t = m.t; nav.along = m.along; nav.dev = m.dist;
+
+  // sortie / retour sur la trace (hystérésis, confirmation)
+  if (!nav.poor){
+    if (!nav.off){
+      if (m.dist > nav.tol){
+        if (!nav.offCount) nav.offSince = now;
+        nav.offCount++;
+        if (m.dist > 2 * nav.tol || (nav.offCount >= 2 && now - nav.offSince >= 3000)){
+          nav.off = true;
+          navSay(tx('nav.offSay'), [300, 150, 300]);
+        }
+      } else nav.offCount = 0;
+    } else if (m.dist < 0.7 * nav.tol){
+      nav.off = false; nav.offCount = 0; nav.refAlong = null;
+      navSay(tx('nav.backSay'), [120]);
+    }
+  }
+
+  // sens de marche : progression le long de la trace par pas de 20 m
+  if (!nav.off){
+    if (nav.refAlong == null) nav.refAlong = m.along;
+    const dv = m.along - nav.refAlong;
+    if (Math.abs(dv) > 20){
+      const rev = dv < 0;
+      if (rev && !nav.reverse) navSay(tx('nav.reverse'), [200, 100, 200]);
+      nav.reverse = rev; nav.refAlong = m.along;
+    }
+  }
+
+  // annonces des virages et de l'arrivée
+  const total = track.distancesM[track.points.length - 1];
+  if (!nav.off && !nav.reverse && !nav.poor){
+    if (total - m.along < 25 && !nav.arrived){ nav.arrived = true; navSay(tx('nav.arrived'), [100, 80, 100, 80, 100]); }
+    const t = nav.turns.find(t => t.distM > m.along + 3);
+    if (t){
+      const toGo = t.distM - m.along, v = (c.speed != null && c.speed > 0) ? c.speed : 1.3;
+      if (toGo <= Math.max(18, v * 4)) navOnce('now' + t.idx, tx('nav.now') + ', ' + navTurnText(t).toLowerCase(), [200]);
+      else if (toGo <= Math.max(80, v * 15) && toGo > Math.max(40, v * 7)) navOnce('pre' + t.idx, tx('nav.sayIn', { d: navFmtDist(toGo), what: navTurnText(t).toLowerCase() }), [80]);
+    }
+  }
+
+  // carte : position réelle, partie parcourue, profil
+  setPositionSource([c.longitude, c.latitude]);
+  setTrackProgress(m.along / (total || 1));
+  const n = track.points.length;
+  const fi = m.idx + m.t;
+  el.seek.value = String(Math.round(fi / Math.max(1, n - 1) * 1000));
+  chart.setCursor(fi / Math.max(1, n - 1));
+  state.position = fi;
+  state.labelInfo = { kind: 'pos', idx: m.idx, n, distM: m.along };
+  renderPositionLabel();
+  requestPlaceWeather(c.latitude, c.longitude);
+  navCamera(c.latitude, c.longitude, m.idx);
+  navRender();
+}
+
+function navCamera(lat, lon, idx){
+  if (state.userInteracting || Date.now() < nav.panUntil) return;
+  const panelEl = document.getElementById('panel');
+  const r = panelEl ? panelEl.getBoundingClientRect() : { width: 0, height: 0 };
+  const opts = {
+    center: [lon, lat],
+    zoom: nav.zoom != null ? nav.zoom : (zoomForScale(lat, NAV_SCALE_DENOM) || 17),
+    offset: isStackedLayout() ? [0, -r.height / 2] : [r.width / 2, 0],
+    duration: 600,
+  };
+  if (el.orientCheck.checked){   // carte orientée dans le sens de marche le long de la trace
+    const track = nav.track, p = track.points;
+    const a = findAheadIndex(track, idx, 25);
+    const b = a === idx ? findBehindIndex(track, idx, 25) : idx;
+    const from = a === idx ? p[b] : p[idx], to = a === idx ? p[idx] : p[a];
+    let h = bearingDeg(from.lat, from.lon, to.lat, to.lon);
+    if (nav.reverse) h = (h + 180) % 360;
+    opts.bearing = h;
+  }
+  if (map.queryTerrainElevation){
+    const e = map.queryTerrainElevation([lon, lat]);
+    if (e != null && !Number.isNaN(e)) opts.elevation = e;
+  }
+  map.easeTo(opts);
+}
+// pendant le guidage : un déplacement manuel suspend le recentrage, un zoom manuel est conservé
+map.on('dragstart', e => { if (nav.on && e.originalEvent) nav.panUntil = Date.now() + NAV_PAN_PAUSE_MS; });
+map.on('dragend', () => { if (nav.on && nav.panUntil) nav.panUntil = Date.now() + NAV_PAN_PAUSE_MS; });
+map.on('zoomend', e => { if (nav.on && e.originalEvent) nav.zoom = map.getZoom(); });
+
+function navRender(){
+  const b = el.trackTitleBadge;
+  navEl.btn.textContent = tx(nav.on ? 'nav.stop' : 'nav.start');
+  navEl.btn.classList.toggle('active', nav.on);
+  if (!nav.on){
+    b.classList.remove('nav', 'off', 'warn');
+    if (state.track) b.textContent = trackName(state.track);
+    navEl.status.hidden = !nav.error;
+    if (nav.error) navEl.status.textContent = tx('nav.noGeo');
+    return;
+  }
+  const track = nav.track, total = track.distancesM[track.points.length - 1];
+  let kind = 'turn', angle = 0, main, sub = '';
+  let cls = '';
+  if (!nav.fix){ main = tx('nav.wait'); kind = 'off'; cls = 'warn'; }
+  else if (nav.lost){ main = tx('nav.lost'); kind = 'off'; cls = 'warn'; }
+  else if (nav.poor){ main = tx('nav.poor', { acc: Math.round(nav.fix.acc) }); kind = 'off'; cls = 'warn'; }
+  else if (nav.off){
+    const p = track.points, i = nav.idx, j = Math.min(p.length - 1, i + 1);
+    const tLat = p[i].lat + (p[j].lat - p[i].lat) * nav.t, tLon = p[i].lon + (p[j].lon - p[i].lon) * nav.t;   // point le plus proche de la trace
+    main = tx('nav.off'); kind = 'off'; cls = 'off';
+    sub = tx('nav.back', { d: navFmtDist(nav.dev), dir: compassFr(bearingDeg(nav.fix.lat, nav.fix.lon, tLat, tLon)) });
+  }
+  else if (nav.arrived && total - nav.along < 40){ main = tx('nav.arrived'); kind = 'turn'; }
+  else if (nav.reverse){ main = tx('nav.reverse'); kind = 'uturn'; angle = 180; cls = 'warn'; }
+  else {
+    const t = nav.turns.find(t => t.distM > nav.along + 3);
+    if (t){
+      const toGo = t.distM - nav.along;
+      kind = navTurnKind(t.angle); angle = t.angle;
+      main = navTurnText(t);
+      sub = toGo <= 18 ? tx('nav.now') : tx('nav.in', { d: navFmtDist(toGo) });
+    } else { main = tx('nav.straight'); sub = tx('nav.then', { d: navFmtDist(total - nav.along) }); }
+  }
+  b.hidden = false;
+  b.className = 'nav' + (cls ? ' ' + cls : '');
+  b.innerHTML = navArrowSvg(angle, kind) + '<span><span class="nav-main"></span><span class="nav-sub"></span></span>';
+  b.querySelector('.nav-main').textContent = main;
+  b.querySelector('.nav-sub').textContent = sub;
+  b.querySelector('.nav-sub').hidden = !sub;
+
+  navEl.status.hidden = !nav.fix;
+  if (nav.fix){
+    navEl.status.innerHTML = tx('nav.status', {
+      dev: navFmtDist(nav.dev), tol: navFmtDist(nav.tol), acc: Math.round(nav.fix.acc),
+      done: navFmtDist(nav.along), total: navFmtDist(total), left: navFmtDist(Math.max(0, total - nav.along)),
+    }) + ' · ' + (nav.off ? tx('nav.off') : tx('nav.on'));
+  }
+}
+navEl.btn.addEventListener('click', () => { if (nav.on) navStop(); else navStart(); });
+onLanguageChange.push(navRender);
+navRender();
 
 function stopPlayback(){
   state.playing = false;

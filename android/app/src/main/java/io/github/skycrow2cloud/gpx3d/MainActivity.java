@@ -9,7 +9,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -18,6 +20,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import java.util.Locale;
 
 /**
  * Coquille Android de GPX 3D : une WebView plein écran qui charge le site publié
@@ -38,12 +42,30 @@ public class MainActivity extends Activity {
     GeolocationPermissions.Callback geoCallback;
     String geoOrigin;
     volatile String pendingHandoff;   // trace reçue de The-GPX-Box, en attente d'être lue par la page
+    TextToSpeech tts;                 // annonces vocales du guidage (la WebView n'a pas speechSynthesis)
+    boolean ttsReady;
 
     /** Pont JavaScript : window.GpxSuiteAndroid.openOther(json) / takeHandoff() / updateWidget(json) */
     class Bridge {
         @JavascriptInterface public void updateWidget(String json) { TrackWidget.save(getApplicationContext(), json); }
         @JavascriptInterface public boolean openOther(String payload) { return Handoff.send(MainActivity.this, payload); }
         @JavascriptInterface public String takeHandoff() { String p = pendingHandoff; pendingHandoff = null; return p == null ? "" : p; }
+        /** guidage : annonce vocale (lang = "fr" ou "en") */
+        @JavascriptInterface public void speak(final String text, final String lang) {
+            runOnUiThread(() -> {
+                if (tts == null) { tts = new TextToSpeech(getApplicationContext(), st -> { ttsReady = st == TextToSpeech.SUCCESS; if (ttsReady) say(text, lang); }); return; }
+                if (ttsReady) say(text, lang);
+            });
+        }
+        /** guidage : garder l'écran allumé tant que le suivi est actif */
+        @JavascriptInterface public void keepScreenOn(final boolean on) {
+            runOnUiThread(() -> { if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); });
+        }
+    }
+
+    void say(String text, String lang) {
+        tts.setLanguage("en".equals(lang) ? Locale.UK : Locale.FRANCE);
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "gpx3d-nav");
     }
 
     @Override
@@ -181,6 +203,9 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() { super.onPause(); if (web != null) web.onPause(); }
+
+    @Override
+    protected void onDestroy() { if (tts != null) tts.shutdown(); super.onDestroy(); }
 
     @Override
     protected void onResume() { super.onResume(); if (web != null) web.onResume(); }

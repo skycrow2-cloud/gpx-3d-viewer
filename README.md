@@ -10,6 +10,7 @@ Visualiseur de traces GPX en 3D, dans un seul fichier HTML autonome : relief, ph
 - Fond photo aérienne Esri ou plan randonnée OpenTopoMap ; superposition chasse du SPW (Wallonie) ; bouton légende
 - Profil altitude / vitesse (et extensions GPX : fréquence cardiaque, cadence, température)
 - Lecture animée avec suivi caméra (échelle 1:500), orientation selon le cap, vue générale
+- Guidage GPS sur le terrain : annonce des changements de direction majeurs (affichage, voix, vibration) et alerte hors trace, avec une tolérance adaptée à la précision du GPS
 - Panneau latéral redimensionnable, interface FR / EN
 - Envoi de la trace vers OpenStreetMap (OAuth 2, facultatif)
 
@@ -39,4 +40,4 @@ Bibliothèques : [MapLibre GL JS](https://maplibre.org/) 5.12, [proj4js](http://
 
 ## Auteur
 
-© A.Legat — v1.3.1
+© A.Legat — v1.4.0
