@@ -1297,7 +1297,7 @@
         <h3>Charger un GPX</h3>
         <ul>
           <li><b>Bouton « Charger un GPX… »</b> ou glisser-déposer d'un fichier <b>.gpx</b> n'importe où dans la fenêtre.</li>
-          <li><b>Application Android</b> : le GPX chargé est repris d'un écran à l'autre (écran externe d'un pliable comme le Motorola razr ⇄ écran principal) et à la réouverture de l'application.</li>
+          <li><b>Application Android</b> : le GPX chargé, le cadrage, la position de lecture, le fond de carte et les réglages sont repris d'un écran à l'autre (écran externe d'un pliable comme le Motorola razr ⇄ écran principal) et à la réouverture de l'application.</li>
           <li>Si le fichier contient plusieurs traces, une liste déroulante permet de choisir. Les <b>itinéraires</b> (<code>rte</code>) ne sont lus que s'il n'y a aucune trace ; les points de passage isolés (<code>wpt</code>) ne sont pas affichés.</li>
           <li>La carte se cadre sur la trace, puis les tuiles de photo aérienne sont préchargées (bouton « Annuler » disponible) avant l'affichage de la trace complète.</li>
           <li>Le <b>nom de la trace</b> s'affiche dans une pastille centrée en haut de la carte.</li>
@@ -1450,7 +1450,7 @@
         <h3>Loading a GPX</h3>
         <ul>
           <li><b>“Charger un GPX…” button</b> or drag and drop a <b>.gpx</b> file anywhere in the window.</li>
-          <li><b>Android app</b>: the loaded GPX carries over from one screen to the other (cover screen of a foldable such as the Motorola razr ⇄ main screen) and when the app is reopened.</li>
+          <li><b>Android app</b>: the loaded GPX, framing, playback position, basemap and settings carry over from one screen to the other (cover screen of a foldable such as the Motorola razr ⇄ main screen) and when the app is reopened.</li>
           <li>If the file holds several tracks, a drop-down list lets you pick one. <b>Routes</b> (<code>rte</code>) are read only when there is no track; standalone waypoints (<code>wpt</code>) are not displayed.</li>
           <li>The map frames the track, then aerial photo tiles are preloaded (“Annuler” / Cancel available) before the full track is displayed.</li>
           <li>The <b>track name</b> is shown in a badge centred at the top of the map.</li>
@@ -3377,11 +3377,76 @@ function sessionSync(){
     sessionStamp = s.t;
     const f = new File([s.gpx], s.name, { type: 'application/gpx+xml' });
     f.__fromSession = true; f.__idx = s.idx || 0;
+    viewPending = true;
     loadFile(f);
-  } else if (state.tracks.length > 1){             // même GPX, autre trace choisie sur l'autre écran
+  } else {
     const cur = state.tracks.indexOf(state.track);
-    if (s.idx !== cur && s.idx >= 0 && s.idx < state.tracks.length){ el.trackSelect.value = s.idx; selectTrack(s.idx); }
+    if (state.tracks.length > 1 && s.idx !== cur && s.idx >= 0 && s.idx < state.tracks.length){   // autre trace choisie sur l'autre écran
+      el.trackSelect.value = s.idx; viewPending = true; selectTrack(s.idx);                                           // (la vue suit à la fin du chargement)
+    } else viewApply(false);
   }
+}
+/* … et la vue suit aussi : cadrage (centre, zoom, cap, inclinaison), position de lecture, fond de carte,
+   superpositions, opacité, cases et réglages de lecture. Clé à part (petite), réécrite à chaque changement. */
+const VIEW_KEY = 'gpx3d.view', PAGE_ID = Math.random().toString(36).slice(2);
+const VIEW_CTLS = '#menu-map input, #topo-opacity-range, #follow-check, #orient-check, #overview-check, #mode-select, #duration';
+let viewApplying = false, viewSeen = 0, viewTimer = null, viewPending = false;   // viewPending : trace reprise de l'autre écran, vue à appliquer une fois chargée
+function ctlKey(c){ return c.id || (c.name + ':' + c.value); }
+function viewSave(){
+  if (!SESSION_ON || viewApplying || viewPending || !sessionStamp) return;   // pas pendant la reprise depuis l'autre écran
+  clearTimeout(viewTimer);
+  viewTimer = setTimeout(() => {
+    const c = map.getCenter(), ctl = {};
+    document.querySelectorAll(VIEW_CTLS).forEach(x => { ctl[ctlKey(x)] = (x.type === 'checkbox' || x.type === 'radio') ? x.checked : x.value; });
+    const full = !state.labelInfo || state.labelInfo.kind === 'full';
+    const at = Date.now(); viewSeen = at;
+    try { localStorage.setItem(VIEW_KEY, JSON.stringify({ t: sessionStamp, from: PAGE_ID, at,
+      cam: { c: [c.lng, c.lat], z: map.getZoom(), b: map.getBearing(), p: map.getPitch(), e: map.getCenterElevation ? map.getCenterElevation() : 0 },
+      pos: full ? null : state.position, ctl })); } catch(e){}
+  }, 250);
+}
+/* reprend la vue enregistrée par l'autre écran ; afterLoad : la trace vient d'être (re)chargée ici */
+function viewApply(afterLoad){
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem(VIEW_KEY) || 'null'); } catch(e){}
+  if (!v || v.t !== sessionStamp || (!afterLoad && (v.from === PAGE_ID || v.at <= viewSeen))) return;
+  viewSeen = v.at;
+  viewApplying = true;
+  try {
+    document.querySelectorAll(VIEW_CTLS).forEach(x => {
+      const val = v.ctl && v.ctl[ctlKey(x)];
+      if (val === undefined) return;
+      if (x.type === 'radio'){ if (val && !x.checked){ x.checked = true; x.dispatchEvent(new Event('change', { bubbles: true })); } }
+      else if (x.type === 'checkbox'){ if (x.checked !== val){ x.checked = val; x.dispatchEvent(new Event('change', { bubbles: true })); } }
+      else if (x.value !== val){ x.value = val; x.dispatchEvent(new Event(x.type === 'range' ? 'input' : 'change', { bubbles: true })); }
+    });
+    if (state.playing) stopPlayback();
+    if (state.track){
+      if (v.pos == null) showFullTrack(state.track); else setPosition(v.pos, { instant: true });
+    }
+    if (v.cam){
+      // limite de navigation calée sur la taille de CET écran : on l'élargit pour accepter le cadrage de l'autre écran
+      const mb = map.getMaxBounds();
+      map.setMaxBounds(null);
+      const cam = { center: v.cam.c, zoom: v.cam.z, bearing: v.cam.b, pitch: v.cam.p, elevation: v.cam.e || 0 };
+      map.jumpTo(cam); map.jumpTo(cam);   // 2e saut : le premier, parti d'une autre altitude du centre, peut décaler centre et zoom
+      if (mb){   // limite rétablie, élargie à la vue reprise (marge : sinon la contrainte décale aussitôt le cadrage)
+        mb.extend(map.getBounds());
+        const gx = (mb.getEast() - mb.getWest()) * 0.5, gy = (mb.getNorth() - mb.getSouth()) * 0.5;
+        map.setMaxBounds([[mb.getWest() - gx, Math.max(-85, mb.getSouth() - gy)], [mb.getEast() + gx, Math.min(85, mb.getNorth() + gy)]]);
+      }
+    }
+  } finally {
+    setTimeout(() => { viewApplying = false; }, 300);   // les « moveend » du saut ne réécrivent pas la vue
+  }
+}
+if (SESSION_ON){
+  map.on('moveend', viewSave);
+  document.addEventListener('change', e => { if (e.target.closest && e.target.closest(VIEW_CTLS)) viewSave(); });
+  document.addEventListener('input', e => { if (e.target.closest && (e.target.closest(VIEW_CTLS) || e.target === el.seek)) viewSave(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden){ viewSave(); } });
+  window.addEventListener('pagehide', viewSave);
+  window.addEventListener('storage', e => { if (e.key === VIEW_KEY && !document.hidden) viewApply(false); });
 }
 if (SESSION_ON){
   map.once('load', () => setTimeout(sessionSync, 0));   // après le passage éventuel depuis The-GPX-Box
@@ -3435,6 +3500,7 @@ async function selectTrack(index){
   if (aerialOn()) await preloadAerialTiles(track); // tuiles de la photo aérienne, si elle est affichée
   showFullTrack(track);
   if (map && map.resize) map.resize(); // même recalage dès le chargement de la trace
+  if (SESSION_ON && viewPending){ viewPending = false; viewApply(true); }   // application Android : cadrage repris de l'autre écran
 }
 
 /* durée de lecture par défaut : calée sur un rythme d'affichage "suivable" à l'écran,
