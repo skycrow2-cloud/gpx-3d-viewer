@@ -503,7 +503,9 @@ function synth(text, lang, out){
       const d = Math.max(1.5, text.split(/\s+/).length * 0.38);
       execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'sine=frequency=330:duration=' + d.toFixed(2), out]);
     } else return 0;
-    return mediaDuration(out);
+    const d = mediaDuration(out);
+    if (!d) console.warn('  ! voix (' + engine + ') : aucun son produit pour « ' + text.slice(0, 30) + '… »');
+    return d;
   } catch (e) {
     console.warn('  ! synthèse vocale (' + engine + ') : ' + String(e.message || e).split('\n')[0]);
     return 0;
@@ -613,6 +615,12 @@ async function video(browser, base, name, scenario){
 }
 
 async function videos(browser, base){
+  const voix = ttsEngine();
+  console.log('Voix des vidéos : ' + voix);
+  if (voix === 'aucun'){
+    missing.push('voix (vidéos muettes)');
+    console.warn("  ! ni Piper ni espeak-ng : les vidéos seront muettes");
+  }
   // anciens fichiers sans langue (01-demarrer.mp4) : remplacés par 01-demarrer.fr.mp4 / .en.mp4
   if (!only) for (const f of fs.readdirSync(VID)) if (/^[0-9]{2}-[a-z0-9-]+\.(mp4|webm)$/.test(f)) fs.rmSync(path.join(VID, f));
   const start = DEMO.pts[0];
