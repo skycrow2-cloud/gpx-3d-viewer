@@ -739,6 +739,13 @@
     html #topo-opacity{ bottom:calc(42px + var(--ctl)); }
     /* languette du panneau : entre l'assiette et la colonne coordonnées / opacité, pour ne plus décaler l'assiette */
     html #panel-toggle{ width:24px; height:40px; top:calc((18px + var(--ctl) + var(--pitch-h, 110px) + 100% - 82px - 2 * var(--ctl)) / 2); }
+    /* aucun GPX chargé : languette en haut du bord du panneau ; la colonne météo / assiette passe juste à sa droite */
+    html body:not(.has-track) #panel-toggle{ top:10px; transform:none; }
+    html body:not(.has-track) #weather-bar{ left:calc(var(--panel-w, 0px) + 30px); }
+    html body:not(.has-track) #pitch-control{ left:calc(var(--panel-w, 0px) + 30px); }
+    html body:not(.has-track) #pitch-tooltip{ left:calc(var(--panel-w, 0px) + 38px + var(--ctl)); }
+    /* nom de la trace à droite de la pastille météo (la météo reste au-dessus de l'assiette) */
+    html #track-title-badge{ left:calc(var(--panel-w, 0px) + 18px + var(--ctl)); transform:none; max-width:calc(100vw - var(--panel-w, 0px) - 2 * var(--ctl) - 44px); }
   }
   @media (pointer: coarse) and (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
     #panel-toggle{ width:72px; height:30px; }
@@ -3333,6 +3340,10 @@ async function selectTrack(index){
   stopPlayback();
   const track = state.tracks[index];
   state.track = track;
+  if (!document.body.classList.contains('has-track')){
+    document.body.classList.add('has-track');   // téléphone en paysage : la languette du panneau quitte le haut pour le milieu
+    window.dispatchEvent(new Event('resize'));  // recale les icônes flottantes
+  }
   updateTrackPoints();
   requestPlaceWeather(track.points[0].lat, track.points[0].lon, true); // lieu + météo du point de départ, sans attendre le préchargement
   state.followZoomApplied = false;
@@ -5062,6 +5073,8 @@ function syncPanelVars(){
     });
     FIXED_OBSTACLES.forEach(sel => document.querySelectorAll(sel).forEach(n => {
       if (n.hidden || w.el.contains(n)) return;
+      // téléphone : la barre météo passe par-dessus le nom de la trace au lieu d'être repoussée sous l'assiette
+      if (w.id === 'weather' && n.id === 'track-title-badge' && isPhone()) return;
       // crédits repliés (bouton « i ») : seul le bouton est un obstacle, pas la boîte invisible
       if (n.classList.contains('maplibregl-ctrl-attrib') && n.classList.contains('maplibregl-compact') && !n.classList.contains('maplibregl-compact-show'))
         n = n.querySelector('.maplibregl-ctrl-attrib-button') || n;
