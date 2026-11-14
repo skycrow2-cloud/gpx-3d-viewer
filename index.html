@@ -739,6 +739,14 @@
     html #topo-opacity{ bottom:calc(42px + var(--ctl)); }
     /* languette du panneau : entre l'assiette et la colonne coordonnées / opacité, pour ne plus décaler l'assiette */
     html #panel-toggle{ width:24px; height:40px; top:calc((18px + var(--ctl) + var(--pitch-h, 110px) + 100% - 82px - 2 * var(--ctl)) / 2); }
+  }
+  @media (pointer: coarse) and (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
+    #panel-toggle{ width:72px; height:30px; }
+  }
+  /* écran externe des pliables (Motorola razr) : petit écran presque carré, panneau à gauche ;
+     ne concerne pas le téléphone en plein écran (paysage allongé) */
+  @media (max-height: 500px) and (orientation: landscape) and (max-aspect-ratio: 3/2){
+    html #panel{ max-height:none; }   /* la règle « téléphone en portrait » (largeur ≤ 560 px) coupait le panneau à 42 % */
     /* aucun GPX chargé : languette en haut du bord du panneau ; la colonne météo / assiette passe juste à sa droite */
     html body:not(.has-track) #panel-toggle{ top:10px; transform:none; }
     html body:not(.has-track) #weather-bar{ left:calc(var(--panel-w, 0px) + 30px); }
@@ -746,9 +754,6 @@
     html body:not(.has-track) #pitch-tooltip{ left:calc(var(--panel-w, 0px) + 38px + var(--ctl)); }
     /* nom de la trace à droite de la pastille météo (la météo reste au-dessus de l'assiette) */
     html #track-title-badge{ left:calc(var(--panel-w, 0px) + 18px + var(--ctl)); transform:none; max-width:calc(100vw - var(--panel-w, 0px) - 2 * var(--ctl) - 44px); }
-  }
-  @media (pointer: coarse) and (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1024px) and (orientation: portrait){
-    #panel-toggle{ width:72px; height:30px; }
   }
   /* tablette, téléphone, fenêtre étroite : un seul bouton « Outils » (menu déroulant) au lieu des 5 boutons de l'en-tête */
   @media (pointer: coarse), (max-width: 760px), (max-width: 1024px) and (orientation: portrait){
@@ -1597,6 +1602,9 @@ const STACKED_MQ = '(max-width: 760px) and (min-height: 501px), (max-width: 1024
 function isStackedLayout(){ return window.matchMedia(STACKED_MQ).matches; }
 const PHONE_MQ = '(max-width: 560px), (max-height: 500px) and (orientation: landscape)';
 function isPhone(){ return window.matchMedia(PHONE_MQ).matches; }
+/* écran externe des pliables (Motorola razr) : petit, presque carré, en paysage (panneau à gauche) */
+const COVER_MQ = '(max-height: 500px) and (orientation: landscape) and (max-aspect-ratio: 3/2)';
+function isCoverScreen(){ return window.matchMedia(COVER_MQ).matches; }
 const SCREEN_DPI = 96;           // référence CSS (96 dpi = 1px = 0.0254/96 m)
 
 /* Zoom nécessaire pour obtenir une échelle 1:scaleDenom à une latitude donnée
@@ -5073,8 +5081,8 @@ function syncPanelVars(){
     });
     FIXED_OBSTACLES.forEach(sel => document.querySelectorAll(sel).forEach(n => {
       if (n.hidden || w.el.contains(n)) return;
-      // téléphone : la barre météo passe par-dessus le nom de la trace au lieu d'être repoussée sous l'assiette
-      if (w.id === 'weather' && n.id === 'track-title-badge' && isPhone()) return;
+      // écran externe des pliables : la barre météo passe par-dessus le nom de la trace au lieu d'être repoussée sous l'assiette
+      if (w.id === 'weather' && n.id === 'track-title-badge' && isCoverScreen()) return;
       // crédits repliés (bouton « i ») : seul le bouton est un obstacle, pas la boîte invisible
       if (n.classList.contains('maplibregl-ctrl-attrib') && n.classList.contains('maplibregl-compact') && !n.classList.contains('maplibregl-compact-show'))
         n = n.querySelector('.maplibregl-ctrl-attrib-button') || n;
