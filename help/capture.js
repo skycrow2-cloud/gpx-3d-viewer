@@ -454,8 +454,10 @@ const NARRATION = {
   '03-fonds': [
     { at: 'menu',     fr: "Le menu des fonds réunit le fond de carte, les superpositions et l'opacité.",
                       en: "The basemap menu gathers the basemap, the overlays and the opacity." },
-    { at: 'opacite',  fr: "Le curseur règle le plan par-dessus la photo aérienne : ici jusqu'à quatre-vingts pour cent, puis retour à trente.",
-                      en: "The slider sets the map over the aerial photo: here up to eighty percent, then back to thirty." },
+    { at: 'photo',    fr: "Au lancement, le plan est seul et opaque. Cochez Photo aérienne pour la glisser dessous.",
+                      en: "At start-up the map is shown alone and opaque. Tick Aerial photo to slide it underneath." },
+    { at: 'opacite',  fr: "Le curseur règle alors le plan par-dessus la photo : ici quatre-vingts pour cent, puis trente.",
+                      en: "The slider then sets the map over the photo: here eighty percent, then thirty." },
     { at: 'assiette', fr: "La barre verticale incline la vue : le relief apparaît, avec son ombrage.",
                       en: "The vertical bar tilts the view: the terrain appears, with its hillshading." },
   ],
@@ -669,6 +671,9 @@ async function videos(browser, base){
       await openMapMenu(page, 'menu-map');
       mark('menu');
       await sleep(5000);
+      await setCheck(page, '#chk-aerial', true);
+      mark('photo');
+      await sleep(6000);
       await setRange(page, '#topo-opacity-range', 80);
       mark('opacite');
       await sleep(4000);

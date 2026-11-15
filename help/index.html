@@ -518,15 +518,17 @@
   </div>
   <ul data-l="fr">
     <li><b>Fond</b> : OpenTopoMap (par défaut), CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM. Hors de sa zone de couverture, un fond régional laisse la place à OpenTopoMap sans modifier votre choix.</li>
-    <li><b>Superpositions</b> : <span class="ui">Photo aérienne</span> (Esri, cochée par défaut), <span class="ui">Sentiers balisés</span> (Waymarked Trails) et <span class="ui">Relief 3D</span>.</li>
-    <li><b>Opacité</b> : avec la photo aérienne, le curseur règle le fond par-dessus — 0 % = photo seule, 100 % = fond opaque (30 % au départ).</li>
+    <li><b>Au lancement</b>, le fond s'affiche seul et opaque : la photo aérienne n'est pas cochée.</li>
+    <li><b>Superpositions</b> : <span class="ui">Photo aérienne</span> (Esri, décochée par défaut), <span class="ui">Sentiers balisés</span> (Waymarked Trails) et <span class="ui">Relief 3D</span>.</li>
+    <li><b>Opacité</b> : une fois la photo aérienne cochée, un curseur règle le fond par-dessus — 0 % = photo seule, 100 % = fond opaque (30 % quand on coche la photo).</li>
     <li><b>Chasse (SPW, Wallonie)</b> : zones de chasse à une date donnée, avec un bouton vers la légende officielle.</li>
     <li><b>Relief</b> : exagéré ×1,6, avec ombrage ; l'inclinaison se règle de 0° à 70° avec la barre verticale.</li>
   </ul>
   <ul data-l="en">
     <li><b>Basemap</b>: OpenTopoMap (default), CartoWeb.be (IGN Belgium), Plan IGN (France), Geoportail.lu (Luxembourg) or CyclOSM. Outside its coverage a regional basemap gives way to OpenTopoMap without changing your choice.</li>
-    <li><b>Overlays</b>: <span class="ui">Aerial photo</span> (Esri, on by default), <span class="ui">Waymarked trails</span> and <span class="ui">3D terrain</span>.</li>
-    <li><b>Opacity</b>: with the aerial photo, the slider sets the basemap drawn over it — 0 % = photo only, 100 % = opaque basemap (30 % to begin with).</li>
+    <li><b>At start-up</b> the basemap is shown on its own, fully opaque: the aerial photo is not ticked.</li>
+    <li><b>Overlays</b>: <span class="ui">Aerial photo</span> (Esri, off by default), <span class="ui">Waymarked trails</span> and <span class="ui">3D terrain</span>.</li>
+    <li><b>Opacity</b>: once the aerial photo is ticked, a slider sets the basemap drawn over it — 0 % = photo only, 100 % = opaque basemap (30 % when the photo is ticked).</li>
     <li><b>Hunting (SPW, Wallonia)</b>: hunting areas on a given date, with a button to the official legend.</li>
     <li><b>Terrain</b>: exaggerated ×1.6, with hillshading; tilt is set from 0° to 70° with the vertical bar.</li>
   </ul>
@@ -537,8 +539,8 @@
   </figure>
   <figure>
     <video controls playsinline preload="metadata" data-clip="03-fonds"></video>
-    <figcaption data-l="fr">Ouvrir le menu des fonds, régler l'opacité du plan par-dessus la photo aérienne, puis incliner la vue.</figcaption>
-    <figcaption data-l="en">Opening the basemap menu, setting the opacity of the map over the aerial photo, then tilting the view.</figcaption>
+    <figcaption data-l="fr">Ouvrir le menu des fonds, cocher la photo aérienne, régler l'opacité du plan par-dessus, puis incliner la vue.</figcaption>
+    <figcaption data-l="en">Opening the basemap menu, ticking the aerial photo, setting the opacity of the map over it, then tilting the view.</figcaption>
   </figure>
   <p class="note" data-l="fr">Le fond choisi et les sentiers balisés sont mémorisés d'une visite à l'autre. La couleur de trace <span class="ui">Auto</span> s'adapte au fond pour rester lisible. <i>Les illustrations de cette page utilisent CartoWeb.be ; par défaut, l'outil affiche OpenTopoMap.</i></p>
   <p class="note" data-l="en">The chosen basemap and the waymarked trails are remembered between visits. The <span class="ui">Auto</span> track colour adapts to the basemap to stay readable. <i>The illustrations on this page use CartoWeb.be; by default the tool shows OpenTopoMap.</i></p>

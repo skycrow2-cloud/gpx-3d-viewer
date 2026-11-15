@@ -1105,7 +1105,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.1 · © A.Legat</p>
+      <p class="version-line">v1.5.2 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1119,7 +1119,7 @@
       <label><input type="radio" name="basemap" value="cyclosm"> <span data-i18n="bm.bike">CyclOSM (vélo / VTT)</span></label>
       <div class="map-pop-note" id="bm-fallback" hidden></div>
       <div class="map-pop-title" data-i18n="bm.overlays">Superpositions</div>
-      <label><input type="checkbox" id="chk-aerial" checked autocomplete="off"> <span data-i18n="bm.aerial">Photo aérienne</span></label>
+      <label><input type="checkbox" id="chk-aerial" autocomplete="off"> <span data-i18n="bm.aerial">Photo aérienne</span></label>
       <label><input type="checkbox" id="chk-trails" autocomplete="off"> <span data-i18n="bm.trails">Sentiers balisés</span></label>
       <label><input type="checkbox" id="chk-hunt" autocomplete="off"> <span data-i18n="bm.hunt">Chasse (SPW, Wallonie)</span></label>
       <label class="hunt-date-row" id="hunt-date-row" hidden><span data-i18n="bm.huntDate">Date</span> <input type="date" id="hunt-date" autocomplete="off"></label>
@@ -1378,7 +1378,7 @@
 
         <h3>Affichage de la carte</h3>
         <ul>
-          <li><b>Fond de carte</b> : bouton carte (dans la carte, sous Street View). Fond au choix : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM (vélo / VTT). Superpositions : <b>photo aérienne</b> (cochée par défaut ; un curseur en bas de la carte règle alors l'opacité du fond par-dessus, 30 % au départ, 0 % = photo seule), <b>sentiers balisés</b> (Waymarked Trails), <b>chasse</b> (carte du SPW pour la Wallonie : territoires où une chasse est annoncée à la date choisie, aujourd'hui par défaut ; hachures rouges = chemins fermés) et <b>relief 3D</b> (coché par défaut). La trace passe de l'orange au bleu quand le fond dessiné domine. Le fond et les sentiers choisis sont mémorisés. Hors de la zone couverte par un fond régional (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap est affichée à sa place.</li>
+          <li><b>Fond de carte</b> : bouton carte (dans la carte, sous Street View). Fond au choix : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM (vélo / VTT). Au lancement, le fond s'affiche seul et opaque. Superpositions : <b>photo aérienne</b> (décochée par défaut ; une fois cochée, un curseur en bas de la carte règle l'opacité du fond par-dessus, 30 % au départ, 0 % = photo seule), <b>sentiers balisés</b> (Waymarked Trails), <b>chasse</b> (carte du SPW pour la Wallonie : territoires où une chasse est annoncée à la date choisie, aujourd'hui par défaut ; hachures rouges = chemins fermés) et <b>relief 3D</b> (coché par défaut). La trace passe de l'orange au bleu quand le fond dessiné domine. Le fond et les sentiers choisis sont mémorisés. Hors de la zone couverte par un fond régional (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap est affichée à sa place.</li>
           <li><b>Légende</b> : bouton sous celui du fond de carte ; explique les couleurs de ce qui est affiché (trace, chasse, sentiers) et renvoie à la légende complète du fond quand elle existe.</li>
           <li><b>Relief</b> : exagéré ×1,6 avec ombrage. La barre verticale en bas à droite règle l'inclinaison (0° à 70°) ; le clic droit + glisser incline et pivote la vue.</li>
           <li><b>Zoom</b> : boutons <b>+</b> / <b>−</b> translucides en haut à droite (avec la boussole sous eux), ou molette / pincement.</li>
@@ -1542,7 +1542,7 @@
 
         <h3>Map display</h3>
         <ul>
-          <li><b>Basemap</b>: map button (on the map, below Street View). Choose OpenTopoMap, CartoWeb.be (IGN Belgium), Plan IGN (France), Geoportail.lu (Luxembourg) or CyclOSM (bike / MTB). Overlays: <b>aerial photo</b> (checked by default; a slider at the bottom of the map then sets the basemap opacity on top, 30 % at start, 0 % = photo only), <b>waymarked trails</b> (Waymarked Trails), <b>hunting</b> (SPW map for Wallonia: territories with a hunt announced on the chosen date, today by default; red hatching = paths closed) and <b>3D terrain</b> (checked by default). The track turns from orange to blue when the drawn basemap dominates. The chosen basemap and trails are remembered. Outside the area covered by a regional basemap (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap is shown instead.</li>
+          <li><b>Basemap</b>: map button (on the map, below Street View). Choose OpenTopoMap, CartoWeb.be (IGN Belgium), Plan IGN (France), Geoportail.lu (Luxembourg) or CyclOSM (bike / MTB). At start-up the basemap is shown on its own, fully opaque. Overlays: <b>aerial photo</b> (unchecked by default; once ticked, a slider at the bottom of the map sets the basemap opacity on top, 30 % at start, 0 % = photo only), <b>waymarked trails</b> (Waymarked Trails), <b>hunting</b> (SPW map for Wallonia: territories with a hunt announced on the chosen date, today by default; red hatching = paths closed) and <b>3D terrain</b> (checked by default). The track turns from orange to blue when the drawn basemap dominates. The chosen basemap and trails are remembered. Outside the area covered by a regional basemap (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap is shown instead.</li>
           <li><b>Legend</b>: button below the basemap button; explains the colours of what is shown (track, hunting, trails) and links to the basemap's full legend when available.</li>
           <li><b>Terrain</b>: exaggerated ×1.6 with hillshade. The vertical bar at the bottom right sets the tilt (0° to 70°); right-click + drag tilts and rotates the view.</li>
           <li><b>Zoom</b>: translucent <b>+</b> / <b>−</b> buttons at the top right (with the compass below them), or wheel / pinch.</li>
