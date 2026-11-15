@@ -1,17 +1,17 @@
 WEBVTT
 
 1
-00:00:01.523 --> 00:00:05.865
+00:00:01.524 --> 00:00:05.773
 The basemap menu gathers the basemap, the overlays and the opacity.
 
 2
-00:00:06.834 --> 00:00:13.045
+00:00:06.827 --> 00:00:13.015
 At start-up the map is shown alone and opaque. Tick Aerial photo to slide it underneath.
 
 3
-00:00:13.140 --> 00:00:18.376
+00:00:13.134 --> 00:00:18.254
 The slider then sets the map over the photo: here eighty percent, then thirty.
 
 4
-00:00:28.513 --> 00:00:32.960
+00:00:24.868 --> 00:00:29.408
 The vertical bar tilts the view: the terrain appears, with its hillshading.
