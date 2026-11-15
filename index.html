@@ -3552,6 +3552,7 @@ function sessionSync(){
    superpositions, opacité, cases et réglages de lecture. Clé à part (petite), réécrite à chaque changement. */
 const VIEW_KEY = 'gpx3d.view', PAGE_ID = Math.random().toString(36).slice(2);
 const VIEW_CTLS = '#menu-map input, #topo-opacity-range, #follow-check, #orient-check, #overview-check, #mode-select, #duration';
+const VIEW_RESUME_MAX_MS = 30000;   // au-delà, la vue enregistrée n'est plus reprise au chargement
 let viewApplying = false, viewSeen = 0, viewTimer = null, viewPending = false;   // viewPending : trace reprise de l'autre écran, vue à appliquer une fois chargée
 function ctlKey(c){ return c.id || (c.name + ':' + c.value); }
 function viewSave(now){
@@ -3574,6 +3575,9 @@ function viewApply(afterLoad){
   try { v = JSON.parse(localStorage.getItem(VIEW_KEY) || 'null'); } catch(e){}
   if (!v || v.t !== sessionStamp || (!afterLoad && (v.from === PAGE_ID || v.at <= viewSeen))) return;
   viewSeen = v.at;
+  // vue ancienne (application rouverte, pas un passage d'écran) : la trace reste cadrée en entier,
+  // sans reprendre la caméra, la position ni la lecture d'avant
+  const fresh = !afterLoad || Date.now() - (v.at || 0) < VIEW_RESUME_MAX_MS;
   viewApplying = true;
   try {
     document.querySelectorAll(VIEW_CTLS).forEach(x => {
@@ -3584,10 +3588,10 @@ function viewApply(afterLoad){
       else if (x.value !== val){ x.value = val; x.dispatchEvent(new Event(x.type === 'range' ? 'input' : 'change', { bubbles: true })); }
     });
     if (state.playing) stopPlayback();
-    if (state.track){
+    if (state.track && fresh){
       if (v.pos == null) showFullTrack(state.track); else setPosition(v.pos, { instant: true });
     }
-    if (v.cam){
+    if (v.cam && fresh){
       // limite de navigation calée sur la taille de CET écran : on l'élargit pour accepter le cadrage de l'autre écran
       const mb = map.getMaxBounds();
       map.setMaxBounds(null);
@@ -3599,7 +3603,7 @@ function viewApply(afterLoad){
         map.setMaxBounds([[mb.getWest() - gx, Math.max(-85, mb.getSouth() - gy)], [mb.getEast() + gx, Math.min(85, mb.getNorth() + gy)]]);
       }
     }
-    if (v.playing && state.track) el.btnPlay.click();   // lecture en cours sur l'autre écran : elle continue ici
+    if (v.playing && state.track && fresh) el.btnPlay.click();   // lecture en cours sur l'autre écran : elle continue ici
   } finally {
     setTimeout(() => { viewApplying = false; }, 300);   // les « moveend » du saut ne réécrivent pas la vue
   }
