@@ -1110,7 +1110,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.5 · © A.Legat</p>
+      <p class="version-line">v1.5.6 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1169,6 +1169,10 @@
 
     <div id="osmAccount">
     <div id="osmSetup" style="display:none;">
+      <div class="osm-builtin-note" hidden>
+        <div class="help-block" data-lang="fr" lang="fr" style="margin-bottom:6px;"><b>Facultatif.</b> GPX 3D est déjà déclaré sur OpenStreetMap : rien à configurer. Pour utiliser plutôt votre propre application OSM, suivez les étapes ci-dessous.</div>
+        <div class="help-block" data-lang="en" lang="en" style="margin-bottom:6px;" hidden><b>Optional.</b> GPX 3D is already registered on OpenStreetMap: nothing to set up. To use your own OSM application instead, follow the steps below.</div>
+      </div>
       <div class="help-block" data-lang="fr" lang="fr">
         <div style="margin-bottom:4px;">Première utilisation : déclarer l'application sur OpenStreetMap (gratuit, une seule fois).</div>
         <ol>
@@ -1193,6 +1197,7 @@
       </div>
       <input type="text" id="osmClientId" data-i18n-ph="osm.phClientId" placeholder="ID client OSM" autocomplete="off">
       <button class="btn btn-primary" id="btnOsmSaveId" style="width:100%;" data-i18n="osm.saveId">Enregistrer l'ID client</button>
+      <button class="btn" id="btnOsmBuiltin" type="button" style="width:100%;margin-top:6px;" data-i18n="osm.useBuiltin" hidden>Utiliser la configuration intégrée</button>
     </div>
 
     <div id="osmLogin" style="display:none;">
@@ -1415,7 +1420,7 @@
           <li><b>Mes traces</b> : le bouton nuage, en haut du panneau, liste vos traces GPS OpenStreetMap ; « Importer » charge la trace choisie dans le visualiseur.</li>
           <li><b>Itinéraire balisé</b> : onglet « Importer › Itinéraire » ; un nom ou un numéro de balisage (GR 5…) est cherché dans la zone visible (champ vide : tous les itinéraires de la zone), ou coller un numéro de relation, un lien openstreetmap.org/relation/… ou Waymarked Trails. Variantes et excursions écartées ; données OSM sans altitude.</li>
           <li><b>Envoyer</b> la trace chargée sur votre compte, avec une description (obligatoire), des étiquettes et la visibilité (identifiable ou traçable). Les points d'origine du fichier sont envoyés (sans la densification) ; OSM exigeant un horodatage, les heures du fichier sont conservées, sinon des heures fictives à 4 km/h sont ajoutées.</li>
-          <li><b>Première utilisation</b> : déclarer l'application sur openstreetmap.org (Mes applications OAuth 2, application non confidentielle, droits « traces GPS ») avec l'URI de redirection affichée, puis coller l'ID client. Une application déjà déclarée pour The-GPX-Box peut être réutilisée en y ajoutant cette URI. La page doit être ouverte en https:// ou sur http://localhost.</li>
+          <li><b>Connexion</b> : rien à configurer, GPX 3D est déjà déclaré sur openstreetmap.org ; « Se connecter à OpenStreetMap », puis autoriser avec votre propre compte (vos traces restent les vôtres). <b>Autre configuration</b> : le lien « Autre configuration (ID client) » permet d'utiliser votre propre application OSM (non confidentielle, droits « traces GPS », URI de redirection affichée) ; le bouton « Utiliser la configuration intégrée » revient à l'ID par défaut. La page doit être ouverte en https:// ou sur http://localhost.</li>
         </ul>
 
         <h3>Fichiers GPX pris en charge</h3>
@@ -1580,7 +1585,7 @@
           <li><b>My traces</b>: the cloud button at the top of the panel lists your OpenStreetMap GPS traces; “Import” loads the chosen trace into the viewer.</li>
           <li><b>Waymarked route</b>: “Import › Route” tab; a name or waymark number (GR 5…) is searched in the visible area (empty field: all routes in the area), or paste a relation number, an openstreetmap.org/relation/… or Waymarked Trails link. Variants and excursions are skipped; OSM data has no elevation.</li>
           <li><b>Upload</b> the loaded track to your account, with a description (required), tags and visibility (identifiable or trackable). The file's original points are sent (without densification); since OSM requires timestamps, the file's times are kept, otherwise dummy times at 4 km/h are added.</li>
-          <li><b>First use</b>: register the application on openstreetmap.org (My OAuth 2 applications, non-confidential application, “GPS traces” permissions) with the redirect URI shown, then paste the client ID. An application already registered for The-GPX-Box can be reused by adding this URI to it. The page must be opened over https:// or on http://localhost.</li>
+          <li><b>Logging in</b>: nothing to set up, GPX 3D is already registered on openstreetmap.org; “Log in to OpenStreetMap”, then authorise with your own account (your traces stay yours). <b>Other set-up</b>: the “Other set-up (client ID)” link lets you use your own OSM application (non-confidential, “GPS traces” permissions, redirect URI shown); the “Use the built-in set-up” button goes back to the default ID. The page must be opened over https:// or on http://localhost.</li>
         </ul>
 
         <h3>Supported GPX files</h3>
@@ -1760,7 +1765,7 @@ const I18N = {
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
     'osm.phClientId': "ID client OSM", 'osm.saveId': "Enregistrer l'ID client", 'osm.connect': "Se connecter à OpenStreetMap",
-    'osm.connectHint': "Une fenêtre OSM s'ouvre pour autoriser l'accès à vos traces.", 'osm.changeId': "Changer l'ID client",
+    'osm.connectHint': "Une fenêtre OSM s'ouvre pour autoriser l'accès à vos traces.", 'osm.changeId': "Autre configuration (ID client)", 'osm.useBuiltin': "Utiliser la configuration intégrée",
     'osm.tabImport': "Importer", 'osm.tabSend': "Envoyer", 'osm.srcMine': "Mes traces", 'osm.srcMineSub': "mon compte",
     'osm.srcTrace': "Autre trace", 'osm.srcTraceSub': "lien ou numéro",
     'osm.srcRoute': "Itinéraire", 'osm.srcRouteSub': "balisé (GR…)",
@@ -1872,7 +1877,7 @@ const I18N = {
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
     'osm.phClientId': "OSM client ID", 'osm.saveId': "Save the client ID", 'osm.connect': "Log in to OpenStreetMap",
-    'osm.connectHint': "An OSM window opens to authorise access to your traces.", 'osm.changeId': "Change the client ID",
+    'osm.connectHint': "An OSM window opens to authorise access to your traces.", 'osm.changeId': "Other set-up (client ID)", 'osm.useBuiltin': "Use the built-in set-up",
     'osm.tabImport': "Import", 'osm.tabSend': "Upload", 'osm.srcMine': "My traces", 'osm.srcMineSub': "my account",
     'osm.srcTrace': "Other trace", 'osm.srcTraceSub': "link or number",
     'osm.srcRoute': "Route", 'osm.srcRouteSub': "waymarked (GR…)",
@@ -4906,6 +4911,13 @@ function refreshDynamicTexts(){
   const OSM_API = 'https://api.openstreetmap.org/api/0.6';
   const OSM_SCOPE = 'read_gpx write_gpx';
   const K_ID = 'gpx3d.osm.clientId', K_TOK = 'gpx3d.osm.token', K_PKCE = 'gpx3d.osm.pkce';
+  /* ID client de l'application « GPX 3D » déclarée sur openstreetmap.org : public par nature
+     (OAuth 2 PKCE, application non confidentielle, aucun secret). Il évite à chacun de déclarer
+     sa propre application ; chaque utilisateur se connecte quand même avec son propre compte.
+     Une autre configuration reste possible : « Autre configuration (ID client) » enregistre un ID personnel,
+     prioritaire (clé K_ID) ; la valeur 'integre' y force le retour à cet ID. */
+  const OSM_BUILTIN_CLIENT_ID = 'J1EtVexl83yjdoASy4jgx7WLygYfarQru6iD89fct7k';
+  const OSM_BUILTIN = 'integre';
   const panel = document.getElementById('osmPanel');
   const btnOsm = document.getElementById('btnOsm');
   if (!panel || !btnOsm) return;
@@ -4913,8 +4925,12 @@ function refreshDynamicTexts(){
 
   const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
   const lsSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(e){} };
-  const sharedId = () => lsGet('gpxbox.osm.clientId') || '';
-  const osmClientId = () => lsGet(K_ID) || sharedId();
+  const sharedId = () => { const v = lsGet('gpxbox.osm.clientId') || ''; return v === 'integre' ? '' : v; };   // 'integre' : marqueur de The-GPX-Box
+  const osmClientId = () => {
+    const own = lsGet(K_ID);
+    if (own === OSM_BUILTIN) return OSM_BUILTIN_CLIENT_ID;
+    return own || sharedId() || OSM_BUILTIN_CLIENT_ID;   // personnel > partagé avec The-GPX-Box > intégré
+  };
   const osmToken = () => lsGet(K_TOK) || (!lsGet(K_ID) && sharedId() ? (lsGet('gpxbox.osm.token') || '') : '');
   function clearToken(){
     lsSet(K_TOK, null);
@@ -5387,6 +5403,9 @@ function refreshDynamicTexts(){
     const cid = osmClientId(), tok = osmToken();
     document.querySelectorAll('#osmPanel .osm-redirect').forEach(c => { c.textContent = osmRedirectUri(); });
     document.getElementById('osmSetup').style.display = cid ? 'none' : 'block';
+    const hasBuiltin = !!OSM_BUILTIN_CLIENT_ID;
+    document.getElementById('btnOsmBuiltin').hidden = !hasBuiltin;
+    panel.querySelectorAll('.osm-builtin-note').forEach(n => { n.hidden = !hasBuiltin; });
     document.getElementById('osmLogin').style.display = (cid && !tok) ? 'block' : 'none';
     document.getElementById('osmConnected').style.display = (cid && tok) ? 'block' : 'none';
     document.getElementById('osmUserName').textContent = osmUser || '…';
@@ -5582,12 +5601,18 @@ function refreshDynamicTexts(){
   });
   document.getElementById('lnkOsmChangeId').addEventListener('click', ev => {
     ev.preventDefault();
-    document.getElementById('osmClientId').value = osmClientId();
+    const cur = osmClientId();
+    document.getElementById('osmClientId').value = (cur === OSM_BUILTIN_CLIENT_ID) ? '' : cur;
     lsSet(K_ID, null); lsSet(K_TOK, null);
     osmRender();
-    // un ID partagé avec The-GPX-Box resterait affiché : on force l'écran de saisie
+    // un ID partagé ou intégré resterait actif : on force l'écran de saisie
     document.getElementById('osmSetup').style.display = 'block';
     document.getElementById('osmLogin').style.display = 'none';
+  });
+  document.getElementById('btnOsmBuiltin').addEventListener('click', () => {
+    lsSet(K_ID, OSM_BUILTIN); lsSet(K_TOK, null);
+    osmStatus('');
+    osmRender();
   });
   document.getElementById('btnOsmConnect').addEventListener('click', osmLogin);
   document.getElementById('btnOsmRefresh').addEventListener('click', () => { osmStatus(''); osmLoadTraces(); });
