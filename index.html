@@ -4936,7 +4936,8 @@ function refreshDynamicTexts(){
     lsSet(K_TOK, null);
     if (!lsGet(K_ID)) lsSet('gpxbox.osm.token', null); // jeton partagé avec The-GPX-Box
   }
-  const osmRedirectUri = () => location.origin + location.pathname;
+  // une seule adresse à déclarer sur OSM, que la page soit ouverte en …/ ou en …/index.html
+  const osmRedirectUri = () => location.origin + location.pathname.replace(/index\.html$/, '');
   function b64url(bytes){
     let s = ''; bytes = new Uint8Array(bytes);
     for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
