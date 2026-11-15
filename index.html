@@ -818,7 +818,8 @@
     }
     #resize-handle{ display:none; }
     #weather-bar{ top:10px; left:10px; right:auto; max-width:calc(100vw - 76px); }
-    #track-title-badge{ top:52px; max-width:88vw; }
+    /* nom de la trace tout en haut, entre la météo (gauche) et la colonne zoom (droite) */
+    #track-title-badge{ top:16px; max-width:calc(100vw - 2 * (10px + var(--ctl) + 8px)); }
     #pitch-control{ bottom:calc(var(--panel-h, 0px) + 34px); }
     /* l'info-bulle suit la barre : centrée sur sa hauteur, au-dessus du panneau (elle restait à 40 px du bas de l'écran) */
     #pitch-tooltip{ bottom:calc(var(--panel-h, 0px) + 34px + var(--pitch-h, 130px) / 2); }
@@ -1118,7 +1119,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.8 · © A.Legat</p>
+      <p class="version-line">v1.5.9 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
