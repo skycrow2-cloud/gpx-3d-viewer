@@ -505,7 +505,6 @@
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     transition:background .15s ease, transform .1s ease, box-shadow .15s ease;
   }
-  #btnLang{ font-size:12px; letter-spacing:.02em; }
   .hdr-btn:hover{ background:var(--glass-hover); box-shadow:0 0 0 3px var(--accent-soft); }
   .hdr-btn:active{ transform:scale(.93); }
   .hdr-btn.active{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
@@ -1014,9 +1013,8 @@
       </div>
       <div class="hdr-actions">
         <button class="hdr-btn" id="btnToMaker" type="button" data-i18n-title="toMaker" title="Ouvrir dans The-GPX-Box (créer / modifier un tracé)" aria-label="Ouvrir dans The-GPX-Box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.85.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.85z"/></svg></button>
-        <button class="hdr-btn" id="btnTrackStyle" type="button" data-i18n-title="trackStyle" title="Style de la trace" aria-label="Style de la trace"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         <button class="hdr-btn" id="btnOsm" type="button" data-i18n-title="osm" title="Traces GPS OpenStreetMap" aria-label="Traces GPS OpenStreetMap"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18.5H6a4 4 0 0 1-.6-7.95A6 6 0 0 1 17 9.2a4.6 4.6 0 0 1 1 9.1"/><path d="M10 21v-6.5M7.8 16.6 10 14.4l2.2 2.2"/><path d="M14.5 13v6.6M12.3 17.4l2.2 2.2 2.2-2.2"/></svg></button>
-        <button class="hdr-btn" id="btnLang" type="button" data-i18n-title="lang" title="Switch to English" aria-label="Switch to English">EN</button>
+        <button class="hdr-btn" id="btnTrackStyle" type="button" data-i18n-title="trackStyle" title="Style de la trace" aria-label="Style de la trace"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         <button class="hdr-btn" id="btnInfo" type="button" data-i18n-title="help" title="Aide" aria-label="Aide">i</button>
         <button class="hdr-btn" id="btnTools" type="button" data-i18n-title="tools" title="Outils" aria-label="Outils" aria-haspopup="menu" aria-expanded="false" aria-controls="tools-menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       </div>
@@ -1033,6 +1031,11 @@
         <span data-i18n="ts.width">Épaisseur</span>
         <input type="range" id="ts-width" min="1" max="12" step="0.5">
         <span class="ts-val" id="ts-width-val"></span>
+      </div>
+      <div class="ts-row theme-switch">
+        <span data-i18n="ts.lang">Langue</span>
+        <button class="btn" id="lang-fr" type="button" lang="fr">Français</button>
+        <button class="btn" id="lang-en" type="button" lang="en">English</button>
       </div>
       <div class="ts-row theme-switch">
         <span data-i18n="ts.theme">Thème</span>
@@ -1107,7 +1110,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.4 · © A.Legat</p>
+      <p class="version-line">v1.5.5 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1148,9 +1151,8 @@
   <!-- menu « Outils » (tablette, téléphone, fenêtre étroite) : chaque entrée déclenche le bouton d'en-tête correspondant -->
   <div id="tools-menu" role="menu" aria-labelledby="btnTools" hidden>
     <button class="tm-item" type="button" role="menuitem" data-for="btnToMaker"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.toMaker">Ouvrir dans The-GPX-Box</span></button>
-    <button class="tm-item" type="button" role="menuitem" data-for="btnTrackStyle"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.trackStyle">Options</span></button>
     <button class="tm-item" type="button" role="menuitem" data-for="btnOsm"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.osm">Traces OpenStreetMap</span></button>
-    <button class="tm-item" type="button" role="menuitem" data-for="btnLang"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.lang">English</span></button>
+    <button class="tm-item" type="button" role="menuitem" data-for="btnTrackStyle"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.trackStyle">Options</span></button>
     <button class="tm-item" type="button" role="menuitem" data-for="btnInfo"><span class="tm-ico"></span><span class="tm-lbl" data-i18n="tools.help">Aide et documentation</span></button>
   </div>
 
@@ -1334,7 +1336,7 @@
         <p>Visualiser un fichier GPX sur une carte 3D (relief exagéré ×1,6, photo aérienne ou fond randonnée), consulter son profil (altitude, vitesse, données de capteurs), rejouer le parcours avec une caméra qui suit le point, et afficher le lieu et la météo actuelle à la position courante. Tout se passe dans le navigateur : le fichier GPX n'est jamais envoyé.</p>
 
         <h3>Langue</h3>
-        <p>Le bouton <b>EN</b> / <b>FR</b>, en haut du panneau, traduit toute l'interface (libellés, info-bulles, statistiques, météo, messages), l'aide et la documentation. Au premier lancement, la langue du navigateur est utilisée ; le choix est ensuite mémorisé. Les noms de lieux sont redemandés à Nominatim dans la langue choisie. Le nom de la trace vient du fichier GPX et n'est pas traduit.</p>
+        <p>La ligne <b>Langue</b> (<b>Français</b> / <b>English</b>) de la fenêtre <b>Options</b> (bouton engrenage, en haut du panneau) traduit toute l'interface (libellés, info-bulles, statistiques, météo, messages), l'aide et la documentation. Au premier lancement, la langue du navigateur est utilisée ; le choix est ensuite mémorisé. Les noms de lieux sont redemandés à Nominatim dans la langue choisie. Le nom de la trace vient du fichier GPX et n'est pas traduit.</p>
 
         <h3>Charger un GPX</h3>
         <ul>
@@ -1390,7 +1392,7 @@
           <li>La navigation est limitée à la vue générale de la trace agrandie ×4, pour éviter de charger des tuiles inutiles.</li>
           <li><b>Panneau</b> : la poignée verticale à son bord droit le redimensionne (largeur mémorisée). Sur écran étroit (760 px ou moins, sauf téléphone en paysage) ou tablette en portrait, il passe sous la carte.</li>
           <li><b>Menu Outils</b> (bouton à trois traits, en haut du panneau) : sur tablette, téléphone ou fenêtre étroite, il regroupe les boutons de l'en-tête — The-GPX-Box, options, traces OpenStreetMap, langue et aide.</li>
-          <li><b>Options</b> (bouton engrenage en haut du panneau) : <b>couleur</b> de la trace (<b>Auto</b> l'adapte au fond de carte), <b>épaisseur</b>, <b>thème</b> <b>Foncé</b>, <b>Gris</b> ou <b>Clair</b> de l'interface, et <b>icônes flottantes</b> (déplaçables ou fixes). Ces choix sont mémorisés.</li>
+          <li><b>Options</b> (bouton engrenage en haut du panneau) : <b>couleur</b> de la trace (<b>Auto</b> l'adapte au fond de carte), <b>épaisseur</b>, <b>langue</b> (Français / English), <b>thème</b> <b>Foncé</b>, <b>Gris</b> ou <b>Clair</b> de l'interface, et <b>icônes flottantes</b> (déplaçables ou fixes). Ces choix sont mémorisés.</li>
         </ul>
 
         <h3>Lieu et météo</h3>
@@ -1499,7 +1501,7 @@
         <p>View a GPX file on a 3D map (terrain exaggerated ×1.6, aerial photo or hiking basemap), browse its profile (altitude, speed, sensor data), replay the route with a camera that follows the point, and show the place and current weather at the current position. Everything runs in the browser: the GPX file is never uploaded.</p>
 
         <h3>Language</h3>
-        <p>The <b>EN</b> / <b>FR</b> button at the top of the panel translates the whole interface (labels, tooltips, statistics, weather, messages), the help and the documentation. On first launch, the browser language is used; the choice is then remembered. Place names are requested again from Nominatim in the chosen language. The track name comes from the GPX file and is not translated.</p>
+        <p>The <b>Language</b> row (<b>Français</b> / <b>English</b>) of the <b>Options</b> window (gear button, top of the panel) translates the whole interface (labels, tooltips, statistics, weather, messages), the help and the documentation. On first launch, the browser language is used; the choice is then remembered. Place names are requested again from Nominatim in the chosen language. The track name comes from the GPX file and is not translated.</p>
 
         <h3>Loading a GPX</h3>
         <ul>
@@ -1555,7 +1557,7 @@
           <li>Navigation is limited to the track overview enlarged ×4, to avoid loading useless tiles.</li>
           <li><b>Panel</b>: the vertical handle on its right edge resizes it (width remembered). On narrow screens (760 px or less, except a phone in landscape) or a tablet in portrait, it moves below the map.</li>
           <li><b>Tools menu</b> (three-line button at the top of the panel): on a tablet, a phone or a narrow window, it gathers the header buttons — The-GPX-Box, options, OpenStreetMap tracks, language and help.</li>
-          <li><b>Options</b> (gear button at the top of the panel): track <b>colour</b> (<b>Auto</b> adapts it to the basemap), <b>width</b>, <b>Dark</b>, <b>Grey</b> or <b>Light</b> interface <b>theme</b>, and <b>floating icons</b> (movable or fixed). These choices are remembered.</li>
+          <li><b>Options</b> (gear button at the top of the panel): track <b>colour</b> (<b>Auto</b> adapts it to the basemap), <b>width</b>, <b>language</b> (Français / English), <b>Dark</b>, <b>Grey</b> or <b>Light</b> interface <b>theme</b>, and <b>floating icons</b> (movable or fixed). These choices are remembered.</li>
         </ul>
 
         <h3>Place and weather</h3>
@@ -1718,7 +1720,7 @@ const SPEED_ZOOM_MAX_FACTOR = 5;    // vitesse maxi : 5x la vitesse réglée (vu
 const PRELOAD_MAX_TILES = 400;   // plafond du nombre de tuiles préchargées
 const PRELOAD_CONCURRENCY = 6;
 /* ============================================================
-   Langue de l'interface (FR / EN) : bouton « EN / FR » de l'en-tête du panneau.
+   Langue de l'interface (FR / EN) : boutons Français / English de la fenêtre Options (engrenage).
    - textes statiques : attributs data-i18n (texte), data-i18n-title (info-bulle + aria-label)
    - textes dynamiques : tx(clé, {paramètres}), ré-affichés par refreshDynamicTexts()
    Le choix est mémorisé (localStorage) ; à défaut, on suit la langue du navigateur.
@@ -1753,7 +1755,7 @@ const I18N = {
     'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.toMaker': "Ouvrir dans The-GPX-Box (créer / modifier un tracé) — la trace chargée y est transmise", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
     'title.tools': "Outils", 'tools.toMaker': "Ouvrir dans The-GPX-Box", 'tools.trackStyle': "Options", 'tools.osm': "Traces OpenStreetMap", 'tools.lang': "English", 'tools.help': "Aide et documentation",
-    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.grey': "Gris", 'ts.light': "Clair", 'ts.float': "Icônes flottantes", 'ts.yes': "Oui", 'ts.no': "Non", 'ctx.points': "Afficher les points", 'ctx.tips': "Infobulles sur les points", 'ctx.point': "Point",
+    'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.lang': "Langue", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.grey': "Gris", 'ts.light': "Clair", 'ts.float': "Icônes flottantes", 'ts.yes': "Oui", 'ts.no': "Non", 'ctx.points': "Afficher les points", 'ctx.tips': "Infobulles sur les points", 'ctx.point': "Point",
     'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
@@ -1865,7 +1867,7 @@ const I18N = {
     'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.toMaker': "Open in The-GPX-Box (draw / edit a route) — the loaded track is passed on", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
     'title.tools': "Tools", 'tools.toMaker': "Open in The-GPX-Box", 'tools.trackStyle': "Options", 'tools.osm': "OpenStreetMap tracks", 'tools.lang': "Français", 'tools.help': "Help and documentation",
-    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.grey': "Grey", 'ts.light': "Light", 'ts.float': "Floating icons", 'ts.yes': "Yes", 'ts.no': "No", 'ctx.points': "Show points", 'ctx.tips': "Tooltips on points", 'ctx.point': "Point",
+    'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.lang': "Language", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.grey': "Grey", 'ts.light': "Light", 'ts.float': "Floating icons", 'ts.yes': "Yes", 'ts.no': "No", 'ctx.points': "Show points", 'ctx.tips': "Tooltips on points", 'ctx.point': "Point",
     'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
@@ -1976,8 +1978,10 @@ function applyStaticTexts(){
     const v = tx('title.' + n.dataset.i18nTitle);
     n.title = v; n.setAttribute('aria-label', v);
   });
-  const b = document.getElementById('btnLang');
-  if (b) b.textContent = (LANG === 'fr') ? 'EN' : 'FR';
+  ['fr', 'en'].forEach(l => {   // options : langue active
+    const b = document.getElementById('lang-' + l);
+    if (b){ b.classList.toggle('active', LANG === l); b.setAttribute('aria-pressed', LANG === l ? 'true' : 'false'); }
+  });
 }
 function setLanguage(l){
   if (l !== 'fr' && l !== 'en') return;
@@ -5642,8 +5646,10 @@ function refreshDynamicTexts(){
   btnDocClose.addEventListener('click', closeDoc);
   docOverlay.addEventListener('click', e => { if (e.target === docOverlay) closeDoc(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && isDocOpen()) closeDoc(); });
-  const btnLang = document.getElementById('btnLang');
-  if (btnLang) btnLang.addEventListener('click', e => { e.stopPropagation(); setLanguage(LANG === 'fr' ? 'en' : 'fr'); });
+  ['fr', 'en'].forEach(l => {   // langue : dans la fenêtre Options
+    const b = document.getElementById('lang-' + l);
+    if (b) b.addEventListener('click', e => { e.stopPropagation(); setLanguage(l); });
+  });
   applyStaticTexts(); // langue initiale (mémorisée ou celle du navigateur)
 })();
 
