@@ -85,11 +85,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A help/img help/video
-          if git diff --cached --quiet; then
-            echo "Aucun média modifié."
-            exit 0
-          fi
-          git commit -m "Aide : captures et vidéos régénérées (run ${{ github.run_number }})"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          # les médias générés ici priment : on repart du dernier état du dépôt (un autre passage
+          # a pu déposer les siens entre-temps) et on n'y ajoute que help/img et help/video
+          for essai in 1 2 3; do
+            git fetch -q origin main
+            git reset -q --mixed origin/main
+            git add -A help/img help/video
+            if git diff --cached --quiet; then echo "Aucun média modifié."; exit 0; fi
+            git commit -q -m "Aide : captures et vidéos régénérées (run ${{ github.run_number }})"
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 5
+          done
+          exit 1

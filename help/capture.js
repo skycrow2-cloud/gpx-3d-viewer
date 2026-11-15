@@ -283,6 +283,16 @@ async function images(browser, base){
   await jsClick(page, '#btn-stop');
   await sleep(2000);
 
+  // fin de parcours : feu d'artifice (lecture courte en vue générale)
+  await setRange(page, '#duration', 6);
+  await jsClick(page, '#btn-play');
+  await page.waitForSelector('#fireworks', { state: 'attached', timeout: 90000 }).catch(() => {});
+  await sleep(1300);
+  await shot(page, '25-feu-artifice', { map: true, jpeg: true });
+  await page.waitForSelector('#fireworks', { state: 'detached', timeout: 20000 }).catch(() => {});
+  await jsClick(page, '#btn-stop');
+  await sleep(1500);
+
   // suivi rapproché + cap (la vue générale est cochée par défaut : on la décoche)
   await setCheck(page, '#overview-check', false);
   await setCheck(page, '#orient-check', true);
@@ -347,6 +357,8 @@ async function images(browser, base){
   // panneaux : OpenStreetMap, aide rapide
   await jsClick(page, '#btnOsm');
   await sleep(900);
+  await jsClick(page, '#osmPanel .gpx-src[data-src="mine"]');   // « Mes traces » : connexion et autre configuration
+  await sleep(700);
   await shot(page, '21-osm', { sel: '#osmPanel' });
   await jsClick(page, '#btnOsmClose');
   await sleep(500);
@@ -440,8 +452,8 @@ const NARRATION = {
                      en: "The map frames the track. The start is marked in green, the finish in red." },
     { at: 'lecture', fr: "Le bouton Lecture rejoue le parcours : un point bleu avance le long de la trace, et le profil suit.",
                      en: "The Play button replays the route: a blue dot moves along the track, and the profile follows." },
-    { at: 'arret',   fr: "Le bouton Arrêt revient à la trace entière.",
-                     en: "The Stop button goes back to the whole track." },
+    { at: 'fin',     fr: "À l'arrivée, un feu d'artifice salue la fin du parcours.",
+                     en: "At the finish, fireworks celebrate the end of the route." },
   ],
   '02-suivi-cap': [
     { at: 'vue',     fr: "Décochez « Rester en vue générale » : le suivi et le cap deviennent disponibles.",
@@ -637,12 +649,12 @@ async function videos(browser, base){
       await loadDemo(page);
       mark('charge');
       await sleep(6000);
+      await setRange(page, '#duration', 16);   // lecture courte : on va jusqu'à l'arrivée
       await jsClick(page, '#btn-play');
       mark('lecture');
-      await sleep(11000);
-      await jsClick(page, '#btn-stop');
-      mark('arret');
-      await sleep(4000);
+      await page.waitForSelector('#fireworks', { state: 'attached', timeout: 90000 }).catch(() => {});
+      mark('fin');
+      await sleep(5500);
     },
   });
 

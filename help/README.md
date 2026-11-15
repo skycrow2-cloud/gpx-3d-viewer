@@ -46,9 +46,10 @@ Variables d'environnement utiles à la mise au point hors ligne : `CHROME_PATH` 
 | `16-assiette.jpg` | vue inclinée à 55° |
 | `17-guidage-panneau.png`, `17-guidage-etat.png` | section guidage : bouton, case, ligne d'état |
 | `18-guidage-virage.jpg`, `19-guidage-hors-trace.jpg`, `20-guidage-depart.jpg` | pastilles du guidage et fenêtre « départ éloigné » |
-| `21-osm.png`, `22-aide-rapide.png` | panneau OpenStreetMap, fenêtre d'aide rapide |
+| `21-osm.png`, `22-aide-rapide.png` | panneau OpenStreetMap (Mes traces, connexion), fenêtre d'aide rapide |
 | `23-telephone.jpg`, `24-outils.png` | rendu téléphone, menu Outils |
-| `video/01-demarrer.<lang>` | charger un GPX puis lancer la lecture |
+| `25-feu-artifice.jpg` | feu d'artifice de fin de parcours |
+| `video/01-demarrer.<lang>` | charger un GPX, rejouer jusqu'à l'arrivée (feu d'artifice) |
 | `video/02-suivi-cap.<lang>` | suivi rapproché avec orientation selon le cap |
 | `video/03-fonds.<lang>` | changer de fond, régler l'opacité, incliner la vue |
 | `video/04-guidage.<lang>` | guidage GPS simulé : virage, sortie de trace, retour |
