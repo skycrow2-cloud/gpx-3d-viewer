@@ -358,6 +358,7 @@
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
   .zoom-btn + .zoom-btn{ border-top:1px solid var(--zoom-sep); }
+  .zoom-btn svg{ width:18px; height:18px; }
   .zoom-btn:hover{ background:rgba(232,163,61,.18); }
   .zoom-btn:active{ background:rgba(232,163,61,.3); }
   .maplibregl-ctrl-group{
@@ -1117,7 +1118,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.7 · © A.Legat</p>
+      <p class="version-line">v1.5.8 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1768,7 +1769,7 @@ const I18N = {
     'title.coord': "Coordonnées du curseur", 'title.coordSys': "Système de coordonnées",
     'title.tools': "Outils", 'tools.toMaker': "Ouvrir dans The-GPX-Box", 'tools.trackStyle': "Options", 'tools.osm': "Traces OpenStreetMap", 'tools.lang': "English", 'tools.help': "Aide et documentation",
     'title.trackStyle': "Style de la trace", 'ts.color': "Couleur", 'ts.width': "Épaisseur", 'ts.auto': "Auto", 'ts.lang': "Langue", 'ts.theme': "Thème", 'ts.dark': "Foncé", 'ts.grey': "Gris", 'ts.light': "Clair", 'ts.float': "Icônes flottantes", 'ts.yes': "Oui", 'ts.no': "Non", 'ctx.points': "Afficher les points", 'ctx.tips': "Infobulles sur les points", 'ctx.point': "Point",
-    'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
+    'title.overview': "Vue générale", 'title.zoomIn': "Zoom avant", 'title.zoomOut': "Zoom arrière", 'title.lang': "Switch to English",
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
     'osm.phClientId': "ID client OSM", 'osm.saveId': "Enregistrer l'ID client", 'osm.connect': "Se connecter à OpenStreetMap",
@@ -1880,7 +1881,7 @@ const I18N = {
     'title.coord': "Cursor coordinates", 'title.coordSys': "Coordinate system",
     'title.tools': "Tools", 'tools.toMaker': "Open in The-GPX-Box", 'tools.trackStyle': "Options", 'tools.osm': "OpenStreetMap tracks", 'tools.lang': "Français", 'tools.help': "Help and documentation",
     'title.trackStyle': "Track style", 'ts.color': "Colour", 'ts.width': "Width", 'ts.auto': "Auto", 'ts.lang': "Language", 'ts.theme': "Theme", 'ts.dark': "Dark", 'ts.grey': "Grey", 'ts.light': "Light", 'ts.float': "Floating icons", 'ts.yes': "Yes", 'ts.no': "No", 'ctx.points': "Show points", 'ctx.tips': "Tooltips on points", 'ctx.point': "Point",
-    'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
+    'title.overview': "Overview", 'title.zoomIn': "Zoom in", 'title.zoomOut': "Zoom out", 'title.lang': "Passer en français",
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
     'osm.phClientId': "OSM client ID", 'osm.saveId': "Save the client ID", 'osm.connect': "Log in to OpenStreetMap",
@@ -2719,6 +2720,16 @@ class ZoomBarControl {
       b.addEventListener('click', fn);
       return b;
     };
+    const ov = mk('', 'overview', e => {
+      const o = { padding: mapPadding(), pitch: 0, bearing: 0, duration: 600 };
+      try {
+        if (state.track){ const b = trackBounds(state.track, 1.3); m.fitBounds([[b.west, b.south],[b.east, b.north]], o, { originalEvent: e }); }
+        else m.fitBounds(BELGIUM_BOUNDS, o, { originalEvent: e });
+        el.pitchSlider.value = 0;
+      } catch (err) { /* padding extrême : on ignore */ }
+    });
+    ov.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><circle cx="12" cy="12" r="2.2"/></svg>';
+    c.appendChild(ov);
     c.appendChild(mk('+', 'zoomIn',  e => m.zoomIn({},  { originalEvent: e })));
     c.appendChild(mk('\u2212', 'zoomOut', e => m.zoomOut({}, { originalEvent: e })));
     this._container = c;
