@@ -1105,7 +1105,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.2 · © A.Legat</p>
+      <p class="version-line">v1.5.3 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1354,7 +1354,7 @@
         <h3>Lecture animée</h3>
         <ul>
           <li><b>▶ / ⏸ / ⏹</b> : lancer (repart du début si le parcours est terminé), mettre en pause, revenir à la trace complète. Le curseur permet de se placer n'importe où.</li>
-          <li><b>Durée</b> (5 à 50 000 s) : proposée automatiquement à chaque chargement, modifiable.</li>
+          <li><b>Durée</b> (5 à 50 000 s) : proposée à chaque chargement pour un défilement ni trop lent ni trop rapide, modifiable. En suivi, la carte défile comme à 50 km/h pour une randonnée à pied (70 km/h à vélo, 100 km/h au-delà, d'après la vitesse réelle du fichier ; à pied s'il n'a pas d'heures), entre 1 et 20 min.</li>
           <li>En mode suivi, la durée définit la vitesse à l'échelle 1:500 : la lecture ralentit quand la vue est serrée et accélère quand elle est large (de 3 % à 5 × la vitesse réglée).</li>
         </ul>
 
@@ -1362,7 +1362,7 @@
         <ul>
           <li><b>Suivi</b> (coché par défaut) : la caméra reste centrée sur le point à l'échelle 1:500, limitée à 1:1000 pendant les 10 premières secondes le temps que les tuiles se chargent. Un geste manuel suspend le suivi puis le reprend 300 ms après ; un zoom manuel est conservé jusqu'à l'arrêt.</li>
           <li><b>Cap</b> : la carte pivote pour regarder le tracé de côté (+90° par rapport à la marche), avec anticipation de 25 m et lissage.</li>
-          <li><b>Vue générale</b> : la trace entière est cadrée et reste affichée en entier (pas de dessin progressif) ; seul un point bleu la parcourt, et la caméra ne bouge plus (suivi et cap sont désactivés sans changer leur état). La durée saisie est alors la durée réelle de lecture ; elle est proposée automatiquement (environ 6 s par km, entre 30 et 600 s) et mémorisée séparément de celle du mode suivi.</li>
+          <li><b>Vue générale</b> : la trace entière est cadrée et reste affichée en entier (pas de dessin progressif) ; seul un point bleu la parcourt, et la caméra ne bouge plus (suivi et cap sont désactivés sans changer leur état). La durée saisie est alors la durée réelle de lecture ; elle est proposée automatiquement (20 s + 3 s par km, entre 30 s et 4 min) et mémorisée séparément de celle du mode suivi.</li>
         </ul>
 
         <h3>Suivre la trace sur le terrain (GPS)</h3>
@@ -1518,7 +1518,7 @@
         <h3>Animated playback</h3>
         <ul>
           <li><b>▶ / ⏸ / ⏹</b>: play (restarts from the beginning if the route had finished), pause, back to the full track. The slider jumps anywhere.</li>
-          <li><b>Duration</b> (5 to 50,000 s): suggested automatically on each load, editable.</li>
+          <li><b>Duration</b> (5 to 50,000 s): suggested on each load for a pace neither too slow nor too fast, editable. In follow mode the map scrolls as if at 50 km/h for a hike on foot (70 km/h by bike, 100 km/h beyond, from the file's real speed; on foot if it has no times), between 1 and 20 min.</li>
           <li>In follow mode, the duration sets the speed at scale 1:500: playback slows down in a tight view and speeds up in a wide view (from 3 % to 5× the set speed).</li>
         </ul>
 
@@ -1526,7 +1526,7 @@
         <ul>
           <li><b>Follow</b> (checked by default): the camera stays centred on the point at scale 1:500, capped at 1:1000 during the first 10 seconds while tiles load. A manual gesture pauses following and resumes it 300 ms later; a manual zoom is kept until stop.</li>
           <li><b>Heading</b>: the map rotates to look at the track from the side (+90° relative to the direction of travel), with a 25 m look-ahead and smoothing.</li>
-          <li><b>Overview</b>: the whole track is framed and stays fully drawn (no progressive drawing); only a blue dot travels along it, and the camera stays put (follow and heading are disabled without changing their state). The duration you enter is then the real playback time; it is suggested automatically (about 6 s per km, between 30 and 600 s) and stored separately from the follow-mode one.</li>
+          <li><b>Overview</b>: the whole track is framed and stays fully drawn (no progressive drawing); only a blue dot travels along it, and the camera stays put (follow and heading are disabled without changing their state). The duration you enter is then the real playback time; it is suggested automatically (20 s + 3 s per km, between 30 s and 4 min) and stored separately from the follow-mode one.</li>
         </ul>
 
         <h3>Following the track in the field (GPS)</h3>
@@ -3637,48 +3637,36 @@ async function selectTrack(index){
   if (SESSION_ON && viewPending){ viewPending = false; viewApply(true); }   // application Android : cadrage repris de l'autre écran
 }
 
-/* durée de lecture par défaut : calée sur un rythme d'affichage "suivable" à l'écran,
-   qui dépend de la vitesse moyenne réelle du tracé (km/h) quand elle est connue —
-   une trace enregistrée en voiture (grande vitesse moyenne) a besoin de plus de temps
-   de lecture par km qu'une marche pour que la caméra suive correctement, sinon le
-   point défile trop vite. Sans horodatage (vitesse inconnue), on retombe sur un
-   rythme fixe raisonnable. Durée toujours bornée entre 20 s et 15 min. */
-const PLAYBACK_REF_KMH_NO_SPEED = 15; // rythme cible si la vitesse réelle est inconnue
-const PLAYBACK_MIN_S = 20;
-const PLAYBACK_MAX_S = 3600; // borne haute = max du champ HTML ; ne doit pas être trop bas
-                              // sinon elle écrase le calcul sur les longs tracés et produit
-                              // l'effet inverse (allure apparente qui explose)
-function suggestDuration(track){
-  let onscreenKmh;
-  if (track.hasTime){
-    const validSpeeds = track.speedsKmh.filter(v => v != null);
-    const avgSpeed = validSpeeds.length ? validSpeeds.reduce((a,b)=>a+b,0)/validSpeeds.length : null;
-    const maxSpeed = validSpeeds.length ? Math.max(...validSpeeds) : null;
-    if (maxSpeed != null && maxSpeed <= 50) return 50000;
-    // rythme d'affichage cible proportionnel à la vitesse réelle (plus c'est rapide
-    // en réalité, plus on laisse de temps à l'écran), borné pour rester suivable
-    onscreenKmh = avgSpeed != null ? Math.min(80, Math.max(15, avgSpeed * 1.5)) : PLAYBACK_REF_KMH_NO_SPEED;
-  } else {
-    // pas d'horodatage : la vitesse réelle est inconnue, donc impossible de savoir si
-    // c'est une marche ou un trajet en voiture — par prudence on reste lent (pas de
-    // plafond serré ici, sinon un tracé long sans horodatage défile trop vite)
-    onscreenKmh = PLAYBACK_REF_KMH_NO_SPEED;
-    const durationNoTime = track.totalDistanceKm / onscreenKmh * 3600;
-    return Math.round(Math.max(PLAYBACK_MIN_S, durationNoTime));
-  }
-  let durationS = track.totalDistanceKm / onscreenKmh * 3600;
-  // plus il y a de points (waypoints), plus il y a de détail dans le tracé : on ralentit
-  // encore la lecture pour laisser le temps de le voir (facteur borné pour rester raisonnable)
-  const n = track.points.length;
-  const pointsFactor = Math.min(4, Math.max(1, n / 3000));
-  durationS *= pointsFactor;
-  return Math.round(Math.min(PLAYBACK_MAX_S, Math.max(PLAYBACK_MIN_S, durationS)));
+/* durées de lecture proposées : un rythme d'écran agréable quelle que soit la randonnée.
+   - Suivi (caméra à 1:500) : le point avance à une vitesse « au sol » fixe selon l'activité,
+     choisie pour que la carte défile à environ 100 px/s — on traverse l'écran en une dizaine
+     de secondes. L'activité vient de la vitesse réelle en mouvement (médiane, arrêts exclus) ;
+     sans horodatage, on suppose une randonnée à pied. Bornes : 1 à 20 minutes.
+   - Vue générale : la trace tient dans l'écran quelle que soit sa longueur, donc la durée
+     croît peu avec la distance : 20 s + 3 s par km, entre 30 s et 4 minutes. */
+const PLAYBACK_FOLLOW_KMH = { pied: 50, velo: 70, rapide: 100 };   // vitesse simulée au sol, en suivi
+const PLAYBACK_FOLLOW_MIN_S = 60, PLAYBACK_FOLLOW_MAX_S = 1200;
+const PLAYBACK_OVERVIEW_BASE_S = 20, PLAYBACK_OVERVIEW_PER_KM_S = 3;
+const PLAYBACK_OVERVIEW_MIN_S = 30, PLAYBACK_OVERVIEW_MAX_S = 240;
+/* vitesse réelle en mouvement (km/h) : médiane des vitesses entre 1 et 200 km/h, ou null */
+function movingSpeedKmh(track){
+  if (!track.hasTime) return null;
+  const v = track.speedsKmh.filter(x => x != null && x >= 1 && x <= 200).sort((a, b) => a - b);
+  return v.length >= 10 ? v[Math.floor(v.length / 2)] : null;
 }
-
-/* durée réelle de lecture proposée en vue générale (la vitesse n'y dépend plus du zoom) :
-   ~6 s par km, bornée à 30-600 s */
+function trackActivity(track){
+  const v = movingSpeedKmh(track);
+  if (v == null || v <= 8) return 'pied';
+  return v <= 30 ? 'velo' : 'rapide';
+}
+function suggestDuration(track){
+  const kmh = PLAYBACK_FOLLOW_KMH[trackActivity(track)];
+  const s = track.totalDistanceKm / kmh * 3600;
+  return Math.round(Math.min(PLAYBACK_FOLLOW_MAX_S, Math.max(PLAYBACK_FOLLOW_MIN_S, s)));
+}
 function suggestOverviewDuration(track){
-  return Math.round(Math.min(600, Math.max(30, track.totalDistanceKm * 6)));
+  const s = PLAYBACK_OVERVIEW_BASE_S + PLAYBACK_OVERVIEW_PER_KM_S * track.totalDistanceKm;
+  return Math.round(Math.min(PLAYBACK_OVERVIEW_MAX_S, Math.max(PLAYBACK_OVERVIEW_MIN_S, s)));
 }
 
 /* la caméra suit-elle le point ? (la vue générale est prioritaire sur le suivi) */

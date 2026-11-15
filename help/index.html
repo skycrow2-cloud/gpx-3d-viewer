@@ -317,15 +317,17 @@
   <ul data-l="fr">
     <li><b>▶</b> lance la lecture (et repart du début si le parcours est terminé), <b>⏸</b> met en pause, <b>⏹</b> revient à la trace complète.</li>
     <li>Le <b>curseur</b> place la lecture n'importe où ; le profil fait la même chose.</li>
-    <li><span class="ui">Durée</span> (5 à 50 000 s) : proposée à chaque chargement d'après la vitesse réelle de la trace, puis modifiable. Elle est mémorisée séparément pour la vue générale et pour le suivi.</li>
-    <li>En <b>vue générale</b>, la durée saisie est la durée réelle de la lecture (proposition : environ 6 s par km, entre 30 et 600 s).</li>
+    <li><span class="ui">Durée</span> (5 à 50 000 s) : proposée à chaque chargement pour un défilement ni trop lent ni trop rapide, puis modifiable. Elle est mémorisée séparément pour la vue générale et pour le suivi.</li>
+    <li>En <b>vue générale</b>, la durée saisie est la durée réelle de la lecture (proposition : 20 s + 3 s par km, entre 30 s et 4 min — la trace tient dans l'écran, une longue rando n'a pas besoin de beaucoup plus de temps).</li>
+    <li>En <b>suivi</b>, la proposition fait défiler la carte comme à <b>50 km/h pour une randonnée à pied</b> (70 km/h à vélo, 100 km/h au-delà) : on traverse l'écran en une dizaine de secondes. L'activité est déduite de la vitesse réelle du fichier, arrêts exclus ; sans heures, c'est la marche. Bornes : 1 à 20 min.</li>
     <li>En <b>suivi</b>, la durée correspond à l'échelle 1:500 : la lecture ralentit quand la vue est serrée et accélère quand elle est large (de 3 % à 5 × la vitesse réglée).</li>
   </ul>
   <ul data-l="en">
     <li><b>▶</b> starts playback (restarting from the beginning if the route has finished), <b>⏸</b> pauses, <b>⏹</b> goes back to the full track.</li>
     <li>The <b>slider</b> jumps anywhere in the route; the profile does the same.</li>
-    <li><span class="ui">Duration</span> (5 to 50,000 s): suggested at every load from the track's real speed, then editable. It is remembered separately for overview and for follow mode.</li>
-    <li>In <b>overview</b>, the duration you set is the real playback time (suggestion: about 6 s per km, between 30 and 600 s).</li>
+    <li><span class="ui">Duration</span> (5 to 50,000 s): suggested at every load for a pace neither too slow nor too fast, then editable. It is remembered separately for overview and for follow mode.</li>
+    <li>In <b>overview</b>, the duration you set is the real playback time (suggestion: 20 s + 3 s per km, between 30 s and 4 min — the track fits the screen, so a long hike needs little more time).</li>
+    <li>In <b>follow</b> mode, the suggestion scrolls the map as if at <b>50 km/h for a hike on foot</b> (70 km/h by bike, 100 km/h beyond): you cross the screen in about ten seconds. The activity comes from the file's real speed, stops excluded; with no times, walking is assumed. Bounds: 1 to 20 min.</li>
     <li>In <b>follow</b> mode, the duration applies at scale 1:500: playback slows down in a tight view and speeds up in a wide one (from 3 % to 5× the set speed).</li>
   </ul>
   <p class="note" data-l="fr">Un geste de la main pendant la lecture suspend le suivi, qui reprend 300 ms après ; un <b>zoom manuel est conservé</b> jusqu'à l'arrêt de la lecture.</p>
