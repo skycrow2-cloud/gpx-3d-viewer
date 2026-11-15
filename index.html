@@ -586,7 +586,14 @@
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:14px 18px; border-bottom:1px solid var(--panel-border);
   }
-  .doc-head h2{ margin:0; font-size:18px; color:var(--accent); flex:1; }
+  .doc-head h2{ margin:0; font-size:18px; color:var(--accent); flex:1; min-width:0; }
+  @media (max-width:600px){
+    .doc-head{ flex-wrap:wrap; gap:8px 10px; padding:12px 14px; }
+    .doc-head h2{ order:0; flex:1 1 calc(100% - 50px); font-size:17px; }
+    .doc-close{ order:1; flex:0 0 auto; }
+    .doc-online{ order:2; white-space:normal; flex:1 1 auto; min-width:0; text-align:center; }
+    .help-lang{ order:3; }
+  }
   .doc-close{
     width:32px; height:32px; border-radius:50%;
     border:1px solid var(--panel-border); background:var(--glass); color:var(--text);
