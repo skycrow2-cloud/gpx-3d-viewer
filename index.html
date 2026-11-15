@@ -666,6 +666,8 @@
     text-overflow:ellipsis;
   }
   #track-title-badge[hidden]{ display:none; }
+  /* feu d'artifice de fin de parcours : au-dessus de la carte, sans gêner les clics */
+  #fireworks{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:25; }
   /* guidage GPS : la pastille du nom devient le bandeau d'instruction (même placement) */
   #track-title-badge.nav{
     display:flex; align-items:center; gap:10px;
@@ -1105,7 +1107,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.3 · © A.Legat</p>
+      <p class="version-line">v1.5.4 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1354,6 +1356,7 @@
         <h3>Lecture animée</h3>
         <ul>
           <li><b>▶ / ⏸ / ⏹</b> : lancer (repart du début si le parcours est terminé), mettre en pause, revenir à la trace complète. Le curseur permet de se placer n'importe où.</li>
+          <li><b>Fin de parcours</b> : un feu d'artifice de quelques secondes salue l'arrivée (aussi à l'arrivée du guidage GPS). Il ne bloque rien et n'apparaît pas si le système demande de réduire les animations.</li>
           <li><b>Durée</b> (5 à 50 000 s) : proposée à chaque chargement pour un défilement ni trop lent ni trop rapide, modifiable. En suivi, la carte défile comme à 50 km/h pour une randonnée à pied (70 km/h à vélo, 100 km/h au-delà, d'après la vitesse réelle du fichier ; à pied s'il n'a pas d'heures), entre 1 et 20 min.</li>
           <li>En mode suivi, la durée définit la vitesse à l'échelle 1:500 : la lecture ralentit quand la vue est serrée et accélère quand elle est large (de 3 % à 5 × la vitesse réglée).</li>
         </ul>
@@ -1518,6 +1521,7 @@
         <h3>Animated playback</h3>
         <ul>
           <li><b>▶ / ⏸ / ⏹</b>: play (restarts from the beginning if the route had finished), pause, back to the full track. The slider jumps anywhere.</li>
+          <li><b>End of the route</b>: a few seconds of fireworks celebrate the finish (also on arrival during GPS guidance). They block nothing and do not appear if the system asks for reduced motion.</li>
           <li><b>Duration</b> (5 to 50,000 s): suggested on each load for a pace neither too slow nor too fast, editable. In follow mode the map scrolls as if at 50 km/h for a hike on foot (70 km/h by bike, 100 km/h beyond, from the file's real speed; on foot if it has no times), between 1 and 20 min.</li>
           <li>In follow mode, the duration sets the speed at scale 1:500: playback slows down in a tight view and speeds up in a wide view (from 3 % to 5× the set speed).</li>
         </ul>
@@ -4196,6 +4200,7 @@ el.seek.addEventListener('input', () => {
 });
 
 el.btnPlay.addEventListener('click', () => {
+  stopFireworks();
   const track = state.track; if (!track) return;
   if (nav.on) navStop();   // la lecture animée remplace le guidage GPS
   if (state.position >= track.points.length - 1) state.position = 0;
@@ -4498,7 +4503,7 @@ function navOnFix(pos){
   // annonces des virages et de l'arrivée
   const total = track.distancesM[track.points.length - 1];
   if (!nav.off && !nav.reverse && !nav.poor && !nav.approach){
-    if (total - m.along < 25 && !nav.arrived){ nav.arrived = true; navSay(tx('nav.arrived'), [100, 80, 100, 80, 100]); }
+    if (total - m.along < 25 && !nav.arrived){ nav.arrived = true; navSay(tx('nav.arrived'), [100, 80, 100, 80, 100]); fireworks(); }
     const t = nav.turns.find(t => t.distM > m.along + 3);
     if (t){
       const toGo = t.distM - m.along, v = (c.speed != null && c.speed > 0) ? c.speed : 1.3;
@@ -4635,6 +4640,97 @@ navFar.close.addEventListener('click', navFarHide);
 onLanguageChange.push(navRender);
 navRender();
 
+/* ============================================================
+   Fin de parcours : feu d'artifice (≈ 4 s) sur la partie visible de la carte.
+   Lancé à la fin de la lecture animée et à l'arrivée du guidage GPS ; interrompu par
+   une nouvelle lecture. Rien si l'utilisateur a demandé à réduire les animations.
+   ============================================================ */
+const FIREWORKS_MS = 4200;
+const FIREWORKS_COLORS = ['#e8a33d', '#ffd166', '#ff6b6b', '#4cc9f0', '#80ed99', '#c77dff', '#ffffff'];
+let fireworksRun = null;
+function stopFireworks(){
+  if (!fireworksRun) return;
+  cancelAnimationFrame(fireworksRun.raf);
+  fireworksRun.cv.remove();
+  fireworksRun = null;
+}
+function fireworks(){
+  try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch(e){}
+  stopFireworks();
+  const cv = document.createElement('canvas');
+  cv.id = 'fireworks';
+  cv.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = window.innerWidth, H = window.innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  // zone de carte visible : à droite du panneau, ou au-dessus quand il passe sous la carte
+  const panel = document.getElementById('panel');
+  const pr = (panel && !document.body.classList.contains('panel-hidden')) ? panel.getBoundingClientRect() : null;
+  const zone = { x0: 0, x1: W, y0: 0, y1: H };
+  if (pr && pr.width && pr.height){
+    if (isStackedLayout()) zone.y1 = Math.max(H * 0.4, pr.top); else zone.x0 = Math.min(W * 0.6, pr.right);
+  }
+  const zw = zone.x1 - zone.x0, zh = zone.y1 - zone.y0;
+  const rockets = [], sparks = [];
+  const t0 = performance.now();
+  const bursts = 7;
+  for (let i = 0; i < bursts; i++){
+    rockets.push({
+      at: i * 430 + Math.random() * 150,
+      x: zone.x0 + zw * (0.15 + Math.random() * 0.7),
+      ty: zone.y0 + zh * (0.15 + Math.random() * 0.35),
+      color: FIREWORKS_COLORS[Math.floor(Math.random() * FIREWORKS_COLORS.length)],
+      launched: false, done: false, y: zone.y1, x0: 0,
+    });
+  }
+  function explode(r){
+    const n = 70, speed = 2.2 + Math.random() * 1.6;
+    for (let i = 0; i < n; i++){
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.08;
+      const v = speed * (0.55 + Math.random() * 0.45);
+      sparks.push({ x: r.x, y: r.ty, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1,
+        decay: 0.011 + Math.random() * 0.01,
+        color: Math.random() < 0.25 ? '#ffffff' : r.color });
+    }
+  }
+  let last = t0;
+  function frame(now){
+    const t = now - t0, k = Math.min(3, (now - last) / 16.7);
+    last = now;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // traînées : on efface partiellement l'image précédente
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+    rockets.forEach(r => {
+      if (r.done || t < r.at) return;
+      const p = Math.min(1, (t - r.at) / 650);        // montée en 0,65 s
+      r.y = zone.y1 - (zone.y1 - r.ty) * (1 - Math.pow(1 - p, 2));
+      ctx.fillStyle = r.color;
+      ctx.beginPath(); ctx.arc(r.x, r.y, 2.2, 0, Math.PI * 2); ctx.fill();
+      if (p >= 1){ r.done = true; explode(r); }
+    });
+    for (let i = sparks.length - 1; i >= 0; i--){
+      const s = sparks[i];
+      s.vx *= Math.pow(0.985, k); s.vy = s.vy * Math.pow(0.985, k) + 0.045 * k;   // frottement + gravité
+      s.x += s.vx * k; s.y += s.vy * k;
+      s.life -= s.decay * k;
+      if (s.life <= 0){ sparks.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.max(0, s.life);
+      ctx.fillStyle = s.color;
+      ctx.beginPath(); ctx.arc(s.x, s.y, 1.8, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    const pending = rockets.some(r => !r.done);
+    if (t < FIREWORKS_MS || pending || sparks.length) fireworksRun.raf = requestAnimationFrame(frame);
+    else stopFireworks();
+  }
+  fireworksRun = { cv, raf: requestAnimationFrame(frame) };
+}
+
 function stopPlayback(){
   state.playing = false;
   state.followZoomApplied = false;
@@ -4684,6 +4780,7 @@ function animFrame(ts){
     state.followZoomApplied = false;
     state.manualZoomOverride = null;
     if (el.overviewCheck.checked) recenterOnPanel(); else zoomToTrack(track); // cadrage général de fin
+    fireworks();   // fin de parcours
     return;
   }
   setPosition(distanceToIndexFloat(track, state.animDistM));
