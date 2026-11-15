@@ -1110,7 +1110,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.6 · © A.Legat</p>
+      <p class="version-line">v1.5.7 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1202,7 +1202,7 @@
 
     <div id="osmLogin" style="display:none;">
       <button class="btn btn-primary" id="btnOsmConnect" style="width:100%;" data-i18n="osm.connect">Se connecter à OpenStreetMap</button>
-      <div style="font-size:10.5px;color:var(--text-muted);margin-top:6px;"><span data-i18n="osm.connectHint">Une fenêtre OSM s'ouvre pour autoriser l'accès à vos traces.</span> <a href="#" id="lnkOsmChangeId" data-i18n="osm.changeId">Changer l'ID client</a></div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:6px;"><span data-i18n="osm.connectHint">La page OpenStreetMap s'affiche pour autoriser l'accès à vos traces, puis revient ici.</span> <a href="#" id="lnkOsmChangeId" data-i18n="osm.changeId">Changer l'ID client</a></div>
     </div>
 
     <div id="osmConnected" style="display:none;">
@@ -1765,7 +1765,7 @@ const I18N = {
     'title.sv': "Google Street View : cliquer ensuite sur la carte", 'sv.banner': "Cliquez sur la carte pour ouvrir Google Street View (Échap : annuler)",
     'title.osm': "Traces GPS OpenStreetMap (importer / envoyer)", 'osm.title': "Traces GPS · OpenStreetMap",
     'osm.phClientId': "ID client OSM", 'osm.saveId': "Enregistrer l'ID client", 'osm.connect': "Se connecter à OpenStreetMap",
-    'osm.connectHint': "Une fenêtre OSM s'ouvre pour autoriser l'accès à vos traces.", 'osm.changeId': "Autre configuration (ID client)", 'osm.useBuiltin': "Utiliser la configuration intégrée",
+    'osm.connectHint': "La page OpenStreetMap s'affiche pour autoriser l'accès à vos traces, puis revient ici.", 'osm.changeId': "Autre configuration (ID client)", 'osm.useBuiltin': "Utiliser la configuration intégrée",
     'osm.tabImport': "Importer", 'osm.tabSend': "Envoyer", 'osm.srcMine': "Mes traces", 'osm.srcMineSub': "mon compte",
     'osm.srcTrace': "Autre trace", 'osm.srcTraceSub': "lien ou numéro",
     'osm.srcRoute': "Itinéraire", 'osm.srcRouteSub': "balisé (GR…)",
@@ -1799,7 +1799,7 @@ const I18N = {
     'osm.needHttps': "La connexion OSM nécessite que la page soit servie en <b>https://</b> ou sur <b>http://localhost</b> (pas en ouvrant le fichier directement).",
     'osm.expired': "session expirée, reconnectez-vous", 'osm.forbidden': "accès refusé : vérifiez les autorisations de l'application (traces GPS)",
     'osm.authWait': "Autorisez l'accès dans la fenêtre OpenStreetMap…",
-    'osm.popupBlocked': "Fenêtre surgissante bloquée : la page va être redirigée vers OSM et la trace en cours sera perdue. Continuer ?",
+    'osm.popupBlocked': "La trace en cours est trop volumineuse pour être gardée pendant la connexion à OSM : il faudra la recharger ensuite. Continuer ?",
     'osm.refused': "Connexion refusée par OSM ({e}).", 'osm.badState': "Réponse d'autorisation invalide, réessayez.",
     'osm.connecting': "Connexion en cours…", 'osm.connectFail': "Connexion impossible : {e}", 'osm.loading': "Chargement…",
     'osm.empty': "Aucune trace sur votre compte.", 'osm.pending': "en cours de traitement", 'osm.import': "Importer",
@@ -1877,7 +1877,7 @@ const I18N = {
     'title.sv': "Google Street View: then click on the map", 'sv.banner': "Click on the map to open Google Street View (Esc: cancel)",
     'title.osm': "OpenStreetMap GPS traces (import / upload)", 'osm.title': "GPS traces · OpenStreetMap",
     'osm.phClientId': "OSM client ID", 'osm.saveId': "Save the client ID", 'osm.connect': "Log in to OpenStreetMap",
-    'osm.connectHint': "An OSM window opens to authorise access to your traces.", 'osm.changeId': "Other set-up (client ID)", 'osm.useBuiltin': "Use the built-in set-up",
+    'osm.connectHint': "The OpenStreetMap page shows up to authorise access to your traces, then comes back here.", 'osm.changeId': "Other set-up (client ID)", 'osm.useBuiltin': "Use the built-in set-up",
     'osm.tabImport': "Import", 'osm.tabSend': "Upload", 'osm.srcMine': "My traces", 'osm.srcMineSub': "my account",
     'osm.srcTrace': "Other trace", 'osm.srcTraceSub': "link or number",
     'osm.srcRoute': "Route", 'osm.srcRouteSub': "waymarked (GR…)",
@@ -1911,7 +1911,7 @@ const I18N = {
     'osm.needHttps': "Logging in to OSM requires the page to be served over <b>https://</b> or on <b>http://localhost</b> (not by opening the file directly).",
     'osm.expired': "session expired, log in again", 'osm.forbidden': "access denied: check the application's permissions (GPS traces)",
     'osm.authWait': "Authorise access in the OpenStreetMap window…",
-    'osm.popupBlocked': "Pop-up blocked: the page will be redirected to OSM and the current track will be lost. Continue?",
+    'osm.popupBlocked': "The current track is too large to be kept while logging in to OSM: you will have to load it again afterwards. Continue?",
     'osm.refused': "Login refused by OSM ({e}).", 'osm.badState': "Invalid authorisation response, try again.",
     'osm.connecting': "Logging in…", 'osm.connectFail': "Login failed: {e}", 'osm.loading': "Loading…",
     'osm.empty': "No traces on your account.", 'osm.pending': "being processed", 'osm.import': "Import",
@@ -5426,10 +5426,12 @@ function refreshDynamicTexts(){
     });
   }
 
+  /* connexion dans la même fenêtre (pas de fenêtre surgissante, qui ouvrait une seconde fenêtre
+     de l'application installée) : la trace chargée est gardée le temps de l'aller-retour vers OSM */
+  const K_RET = 'gpx3d.osm.retour';
   function osmLogin(){
     const cid = osmClientId();
     if (!cid || !osmCanAuth()){ osmRender(); return; }
-    const w = window.open('', 'osm_oauth', 'width=520,height=700'); // ouverte pendant le geste utilisateur
     const verifier = randStr(48), stateStr = randStr(16);
     osmPending = { verifier, state: stateStr };
     lsSet(K_PKCE, JSON.stringify(osmPending));
@@ -5438,8 +5440,18 @@ function refreshDynamicTexts(){
         response_type: 'code', client_id: cid, redirect_uri: osmRedirectUri(),
         scope: OSM_SCOPE, state: stateStr, code_challenge: b64url(hash), code_challenge_method: 'S256'
       }).toString();
-      if (w && !w.closed){ w.location.href = url; osmStatus(tx('osm.authWait')); }
-      else if (!state.track || confirm(tx('osm.popupBlocked'))){ location.href = url; }
+      let kept = true;
+      if (state.track && state.track.gpxText){
+        try {
+          sessionStorage.setItem(K_RET, JSON.stringify({
+            gpx: state.track.gpxText, name: (state.track.fileName || 'trace') + '.gpx',
+            idx: Math.max(0, state.tracks.indexOf(state.track)),
+          }));
+        } catch(e){ kept = false; }   // trace trop volumineuse pour le stockage de session
+      }
+      if (!kept && !confirm(tx('osm.popupBlocked'))) return;
+      osmStatus(tx('osm.connecting'));
+      location.href = url;
     });
   }
 
@@ -5630,8 +5642,16 @@ function refreshDynamicTexts(){
   });
   onLanguageChange.push(() => { if (isOpen() && osmClientId() && osmToken()) osmLoadTraces(); });
 
-  // fenêtre surgissante bloquée : la page principale a été redirigée et reçoit le code elle-même
+  // retour d'OpenStreetMap dans la même fenêtre : on recharge la trace gardée, puis on termine la connexion
   if (window.__osmPendingCallback){
+    let ret = null;
+    try { ret = JSON.parse(sessionStorage.getItem(K_RET) || 'null'); sessionStorage.removeItem(K_RET); } catch(e){}
+    if (ret && ret.gpx && window.__gpx3dLoadFile){
+      const f = new File([ret.gpx], ret.name || 'trace.gpx', { type: 'application/gpx+xml' });
+      f.__idx = ret.idx;
+      const reload = () => window.__gpx3dLoadFile(f);   // une fois la carte prête, comme pour un passage depuis The-GPX-Box
+      if (window.__gpx3dMapReady) reload(); else window.__gpx3dMap.once('load', reload);
+    }
     panel.style.display = 'block';
     osmRender();
     osmHandleCode(window.__osmPendingCallback);
