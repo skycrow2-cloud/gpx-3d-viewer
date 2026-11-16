@@ -1124,7 +1124,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Météo (couche) © OpenWeatherMap · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.10 · © A.Legat</p>
+      <p class="version-line">v1.5.11 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -3337,6 +3337,7 @@ map.on('load', () => {
     }
   }, 'hover-point');
   if (state.track) setStartEndSource(state.track);
+  if (map.getLayer('weather')) map.moveLayer('weather');   // météo au-dessus de tout (fonds, superpositions, trace, repères)
 });
 
 /* ============================================================
