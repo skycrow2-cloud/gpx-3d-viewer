@@ -449,13 +449,18 @@
   .map-pop input{ width:15px; height:15px; margin:0; accent-color:var(--accent); cursor:pointer; }
   .map-pop label.hunt-date-row{ padding-left:23px; gap:6px; }
   .map-pop label.hunt-date-row[hidden]{ display:none; }
+  .map-pop .weather-row{ padding-left:23px; gap:6px; }
+  .map-pop .weather-row[hidden]{ display:none; }
+  .map-pop select.weather-field, .map-pop input.weather-field{ width:150px; height:auto; padding:2px 4px; font:inherit; font-size:12px; color:var(--text); background:var(--field-bg, transparent); border:1px solid var(--panel-border); border-radius:4px; color-scheme:dark light; cursor:auto; }
+  .map-pop .weather-row.map-pop-note{ display:block; padding-left:23px; }
+  .legend-pop .lg-grad{ flex:0 0 100px; height:10px; border-radius:2px; }
   .map-pop input[type="date"]{ width:auto; height:auto; padding:2px 4px; font:inherit; font-size:12px; color:var(--text); background:var(--field-bg, transparent); border:1px solid var(--panel-border); border-radius:4px; color-scheme:dark light; }
   .legend-pop{ min-width:250px; max-width:300px; max-height:70vh; overflow-y:auto; }
   .legend-pop .lg-row{ display:flex; align-items:center; gap:9px; line-height:1.3; }
   .legend-pop .lg-sw{ flex:0 0 26px; height:14px; border-radius:2px; box-sizing:border-box; }
   .legend-pop .lg-line{ height:4px; border-radius:2px; }
   .legend-pop .lg-dot{ flex:0 0 14px; width:14px; height:14px; border-radius:50%; margin:0 6px; box-sizing:border-box; }
-  .legend-pop a{ color:var(--accent); }
+  .legend-pop a, .map-pop-note a{ color:var(--accent); }
   /* opacité du fond choisi au-dessus de la photo aérienne (visible seulement avec la photo) */
   #topo-opacity{
     position:absolute; z-index:5;
@@ -1118,8 +1123,8 @@
     </div>
 
     <div class="panel-footer">
-      <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.9 · © A.Legat</p>
+      <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Météo (couche) © OpenWeatherMap · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
+      <p class="version-line">v1.5.10 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1137,6 +1142,16 @@
       <label><input type="checkbox" id="chk-trails" autocomplete="off"> <span data-i18n="bm.trails">Sentiers balisés</span></label>
       <label><input type="checkbox" id="chk-hunt" autocomplete="off"> <span data-i18n="bm.hunt">Chasse (SPW, Wallonie)</span></label>
       <label class="hunt-date-row" id="hunt-date-row" hidden><span data-i18n="bm.huntDate">Date</span> <input type="date" id="hunt-date" autocomplete="off"></label>
+      <label><input type="checkbox" id="chk-weather" autocomplete="off"> <span data-i18n="bm.weather">Météo (OpenWeatherMap)</span></label>
+      <label class="weather-row" id="weather-layer-row" hidden><select id="weather-layer" class="weather-field" autocomplete="off">
+        <option value="clouds_new" data-i18n="bm.wClouds">Nuages</option>
+        <option value="precipitation_new" data-i18n="bm.wRain">Précipitations</option>
+        <option value="temp_new" data-i18n="bm.wTemp">Température</option>
+        <option value="wind_new" data-i18n="bm.wWind">Vent</option>
+        <option value="pressure_new" data-i18n="bm.wPress">Pression</option>
+      </select></label>
+      <label class="weather-row" id="weather-key-row" hidden><input type="text" id="weather-key" class="weather-field" data-i18n-ph="bm.wKeyPh" placeholder="Clé API OpenWeatherMap" autocomplete="off" spellcheck="false"></label>
+      <div class="map-pop-note weather-row" id="weather-key-note" hidden><span data-i18n="bm.wKeyNote">Clé gratuite à créer sur</span> <a href="https://home.openweathermap.org/api_keys" target="_blank" rel="noopener">openweathermap.org</a></div>
       <label><input type="checkbox" id="chk-terrain" checked autocomplete="off"> <span data-i18n="bm.terrain">Relief 3D</span></label>
     </div>
   </div>
@@ -1397,7 +1412,7 @@
 
         <h3>Affichage de la carte</h3>
         <ul>
-          <li><b>Fond de carte</b> : bouton carte (dans la carte, sous Street View). Fond au choix : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM (vélo / VTT). Au lancement, le fond s'affiche seul et opaque. Superpositions : <b>photo aérienne</b> (décochée par défaut ; une fois cochée, un curseur en bas de la carte règle l'opacité du fond par-dessus, 30 % au départ, 0 % = photo seule), <b>sentiers balisés</b> (Waymarked Trails), <b>chasse</b> (carte du SPW pour la Wallonie : territoires où une chasse est annoncée à la date choisie, aujourd'hui par défaut ; hachures rouges = chemins fermés) et <b>relief 3D</b> (coché par défaut). La trace passe de l'orange au bleu quand le fond dessiné domine. Le fond et les sentiers choisis sont mémorisés. Hors de la zone couverte par un fond régional (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap est affichée à sa place.</li>
+          <li><b>Fond de carte</b> : bouton carte (dans la carte, sous Street View). Fond au choix : OpenTopoMap, CartoWeb.be (IGN Belgique), Plan IGN (France), Geoportail.lu (Luxembourg) ou CyclOSM (vélo / VTT). Au lancement, le fond s'affiche seul et opaque. Superpositions : <b>photo aérienne</b> (décochée par défaut ; une fois cochée, un curseur en bas de la carte règle l'opacité du fond par-dessus, 30 % au départ, 0 % = photo seule), <b>sentiers balisés</b> (Waymarked Trails), <b>chasse</b> (carte du SPW pour la Wallonie : territoires où une chasse est annoncée à la date choisie, aujourd'hui par défaut ; hachures rouges = chemins fermés), <b>météo</b> (OpenWeatherMap : nuages, précipitations, température, vent ou pression en temps réel ; demande une clé API gratuite, saisie une fois et mémorisée) et <b>relief 3D</b> (coché par défaut). La trace passe de l'orange au bleu quand le fond dessiné domine. Le fond et les sentiers choisis sont mémorisés. Hors de la zone couverte par un fond régional (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap est affichée à sa place.</li>
           <li><b>Légende</b> : bouton sous celui du fond de carte ; explique les couleurs de ce qui est affiché (trace, chasse, sentiers) et renvoie à la légende complète du fond quand elle existe.</li>
           <li><b>Relief</b> : exagéré ×1,6 avec ombrage. La barre verticale en bas à droite règle l'inclinaison (0° à 70°) ; le clic droit + glisser incline et pivote la vue.</li>
           <li><b>Zoom</b> : boutons <b>+</b> / <b>−</b> translucides en haut à droite (avec la boussole sous eux), ou molette / pincement.</li>
@@ -1440,7 +1455,7 @@
         </ul>
 
         <h3>Confidentialité</h3>
-        <p>Le fichier GPX est lu localement et n'est téléversé que si vous l'envoyez vous-même sur OpenStreetMap. Sont transmis : les coordonnées des tuiles aux fournisseurs de fonds de carte, et la latitude/longitude du point courant (ou de votre appareil, si vous autorisez la géolocalisation et qu'aucune trace n'est chargée) à Nominatim et Open-Meteo. L'API gratuite d'Open-Meteo est réservée à un usage non commercial. Le mode Street View transmet les coordonnées cliquées à Google.</p>
+        <p>Le fichier GPX est lu localement et n'est téléversé que si vous l'envoyez vous-même sur OpenStreetMap. Sont transmis : les coordonnées des tuiles aux fournisseurs de fonds de carte, et la latitude/longitude du point courant (ou de votre appareil, si vous autorisez la géolocalisation et qu'aucune trace n'est chargée) à Nominatim et Open-Meteo. L'API gratuite d'Open-Meteo est réservée à un usage non commercial. Le mode Street View transmet les coordonnées cliquées à Google. La couche météo charge ses tuiles chez OpenWeatherMap avec votre clé API, gardée uniquement dans ce navigateur.</p>
 
         <h3>Dépannage</h3>
         <ul>
@@ -1453,7 +1468,7 @@
         </ul>
 
         <h3>Sources des données</h3>
-        <p class="doc-note">Photo aérienne © Esri, Maxar, Earthstar Geographics · Fond topo © OpenStreetMap contributors, SRTM, style © OpenTopoMap (CC-BY-SA) · Relief © AWS Open Data Terrain Tiles / Mapzen · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim) · Conversions Lambert © Proj4js · Street View © Google · Traces GPS © OpenStreetMap. Documentation détaillée : README.fr.md.</p>
+        <p class="doc-note">Photo aérienne © Esri, Maxar, Earthstar Geographics · Fond topo © OpenStreetMap contributors, SRTM, style © OpenTopoMap (CC-BY-SA) · Relief © AWS Open Data Terrain Tiles / Mapzen · Météo © Open-Meteo.com (CC-BY 4.0) · Météo (couche) © OpenWeatherMap · Noms de lieux © OpenStreetMap contributors (Nominatim) · Conversions Lambert © Proj4js · Street View © Google · Traces GPS © OpenStreetMap. Documentation détaillée : README.fr.md.</p>
         </div>
         <div class="help-block" data-lang="en" lang="en" hidden>
         <h3>Quick help: mouse and keyboard</h3>
@@ -1562,7 +1577,7 @@
 
         <h3>Map display</h3>
         <ul>
-          <li><b>Basemap</b>: map button (on the map, below Street View). Choose OpenTopoMap, CartoWeb.be (IGN Belgium), Plan IGN (France), Geoportail.lu (Luxembourg) or CyclOSM (bike / MTB). At start-up the basemap is shown on its own, fully opaque. Overlays: <b>aerial photo</b> (unchecked by default; once ticked, a slider at the bottom of the map sets the basemap opacity on top, 30 % at start, 0 % = photo only), <b>waymarked trails</b> (Waymarked Trails), <b>hunting</b> (SPW map for Wallonia: territories with a hunt announced on the chosen date, today by default; red hatching = paths closed) and <b>3D terrain</b> (checked by default). The track turns from orange to blue when the drawn basemap dominates. The chosen basemap and trails are remembered. Outside the area covered by a regional basemap (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap is shown instead.</li>
+          <li><b>Basemap</b>: map button (on the map, below Street View). Choose OpenTopoMap, CartoWeb.be (IGN Belgium), Plan IGN (France), Geoportail.lu (Luxembourg) or CyclOSM (bike / MTB). At start-up the basemap is shown on its own, fully opaque. Overlays: <b>aerial photo</b> (unchecked by default; once ticked, a slider at the bottom of the map sets the basemap opacity on top, 30 % at start, 0 % = photo only), <b>waymarked trails</b> (Waymarked Trails), <b>hunting</b> (SPW map for Wallonia: territories with a hunt announced on the chosen date, today by default; red hatching = paths closed), <b>weather</b> (OpenWeatherMap: live clouds, precipitation, temperature, wind or pressure; needs a free API key, entered once and remembered) and <b>3D terrain</b> (checked by default). The track turns from orange to blue when the drawn basemap dominates. The chosen basemap and trails are remembered. Outside the area covered by a regional basemap (CartoWeb.be, Plan IGN, Geoportail.lu), OpenTopoMap is shown instead.</li>
           <li><b>Legend</b>: button below the basemap button; explains the colours of what is shown (track, hunting, trails) and links to the basemap's full legend when available.</li>
           <li><b>Terrain</b>: exaggerated ×1.6 with hillshade. The vertical bar at the bottom right sets the tilt (0° to 70°); right-click + drag tilts and rotates the view.</li>
           <li><b>Zoom</b>: translucent <b>+</b> / <b>−</b> buttons at the top right (with the compass below them), or wheel / pinch.</li>
@@ -1605,7 +1620,7 @@
         </ul>
 
         <h3>Privacy</h3>
-        <p>The GPX file is read locally and only uploaded if you send it to OpenStreetMap yourself. What is transmitted: tile coordinates to the basemap providers, and the latitude/longitude of the current point (or of your device, if you allow geolocation and no track is loaded) to Nominatim and Open-Meteo. Open-Meteo's free API is for non-commercial use. Street View mode sends the clicked coordinates to Google.</p>
+        <p>The GPX file is read locally and only uploaded if you send it to OpenStreetMap yourself. What is transmitted: tile coordinates to the basemap providers, and the latitude/longitude of the current point (or of your device, if you allow geolocation and no track is loaded) to Nominatim and Open-Meteo. Open-Meteo's free API is for non-commercial use. Street View mode sends the clicked coordinates to Google. The weather layer loads its tiles from OpenWeatherMap with your API key, kept only in this browser.</p>
 
         <h3>Troubleshooting</h3>
         <ul>
@@ -1618,7 +1633,7 @@
         </ul>
 
         <h3>Data sources</h3>
-        <p class="doc-note">Aerial photo © Esri, Maxar, Earthstar Geographics · Topo basemap © OpenStreetMap contributors, SRTM, style © OpenTopoMap (CC-BY-SA) · Terrain © AWS Open Data Terrain Tiles / Mapzen · Weather © Open-Meteo.com (CC-BY 4.0) · Place names © OpenStreetMap contributors (Nominatim) · Lambert conversions © Proj4js · Street View © Google · GPS traces © OpenStreetMap. Detailed documentation: README.en.md.</p>
+        <p class="doc-note">Aerial photo © Esri, Maxar, Earthstar Geographics · Topo basemap © OpenStreetMap contributors, SRTM, style © OpenTopoMap (CC-BY-SA) · Terrain © AWS Open Data Terrain Tiles / Mapzen · Weather © Open-Meteo.com (CC-BY 4.0) · Weather layer © OpenWeatherMap · Place names © OpenStreetMap contributors (Nominatim) · Lambert conversions © Proj4js · Street View © Google · GPS traces © OpenStreetMap. Detailed documentation: README.en.md.</p>
         </div>
       </div>
     </div>
@@ -1748,6 +1763,10 @@ const I18N = {
     'bm.be': "CartoWeb.be (IGN Belgique)", 'bm.fr': "Plan IGN (France)", 'bm.bike': "CyclOSM (vélo / VTT)",
     'bm.aerial': "Photo aérienne", 'bm.trails': "Sentiers balisés", 'bm.terrain': "Relief 3D",
     'bm.hunt': "Chasse (SPW, Wallonie)", 'bm.huntDate': "Date",
+    'bm.weather': "Météo (OpenWeatherMap)", 'bm.wClouds': "Nuages", 'bm.wRain': "Précipitations", 'bm.wTemp': "Température",
+    'bm.wWind': "Vent", 'bm.wPress': "Pression", 'bm.wKeyPh': "Clé API OpenWeatherMap",
+    'bm.wKeyNote': "Clé gratuite à créer sur", 'lg.weatherTitle': "Météo actuelle – {name}",
+    'lg.weatherNote': "Données en temps réel (pas à la date de la trace). Une nouvelle clé peut mettre jusqu'à 2 h à s'activer.",
     'title.legend': "Légende", 'lg.title': "Légende", 'lg.empty': "Rien de particulier à légender.",
     'lg.track': "Trace GPX", 'lg.start': "Départ", 'lg.end': "Arrivée", 'lg.pos': "Position (lecture)", 'lg.pts': "Points de la trace",
     'lg.huntTitle': "Chasse du {date} (SPW)", 'lg.huntClosed': "Chasse avec fermeture des chemins",
@@ -1763,7 +1782,7 @@ const I18N = {
     follow: "Centrer et zoomer sur la position (suivi)",
     orient: "Orienter la carte selon le tracé (cap)",
     overview: "Rester en vue générale (sans suivi ni zoom)",
-    attribution: "Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Noms de lieux © OpenStreetMap contributors (Nominatim)",
+    attribution: "Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Météo (couche) © OpenWeatherMap · Noms de lieux © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Annuler",
     'title.pitch': "Assiette de la carte", 'title.play': "Lecture", 'title.pause': "Pause", 'title.stop': "Réinitialiser",
     'title.resize': "Glisser pour redimensionner", 'title.doc': "Documentation", 'title.help': "Aide et documentation", 'title.toMaker': "Ouvrir dans The-GPX-Box (créer / modifier un tracé) — la trace chargée y est transmise", 'title.panelHide': "Masquer le panneau (carte seule)", 'title.panelShow': "Afficher le panneau",
@@ -1860,6 +1879,10 @@ const I18N = {
     'bm.be': "CartoWeb.be (IGN Belgium)", 'bm.fr': "Plan IGN (France)", 'bm.bike': "CyclOSM (bike / MTB)",
     'bm.aerial': "Aerial photo", 'bm.trails': "Waymarked trails", 'bm.terrain': "3D terrain",
     'bm.hunt': "Hunting (SPW, Wallonia)", 'bm.huntDate': "Date",
+    'bm.weather': "Weather (OpenWeatherMap)", 'bm.wClouds': "Clouds", 'bm.wRain': "Precipitation", 'bm.wTemp': "Temperature",
+    'bm.wWind': "Wind", 'bm.wPress': "Pressure", 'bm.wKeyPh': "OpenWeatherMap API key",
+    'bm.wKeyNote': "Free key available at", 'lg.weatherTitle': "Current weather – {name}",
+    'lg.weatherNote': "Live data (not at the time of the track). A new key may take up to 2 h to become active.",
     'title.legend': "Legend", 'lg.title': "Legend", 'lg.empty': "Nothing in particular to explain.",
     'lg.track': "GPX track", 'lg.start': "Start", 'lg.end': "Finish", 'lg.pos': "Position (playback)", 'lg.pts': "Track points",
     'lg.huntTitle': "Hunting on {date} (SPW)", 'lg.huntClosed': "Hunt with paths closed",
@@ -1875,7 +1898,7 @@ const I18N = {
     follow: "Centre and zoom on the position (follow)",
     orient: "Orient the map along the track (heading)",
     overview: "Stay in overview (no follow or zoom)",
-    attribution: "Imagery © Esri, Maxar, Earthstar Geographics · Terrain © AWS Open Data Terrain Tiles / Mapzen · Basemap © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgium (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Trails © Waymarked Trails (CC-BY-SA) · Hunting © SPW – DNF · Weather © Open-Meteo.com (CC-BY 4.0) · Place names © OpenStreetMap contributors (Nominatim)",
+    attribution: "Imagery © Esri, Maxar, Earthstar Geographics · Terrain © AWS Open Data Terrain Tiles / Mapzen · Basemap © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgium (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Trails © Waymarked Trails (CC-BY-SA) · Hunting © SPW – DNF · Weather © Open-Meteo.com (CC-BY 4.0) · Weather layer © OpenWeatherMap · Place names © OpenStreetMap contributors (Nominatim)",
     preloadCancel: "Cancel",
     'title.pitch': "Map tilt", 'title.play': "Play", 'title.pause': "Pause", 'title.stop': "Reset",
     'title.resize': "Drag to resize", 'title.doc': "Documentation", 'title.help': "Help and documentation", 'title.toMaker': "Open in The-GPX-Box (draw / edit a route) — the loaded track is passed on", 'title.panelHide': "Hide the panel (map only)", 'title.panelShow': "Show the panel",
@@ -2608,6 +2631,14 @@ function huntTileUrl(iso){
        + '&format=png32&transparent=true&f=image&layers=show:0,1'
        + '&layerDefs=' + encodeURIComponent(JSON.stringify({ 0: where }));
 }
+/* Météo OpenWeatherMap (tuiles « Weather maps 1.0 ») : clé API personnelle, saisie dans le menu et mémorisée */
+const OWM_LAYERS = ['clouds_new', 'precipitation_new', 'temp_new', 'wind_new', 'pressure_new'];
+function owmTileUrl(layer, key){
+  return 'https://tile.openweathermap.org/map/' + layer + '/{z}/{x}/{y}.png?appid=' + encodeURIComponent(key || '');
+}
+let owmLayer = 'clouds_new', owmKey = '';
+try { const l = localStorage.getItem('gpx3d.weather.layer'); if (OWM_LAYERS.includes(l)) owmLayer = l; } catch(e){}
+try { owmKey = (localStorage.getItem('gpx3d.owm-key') || '').trim(); } catch(e){}
 const map = new maplibregl.Map({
   container: 'map',
   style: {
@@ -2664,6 +2695,12 @@ const map = new maplibregl.Map({
         bounds: [2.8, 49.45, 6.45, 50.85],     // Wallonie
         attribution: 'Chasse &copy; SPW – DNF (<a href="https://chasseonweb.be" target="_blank" rel="noopener">ChasseOnWeb</a>)'
       },
+      weather: {
+        type: 'raster',
+        tiles: [owmTileUrl(owmLayer, owmKey)],
+        tileSize: 256, maxzoom: 10,
+        attribution: 'Météo &copy; <a href="https://openweathermap.org" target="_blank" rel="noopener">OpenWeatherMap</a>'
+      },
       terrainSource: {
         type: 'raster-dem',
         tiles: [TERRAIN_TILE_URL],
@@ -2690,6 +2727,7 @@ const map = new maplibregl.Map({
         }
       }
       ,{ id: 'hunt', type: 'raster', source: 'hunt', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.8 } }
+      ,{ id: 'weather', type: 'raster', source: 'weather', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.85, 'raster-fade-duration': 0 } }
       ,{ id: 'trails', type: 'raster', source: 'trails', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.9 } }
     ],
     terrain: { source: 'terrainSource', exaggeration: 1.6 },
@@ -2855,6 +2893,9 @@ const bm = {
   hunt: document.getElementById('chk-hunt'),
   huntDate: document.getElementById('hunt-date'),
   huntDateRow: document.getElementById('hunt-date-row'),
+  weather: document.getElementById('chk-weather'),
+  weatherLayer: document.getElementById('weather-layer'),
+  weatherKey: document.getElementById('weather-key'),
   terrain: document.getElementById('chk-terrain'),
   box: document.getElementById('topo-opacity'),
   range: document.getElementById('topo-opacity-range'),
@@ -2868,6 +2909,16 @@ try { bm.trails.checked = localStorage.getItem('gpx3d.trails') === '1'; } catch(
 try { bm.hunt.checked = localStorage.getItem('gpx3d.hunt') === '1'; } catch(e){}
 bm.huntDate.value = todayISO();            // la date n'est pas mémorisée : chaque visite repart d'aujourd'hui
 bm.huntDateRow.hidden = !bm.hunt.checked;
+try { bm.weather.checked = localStorage.getItem('gpx3d.weather') === '1'; } catch(e){}
+bm.weatherLayer.value = owmLayer;
+bm.weatherKey.value = owmKey;
+function syncWeatherRows(){
+  document.getElementById('weather-layer-row').hidden = !bm.weather.checked;
+  // la clé reste modifiable tant que la case est cochée ; le lien n'apparaît que sans clé
+  document.getElementById('weather-key-row').hidden = !bm.weather.checked;
+  document.getElementById('weather-key-note').hidden = !bm.weather.checked || !!owmKey;
+}
+syncWeatherRows();
 { const r = document.querySelector('input[name="basemap"][value="' + bm.base + '"]'); if (r) r.checked = true; }
 /* fonds régionaux : zone couverte (rectangles lon/lat). Hors de cette zone, OpenTopoMap est affichée à la place,
    sans changer le choix mémorisé (il revient dès que la carte revient dans la zone). */
@@ -2925,6 +2976,7 @@ function applyBasemap(){
   });
   if (map.getLayer('trails')) map.setLayoutProperty('trails', 'visibility', bm.trails.checked ? 'visible' : 'none');
   if (map.getLayer('hunt')) map.setLayoutProperty('hunt', 'visibility', bm.hunt.checked ? 'visible' : 'none');
+  if (map.getLayer('weather')) map.setLayoutProperty('weather', 'visibility', bm.weather.checked && owmKey ? 'visible' : 'none');
   updateTrackColorForBasemap();
   syncTrackStyleUI();
 }
@@ -2949,6 +3001,28 @@ bm.huntDate.addEventListener('change', () => {
   if (src && src.setTiles) src.setTiles([huntTileUrl(bm.huntDate.value)]);
   renderLegend();
 });
+function setWeatherTiles(){
+  const src = map.getSource('weather');
+  if (src && src.setTiles) src.setTiles([owmTileUrl(owmLayer, owmKey)]);
+}
+bm.weather.addEventListener('change', () => {
+  try { localStorage.setItem('gpx3d.weather', bm.weather.checked ? '1' : '0'); } catch(e){}
+  syncWeatherRows(); applyBasemap();
+  if (bm.weather.checked && !owmKey) bm.weatherKey.focus();
+});
+bm.weatherLayer.addEventListener('change', () => {
+  owmLayer = OWM_LAYERS.includes(bm.weatherLayer.value) ? bm.weatherLayer.value : 'clouds_new';
+  try { localStorage.setItem('gpx3d.weather.layer', owmLayer); } catch(e){}
+  setWeatherTiles();
+});
+bm.weatherKey.addEventListener('change', () => {
+  owmKey = bm.weatherKey.value.trim();
+  bm.weatherKey.value = owmKey;
+  try { localStorage.setItem('gpx3d.owm-key', owmKey); } catch(e){}
+  setWeatherTiles(); syncWeatherRows();
+  setTimeout(applyBasemap, 0);            // setTiles est asynchrone : on n'affiche la couche qu'avec la nouvelle URL
+});
+bm.weatherKey.addEventListener('keydown', e => { if (e.key === 'Enter') bm.weatherKey.blur(); });
 bm.aerial.addEventListener('change', () => {
   if (!bm.aerial.checked) bm.range.value = TOPO_DEFAULT_OPACITY;
   updateTopoOpacityUI(); applyBasemap();
@@ -3038,6 +3112,20 @@ function renderLegend(){
     h += row('<span class="lg-sw" style="background:#e6d400"></span>', tx('lg.huntOpen'));
     h += row('<span class="lg-sw" style="border:2px solid #ffaa00"></span>', tx('lg.huntTerr'));
     h += '<div class="map-pop-note">' + esc(tx('lg.huntNote')) + ' <a href="https://chasseonweb.be" target="_blank" rel="noopener">' + esc(tx('lg.huntLink')) + '</a></div>';
+  }
+  if (bm.weather.checked && owmKey){
+    const W = {
+      clouds_new: ['bm.wClouds', 'rgba(255,255,255,0),rgba(250,250,255,.6),rgba(240,240,250,1)', '0 %', '100 %'],
+      precipitation_new: ['bm.wRain', 'rgba(120,120,190,.3),rgba(80,80,225,.7),rgba(20,20,255,.9),rgba(170,40,190,1)', '0', '≥ 50 mm/h'],
+      temp_new: ['bm.wTemp', '#821692,#2033f2,#21c7f2,#61f070,#fcea24,#fc8014,#fc1a14', '−40 °C', '+40 °C'],
+      wind_new: ['bm.wWind', 'rgba(255,255,255,0),rgba(238,206,206,.6),rgba(179,100,188,.8),rgba(63,33,59,.9),rgba(116,76,172,1),rgba(13,17,38,1)', '0', '≥ 200 m/s'],
+      pressure_new: ['bm.wPress', '#0073ff,#00aaff,#4bd0d6,#8de7c7,#b0f720,#f0b800,#fb5515,#f3363b,#c60000', '940 hPa', '1080 hPa']
+    }[owmLayer];
+    if (W){
+      h += title(tx('lg.weatherTitle', { name: tx(W[0]) }));
+      h += '<div class="lg-row"><span>' + esc(W[2]) + '</span><span class="lg-grad" style="background:linear-gradient(90deg,' + W[1] + ');border:1px solid var(--panel-border)"></span><span>' + esc(W[3]) + '</span></div>';
+      h += '<div class="map-pop-note">' + esc(tx('lg.weatherNote')) + '</div>';
+    }
   }
   if (bm.trails.checked){
     h += title(tx('lg.trailsTitle'));
