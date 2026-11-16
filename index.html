@@ -453,6 +453,7 @@
   .map-pop .weather-row[hidden]{ display:none; }
   .map-pop select.weather-field, .map-pop input.weather-field{ width:150px; height:auto; padding:2px 4px; font:inherit; font-size:12px; color:var(--text); background:var(--field-bg, transparent); border:1px solid var(--panel-border); border-radius:4px; color-scheme:dark light; cursor:auto; }
   .map-pop .weather-row.map-pop-note{ display:block; padding-left:23px; }
+  .map-pop .weather-err{ color:var(--warn); }
   .legend-pop .lg-grad{ flex:0 0 100px; height:10px; border-radius:2px; }
   .map-pop input[type="date"]{ width:auto; height:auto; padding:2px 4px; font:inherit; font-size:12px; color:var(--text); background:var(--field-bg, transparent); border:1px solid var(--panel-border); border-radius:4px; color-scheme:dark light; }
   .legend-pop{ min-width:250px; max-width:300px; max-height:70vh; overflow-y:auto; }
@@ -1124,7 +1125,7 @@
 
     <div class="panel-footer">
       <p class="attribution" data-i18n="attribution">Imagerie © Esri, Maxar, Earthstar Geographics · Relief © AWS Open Data Terrain Tiles / Mapzen · Fond de carte © OpenStreetMap contributors, SRTM · Style © OpenTopoMap (CC-BY-SA) · © IGN Belgique (CartoWeb.be) · © IGN France · © ACT Luxembourg (geoportail.lu) · © CyclOSM · Sentiers © Waymarked Trails (CC-BY-SA) · Chasse © SPW – DNF · Météo © Open-Meteo.com (CC-BY 4.0) · Météo (couche) © OpenWeatherMap · Noms de lieux © OpenStreetMap contributors (Nominatim)</p>
-      <p class="version-line">v1.5.11 · © A.Legat</p>
+      <p class="version-line">v1.5.12 · © A.Legat</p>
     </div>
   </aside>
   <div class="map-menu maplibregl-ctrl" id="menu-map">
@@ -1152,6 +1153,7 @@
       </select></label>
       <label class="weather-row" id="weather-key-row" hidden><input type="text" id="weather-key" class="weather-field" data-i18n-ph="bm.wKeyPh" placeholder="Clé API OpenWeatherMap" autocomplete="off" spellcheck="false"></label>
       <div class="map-pop-note weather-row" id="weather-key-note" hidden><span data-i18n="bm.wKeyNote">Clé gratuite à créer sur</span> <a href="https://home.openweathermap.org/api_keys" target="_blank" rel="noopener">openweathermap.org</a></div>
+      <div class="map-pop-note weather-row weather-err" id="weather-status" hidden></div>
       <label><input type="checkbox" id="chk-terrain" checked autocomplete="off"> <span data-i18n="bm.terrain">Relief 3D</span></label>
     </div>
   </div>
@@ -1765,7 +1767,9 @@ const I18N = {
     'bm.hunt': "Chasse (SPW, Wallonie)", 'bm.huntDate': "Date",
     'bm.weather': "Météo (OpenWeatherMap)", 'bm.wClouds': "Nuages", 'bm.wRain': "Précipitations", 'bm.wTemp': "Température",
     'bm.wWind': "Vent", 'bm.wPress': "Pression", 'bm.wKeyPh': "Clé API OpenWeatherMap",
-    'bm.wKeyNote': "Clé gratuite à créer sur", 'lg.weatherTitle': "Météo actuelle – {name}",
+    'bm.wKeyNote': "Clé gratuite à créer sur",
+    'bm.wErrKey': "Clé refusée par OpenWeatherMap (erreur {code}) : clé incorrecte ou pas encore active (jusqu'à 2 h après sa création).",
+    'bm.wErrNet': "Tuiles météo indisponibles ({code}).", 'lg.weatherTitle': "Météo actuelle – {name}",
     'lg.weatherNote': "Données en temps réel (pas à la date de la trace). Une nouvelle clé peut mettre jusqu'à 2 h à s'activer.",
     'title.legend': "Légende", 'lg.title': "Légende", 'lg.empty': "Rien de particulier à légender.",
     'lg.track': "Trace GPX", 'lg.start': "Départ", 'lg.end': "Arrivée", 'lg.pos': "Position (lecture)", 'lg.pts': "Points de la trace",
@@ -1881,7 +1885,9 @@ const I18N = {
     'bm.hunt': "Hunting (SPW, Wallonia)", 'bm.huntDate': "Date",
     'bm.weather': "Weather (OpenWeatherMap)", 'bm.wClouds': "Clouds", 'bm.wRain': "Precipitation", 'bm.wTemp': "Temperature",
     'bm.wWind': "Wind", 'bm.wPress': "Pressure", 'bm.wKeyPh': "OpenWeatherMap API key",
-    'bm.wKeyNote': "Free key available at", 'lg.weatherTitle': "Current weather – {name}",
+    'bm.wKeyNote': "Free key available at",
+    'bm.wErrKey': "Key rejected by OpenWeatherMap (error {code}): wrong key or not active yet (up to 2 h after creation).",
+    'bm.wErrNet': "Weather tiles unavailable ({code}).", 'lg.weatherTitle': "Current weather – {name}",
     'lg.weatherNote': "Live data (not at the time of the track). A new key may take up to 2 h to become active.",
     'title.legend': "Legend", 'lg.title': "Legend", 'lg.empty': "Nothing in particular to explain.",
     'lg.track': "GPX track", 'lg.start': "Start", 'lg.end': "Finish", 'lg.pos': "Position (playback)", 'lg.pts': "Track points",
@@ -2727,7 +2733,7 @@ const map = new maplibregl.Map({
         }
       }
       ,{ id: 'hunt', type: 'raster', source: 'hunt', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.8 } }
-      ,{ id: 'weather', type: 'raster', source: 'weather', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.85, 'raster-fade-duration': 0 } }
+      ,{ id: 'weather', type: 'raster', source: 'weather', layout: { visibility: 'none' }, paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 } }
       ,{ id: 'trails', type: 'raster', source: 'trails', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.9 } }
     ],
     terrain: { source: 'terrainSource', exaggeration: 1.6 },
@@ -3001,13 +3007,38 @@ bm.huntDate.addEventListener('change', () => {
   if (src && src.setTiles) src.setTiles([huntTileUrl(bm.huntDate.value)]);
   renderLegend();
 });
+/* rendu de la couche météo : les tuiles OWM sont très transparentes (nuages blancs à peine visibles sur la photo),
+   on renforce le contraste et la saturation ; les nuages sont assombris en gris pour ressortir sur tous les fonds */
+function applyWeatherPaint(){
+  if (!map.getLayer('weather')) return;
+  const clouds = owmLayer === 'clouds_new';
+  map.setPaintProperty('weather', 'raster-brightness-max', clouds ? 0.55 : 1);
+  map.setPaintProperty('weather', 'raster-contrast', clouds ? 0.5 : 0.3);
+  map.setPaintProperty('weather', 'raster-saturation', clouds ? 0 : 0.5);
+}
+let weatherErr = null;
+function showWeatherStatus(){
+  const el = document.getElementById('weather-status');
+  el.hidden = !bm.weather.checked || !owmKey || !weatherErr;
+  if (weatherErr) el.textContent = tx(weatherErr.code === 401 || weatherErr.code === 403 ? 'bm.wErrKey' : 'bm.wErrNet', { code: weatherErr.code || '?' });
+}
+map.on('error', e => {
+  if (e.sourceId !== 'weather') return;
+  const code = e.error && (e.error.status || e.error.statusCode);
+  weatherErr = { code };
+  showWeatherStatus();
+  if (code === 401 || code === 403) bm.menu.classList.add('open');   // clé refusée : on montre le message tout de suite
+});
+onLanguageChange.push(showWeatherStatus);
 function setWeatherTiles(){
+  weatherErr = null; showWeatherStatus();
+  applyWeatherPaint();
   const src = map.getSource('weather');
   if (src && src.setTiles) src.setTiles([owmTileUrl(owmLayer, owmKey)]);
 }
 bm.weather.addEventListener('change', () => {
   try { localStorage.setItem('gpx3d.weather', bm.weather.checked ? '1' : '0'); } catch(e){}
-  syncWeatherRows(); applyBasemap();
+  syncWeatherRows(); showWeatherStatus(); applyBasemap();
   if (bm.weather.checked && !owmKey) bm.weatherKey.focus();
 });
 bm.weatherLayer.addEventListener('change', () => {
@@ -3337,7 +3368,7 @@ map.on('load', () => {
     }
   }, 'hover-point');
   if (state.track) setStartEndSource(state.track);
-  if (map.getLayer('weather')) map.moveLayer('weather');   // météo au-dessus de tout (fonds, superpositions, trace, repères)
+  if (map.getLayer('weather')){ map.moveLayer('weather'); applyWeatherPaint(); }   // météo au-dessus de tout (fonds, superpositions, trace, repères)
 });
 
 /* ============================================================
